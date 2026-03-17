@@ -885,8 +885,8 @@ const [showViewerDropdownReport, setShowViewerDropdownReport] = useState(false);
         else studyUIDs = String(src._id || '');
 
         const OHIF_VIEWERS = {
-            viewer1: 'https://viewer.bharatpacs.com/viewer',
-            viewer2: 'https://viewer2.bharatpacs.com/viewer',
+            viewer1: 'https://viewer.xcentic.com/viewer',
+            viewer2: 'https://viewer2.xcentic.com/viewer',
         };
 
         // Determine format based on selectedViewer

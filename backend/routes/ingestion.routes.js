@@ -17,7 +17,7 @@ const router = express.Router();
 
 // --- Configuration ---
 // const ORTHANC_BASE_URL = 'http://localhost:8045';
-const ORTHANC_BASE_URL = 'http://orthanc-server:8042';
+const ORTHANC_BASE_URL = 'http://orthanc-serverrent:8042';
 
 const ORTHANC_USERNAME = process.env.ORTHANC_USERNAME || 'alice';
 const ORTHANC_PASSWORD = process.env.ORTHANC_PASSWORD || 'alicePassword';
