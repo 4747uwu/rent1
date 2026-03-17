@@ -1,8 +1,10 @@
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 import User from './models/userModel.js';
-import connectDB from './config/db.js';
 
 dotenv.config();
+
+const MONGODB_URI = 'mongodb://admin:StrongPass123!@206.189.139.34:27018/orderent?authSource=admin&replicaSet=rs0&directConnection=true';
 
 const superAdmin = {
   username: 'superadmin',
@@ -16,14 +18,12 @@ const seedDatabase = async () => {
   try {
     console.log('🌱 Starting database seeding...');
 
-    // Check if super admin already exists
     const existing = await User.findOne({ email: superAdmin.email });
     if (existing) {
       console.log(`⚠️  Super admin already exists: ${superAdmin.email}`);
       process.exit(0);
     }
 
-    // Create super admin
     console.log('👑 Creating super admin...');
     const superAdminUser = new User(superAdmin);
     await superAdminUser.save();
@@ -40,7 +40,18 @@ const seedDatabase = async () => {
   }
 };
 
-// Run the seed
-connectDB().then(() => {
-  seedDatabase();
-});
+const connectAndSeed = async () => {
+  try {
+    console.log('🔗 Connecting to MongoDB...');
+    await mongoose.connect(MONGODB_URI, {
+      directConnection: true,
+    });
+    console.log('✅ MongoDB Connected!');
+    await seedDatabase();
+  } catch (error) {
+    console.error('❌ MongoDB Connection Failed:', error);
+    process.exit(1);
+  }
+};
+
+connectAndSeed();

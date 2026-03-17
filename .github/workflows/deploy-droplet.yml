@@ -32,8 +32,8 @@ jobs:
             echo "✅ Docker already present"
           fi
 
-          mkdir -p /mnt/volume_blr1_03/medical-project-rent
-          cd /mnt/volume_blr1_03/medical-project-rent
+          mkdir -p /root/medical-project-rent
+          cd /root/medical-project-rent
 
           rm -rf rent1
           git clone https://github.com/4747uwu/rent1.git
