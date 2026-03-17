@@ -4,7 +4,7 @@ import User from './models/userModel.js';
 
 dotenv.config();
 
-const MONGODB_URI = 'mongodb://admin:StrongPass123!@206.189.139.34:27018/orderent?authSource=admin&replicaSet=rs0&directConnection=true';
+const MONGODB_URI = 'mongodb://admin:StrongPass123!@159.89.165.112:27018/orderent?authSource=admin&replicaSet=rs0&directConnection=true';
 
 const superAdmin = {
   username: 'superadmin',

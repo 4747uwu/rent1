@@ -230,16 +230,16 @@ const Navbar = ({
               
               <div className="flex items-center space-x-2">
                 <img 
-                  src={orgLogoUrl || '/logo.png'} 
-                  alt="Logo" 
-                  className="h-8 w-8 object-contain"
+                  src={orgLogoUrl || '/rent.jpeg'} 
+                  alt="Radx1 Logo" 
+                  className="h-8 w-auto max-w-[80px] object-contain"
                 />
                 <div className="hidden md:block">
                   <div className="flex items-center space-x-1.5">
-                    <h1 className="text-sm font-bold text-gray-900 tracking-tight">{title}</h1>
-                    {subtitle && (
-                      <span className="text-[11px] text-gray-400 font-medium">· {subtitle}</span>
-                    )}
+                    <h1 className="text-sm font-bold text-gray-900 tracking-tight">RADX1</h1>
+                    <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap">
+                      {title ? `· ${title}` : ''} {subtitle ? `- ${subtitle}` : ''}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -406,10 +406,10 @@ const Navbar = ({
           <div className="md:hidden border-t border-gray-200 bg-white">
             <div className="px-3 py-2 space-y-2">
               <div>
-                <h1 className="text-sm font-bold text-black">{title}</h1>
-                {subtitle && (
-                  <p className="text-xs text-gray-600">{subtitle}</p>
-                )}
+                <h1 className="text-sm font-bold text-black">RADX1</h1>
+                <p className="text-xs text-gray-600 font-medium">
+                  {title ? `${title}` : 'Menu'} {subtitle ? `- ${subtitle}` : ''}
+                </p>
               </div>
               
               {additionalActions.map((action, index) => (

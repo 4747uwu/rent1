@@ -101,7 +101,9 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
         'https://pacs.xcentic.com',
         'http://206.189.133.52',
         'http://206.189.133.52:8080',
-        'https://pacs.bharatpacs.com'
+        'https://pacs.bharatpacs.com',
+        'http://159.89.165.112'
+
 
 
                // ✅ Local HTTPS testing
@@ -122,7 +124,8 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
         'https://pacs.xcentic.com',
         'http://206.189.133.52',
         'http://206.189.133.52:8080',
-                'https://pacs.bharatpacs.com'
+                'https://pacs.bharatpacs.com',
+                'http://159.89.165.112'
 
 
       ];

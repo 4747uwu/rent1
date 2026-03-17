@@ -8,7 +8,7 @@ import https from 'https';
 import mongoose from 'mongoose';
 import { updateWorkflowStatus } from '../utils/workflowStatusManager.js';
 
-const DOCX_SERVICE_URL = 'http://206.189.133.52:8081/api/Document/generate';
+const DOCX_SERVICE_URL = 'http://159.89.165.112:8081/api/Document/generate';
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
 // ============================================================
