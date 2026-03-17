@@ -320,11 +320,11 @@ const OrganizationForm = ({
                   readOnly={isEdit}
                 />
                 <span className="flex items-center px-3 bg-gray-100 text-gray-500 text-sm border-l border-gray-300 whitespace-nowrap">
-                  @bharatpacs.com
+                  @radivue.com
                 </span>
               </div>
               {!isEdit && formData.adminEmail && (
-                <p className="text-xs text-gray-400 mt-1">Login: <strong>{formData.adminEmail}@bharatpacs.com</strong></p>
+                <p className="text-xs text-gray-400 mt-1">Login: <strong>{formData.adminEmail}@radivue.com</strong></p>
               )}
               {formErrors.adminEmail && <p className="text-sm text-red-600 mt-1">{formErrors.adminEmail}</p>}
             </div>

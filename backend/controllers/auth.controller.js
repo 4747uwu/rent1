@@ -26,20 +26,21 @@ export const loginUser = async (req, res) => {
         const loginInput = email.trim().toLowerCase();
 
         // Support login by username OR email
-        // If no @ symbol, treat as username OR auto-append @bharatpacs.com
-        let userQuery;
-        if (loginInput.includes('@')) {
-            userQuery = { email: loginInput };
-        } else {
-            userQuery = {
-                $or: [
-                    { username: loginInput },
-                    { email: `${loginInput}@bharatpacs.com` }
-                ]
-            };
+        // If no @ symbol, treat as username OR auto-append @radivue.com
+        const query = {
+            $or: [
+                { email: loginInput.toLowerCase() },
+                { username: loginInput.toLowerCase() }
+            ]
+        };
+
+        if (!loginInput.includes('@')) {
+            query.$or.push(
+                { email: `${loginInput}@radivue.com` }
+            );
         }
 
-        let user = await User.findOne(userQuery)
+        let user = await User.findOne(query)
         .select('+password')
         .populate('organization', 'name identifier status displayName features subscription')
         .populate('lab', 'name identifier isActive fullIdentifier settings');

@@ -153,10 +153,10 @@ export const createUserWithRole = async (req, res) => {
         //     }
         // }
 
-        // Auto-append @bharatpacs.com if no domain given
+        // Auto-append @radivue.com if no domain given
         const finalEmail = email.includes('@')
             ? email.toLowerCase().trim()
-            : `${email.toLowerCase().trim()}@bharatpacs.com`;
+            : `${email.toLowerCase().trim()}@radivue.com`;
 
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

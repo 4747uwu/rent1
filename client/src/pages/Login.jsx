@@ -72,7 +72,7 @@ const LoginPage = () => {
       const { email, password } = formData;
       if (!email.trim() || !password.trim()) throw new Error('Please provide both email and password');
       
-      const loginEmail = email.includes('@') ? email.trim() : `${email.trim()}@bharatpacs.com`;
+      const loginEmail = email.includes('@') ? email.trim() : `${email.trim()}@radivue.com`;
       
       const { user, redirectTo } = await login(loginEmail, password);
       const from = location.state?.from || redirectTo || getDashboardRoute();

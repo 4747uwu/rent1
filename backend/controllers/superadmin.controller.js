@@ -187,14 +187,14 @@ export const createOrganization = async (req, res) => {
         const identifier = await generateUniqueIdentifier(session);
         console.log('✅ Generated unique identifier:', identifier);
 
-        // ✅ Append @bharatpacs.com if no domain provided
-        const finalAdminEmail = adminEmail.includes('@')
-            ? adminEmail.toLowerCase().trim()
-            : `${adminEmail.toLowerCase().trim()}@bharatpacs.com`;
+        // ✅ Append @radivue.com if no domain provided
+        const finalEmail = adminEmail.includes('@') 
+            ? adminEmail.toLowerCase().trim() 
+            : `${adminEmail.toLowerCase().trim()}@radivue.com`;
 
         // Check if admin email is unique
         const existingUser = await User.findOne({ 
-            email: finalAdminEmail
+            email: finalEmail
         }).session(session);
 
         if (existingUser) {

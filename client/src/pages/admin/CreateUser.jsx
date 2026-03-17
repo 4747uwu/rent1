@@ -903,11 +903,11 @@ const CreateUser = () => {
                                             required
                                         />
                                         <span className="flex items-center px-2.5 bg-gray-50 text-gray-400 text-xs border-l border-gray-300 whitespace-nowrap">
-                                            @bharatpacs.com
+                                            @radivue.com
                                         </span>
                                     </div>
                                     <p className="text-[10px] text-gray-400 mt-0.5">
-                                        Login: <strong>{formData.email || 'username'}@bharatpacs.com</strong>
+                                        Login: <strong>{formData.email || 'username'}@radivue.com</strong>
                                     </p>
                                 </div>
 

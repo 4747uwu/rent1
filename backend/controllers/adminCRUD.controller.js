@@ -43,10 +43,10 @@ export const createDoctor = async (req, res) => {
             });
         }
 
-        // ✅ Auto-append @bharatpacs.com if no domain given
+        // ✅ Auto-append @radivue.com if no domain given
         const finalEmail = email.includes('@')
             ? email.toLowerCase().trim()
-            : `${email.toLowerCase().trim()}@bharatpacs.com`;
+            : `${email.toLowerCase().trim()}@radivue.com`;
 
         // Check if email already exists in the organization
         const existingUser = await User.findOne({
@@ -81,7 +81,7 @@ export const createDoctor = async (req, res) => {
             organization: req.user.organization,
             organizationIdentifier: req.user.organizationIdentifier,
             username: finalUsername,
-            email: finalEmail,          // ✅ username@bharatpacs.com
+            email: finalEmail,          // ✅ username@radivue.com
             password: password,
             fullName: fullName.trim(),
             role: 'radiologist',
@@ -242,10 +242,10 @@ export const createLab = async (req, res) => {
                     message: 'Staff username, full name, and password are required for lab staff account'
                 });
             }
-            // ✅ Auto-append @bharatpacs.com
+            // ✅ Auto-append @radivue.com
             finalStaffEmail = username.includes('@')
                 ? username.toLowerCase().trim()
-                : `${username.toLowerCase().trim()}@bharatpacs.com`;
+                : `${username.toLowerCase().trim()}@radivue.com`;
         }
 
         const userOrgId = req.user.organization;
@@ -300,7 +300,7 @@ export const createLab = async (req, res) => {
                 organizationIdentifier: userOrgIdentifier,
                 lab: newLab._id,
                 username: finalUsername,
-                email: finalStaffEmail,             // ✅ username@bharatpacs.com
+                email: finalStaffEmail,             // ✅ username@radivue.com
                 password: password,
                 fullName: fullName.trim(),
                 role: role,

@@ -201,7 +201,7 @@ const CreateDoctor = () => {
 
             const payload = {
                 fullName: formData.fullName.trim(),
-                email: formData.username.trim(),    // ✅ send username, backend appends @bharatpacs.com
+                email: formData.username.trim(),    // ✅ send username, backend appends @radivue.com
                 password: formData.password,
                 specialization: formData.specialization?.trim() || 'General Radiology', // ✅ default if empty
                 licenseNumber: formData.licenseNumber?.trim() || undefined,
@@ -235,7 +235,7 @@ const CreateDoctor = () => {
                     );
                     toast.success(`Doctor created and linked to ${selectedVerifiers.length} verifier(s)!`);
                 } else {
-                    toast.success(`Doctor created! Login: ${formData.username}@bharatpacs.com`);
+                    toast.success(`Doctor created! Login: ${formData.username}@radivue.com`);
                 }
 
                 navigate('/admin/dashboard');
@@ -368,7 +368,7 @@ const CreateDoctor = () => {
                                             </div>
                                         </div>
 
-                                        {/* ✅ USERNAME ONLY - no email field, backend appends @bharatpacs.com */}
+                                        {/* ✅ USERNAME ONLY - no email field, backend appends @radivue.com */}
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-slate-700 mb-2">
                                                 Username <span className="text-red-500">*</span>
@@ -386,11 +386,11 @@ const CreateDoctor = () => {
                                                     />
                                                 </div>
                                                 <span className="flex items-center px-3 bg-blue-50 text-blue-600 text-sm border-l border-slate-300 whitespace-nowrap font-medium">
-                                                    @bharatpacs.com
+                                                    @radivue.com
                                                 </span>
                                             </div>
-                                            <p className="text-xs text-slate-400 mt-1">
-                                                Login: <strong>{formData.username || 'username'}@bharatpacs.com</strong>
+                                            <p className="text-xs text-gray-500 mt-2 bg-gray-50 p-2 rounded border border-gray-100 italic">
+                                                Login: <strong>{formData.username || 'username'}@radivue.com</strong>
                                             </p>
                                         </div>
 

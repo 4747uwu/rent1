@@ -242,7 +242,7 @@ const CreateLab = () => {
                                     <input name="staffUserDetails.fullName" placeholder="Full Name" onChange={handleInputChange} className="border p-2 rounded bg-white" />
                                     <div className="flex border rounded bg-white overflow-hidden">
                                         <input value={formData.staffUserDetails.username} onChange={handleUsernameChange} className="flex-1 p-2 outline-none" placeholder="username" />
-                                        <span className="p-2 bg-purple-100 text-xs flex items-center">@bharatpacs.com</span>
+                                        <span className="p-2 bg-purple-100 text-xs flex items-center">@radivue.com</span>
                                     </div>
                                     <input name="staffUserDetails.password" type="password" placeholder="Password" onChange={handleInputChange} className="border p-2 rounded bg-white col-span-2" />
                                 </div>
