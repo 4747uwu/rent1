@@ -7,8 +7,8 @@ import FormData from 'form-data';
 import { generateUID } from '../utils/dicomUtils.js';
 import mongoose from 'mongoose';
 
-const PYTHON_SERVER_URL = process.env.PYTHON_SERVER_URL || 'http://206.189.133.52:8765';
-const ORTHANC_URL = 'http://206.189.133.52:8042';
+const PYTHON_SERVER_URL = process.env.PYTHON_SERVER_URL || 'http://206.189.165.52:8766';
+const ORTHANC_URL = 'http://159.89.165.112:8043';
 
 export const createManualStudy = async (req, res) => {
     try {

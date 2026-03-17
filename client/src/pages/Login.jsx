@@ -201,11 +201,7 @@ const LoginPage = () => {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                <div className="flex justify-end mt-2">
-                  <a href="#" className="text-xs font-medium text-sky-600 hover:text-sky-700 transition-colors">
-                    Forgot details?
-                  </a>
-                </div>
+               
               </div>
 
               {/* Error Alert */}
@@ -229,10 +225,7 @@ const LoginPage = () => {
               </button>
             </form>
 
-            <div className="mt-6 pt-6 border-t border-slate-100 flex items-center justify-center gap-2 text-xs text-slate-400 font-medium">
-              <Shield className="w-3.5 h-3.5 text-slate-400" />
-              HIPAA Compliant · ISO 27001 Certified
-            </div>
+          
           </div>
         </div>
 
