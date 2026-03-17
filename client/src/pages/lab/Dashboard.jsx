@@ -5,7 +5,7 @@ import Search from '../../components/common/Search/Search';
 import UnifiedWorklistTable from '../../components/common/WorklistTable/UnifiedWorklistTable.jsx';
 import ColumnConfigurator from '../../components/common/WorklistTable/ColumnConfigurator';
 import api from '../../services/api';
-import { Building, Palette } from 'lucide-react';
+import { Building, Palette, Receipt } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatStudiesForWorklist } from '../../utils/studyFormatter';
 import { useNavigate } from 'react-router-dom';
@@ -340,6 +340,13 @@ const LabDashboard = () => {
   }
 
   const additionalActions = [
+    {
+      label: 'Billing',
+      icon: Receipt,
+      onClick: () => navigate('/lab/billing'),
+      variant: 'secondary',
+      tooltip: 'View ongoing billing statements'
+    },
     {
       label: 'Branding',
       icon: Palette,

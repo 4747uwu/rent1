@@ -331,7 +331,7 @@ export const getLabBillingReport = async (req, res) => {
         const { labId } = req.params;
         const { from, to, paymentStatus, page = 1, limit = 50 } = req.query;
 
-        if (!['admin', 'super_admin', 'billing'].includes(role)) {
+        if (!['admin', 'super_admin', 'billing', 'lab_staff'].includes(role)) {
             return res.status(403).json({ success: false, message: 'Access denied' });
         }
 
@@ -343,7 +343,14 @@ export const getLabBillingReport = async (req, res) => {
             matchQuery.organizationIdentifier = organizationIdentifier;
         }
 
-        if (labId && labId !== 'all') {
+        if (role === 'lab_staff') {
+            // Lab staff can only view their own lab's billing
+            if (req.user.lab) {
+                matchQuery.sourceLab = new (await import('mongoose')).default.Types.ObjectId(req.user.lab);
+            } else {
+                return res.status(403).json({ success: false, message: 'No lab associated with your account' });
+            }
+        } else if (labId && labId !== 'all') {
             matchQuery.sourceLab = new (await import('mongoose')).default.Types.ObjectId(labId);
         }
 

@@ -8,6 +8,7 @@ import SuperAdminDashboard from './pages/superadmin/Dashboard';
 import AdminDashboard from './pages/admin/Dashboard';
 import AssignerDashboard from './pages/assigner/Dashboard';
 import LabDashboard from './pages/lab/Dashboard';
+import LabBilling from './pages/lab/LabBilling';
 import CreateDoctor from './pages/admin/CreateDoctor';
 import CreateLab from './pages/admin/CreateLab';
 import CreateUser from './pages/admin/CreateUser';
@@ -217,6 +218,16 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute allowedRoles={['lab_staff', 'assignor', 'admin']}>
             <LabDashboard/>
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* ✅ Lab Billing - Allow lab_staff + admin */}
+      <Route 
+        path="/lab/billing" 
+        element={
+          <ProtectedRoute allowedRoles={['lab_staff', 'admin']}>
+            <LabBilling/>
           </ProtectedRoute>
         } 
       />
