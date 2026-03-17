@@ -35,9 +35,9 @@ jobs:
           mkdir -p /mnt/volume_blr1_03/medical-project-rent
           cd /mnt/volume_blr1_03/medical-project-rent
 
-          rm -rf order22
-          git clone https://github.com/4747uwu/order22.git
-          cd order22
+          rm -rf rent1
+          git clone https://github.com/4747uwu/rent1.git
+          cd rent1
 
           cat > .env << 'ENVEOF'
           NODE_ENV=production
