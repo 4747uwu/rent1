@@ -1,0 +1,43 @@
+{
+  "name": "client",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@picovoice/cheetah-web": "^3.0.0",
+    "@picovoice/web-voice-processor": "^4.0.9",
+    "@tailwindcss/vite": "^4.1.13",
+    "axios": "^1.12.2",
+    "lucide-react": "^0.544.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-easy-crop": "^5.5.6",
+    "react-hot-toast": "^2.6.0",
+    "react-image-crop": "^11.0.10",
+    "react-router-dom": "^7.9.3",
+    "react-speech-recognition": "^4.0.1",
+    "react-toastify": "^11.0.5",
+    "react-virtualized-auto-sizer": "^1.0.26",
+    "react-window": "^1.8.11",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^4.1.13",
+    "three": "^0.181.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.3",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.4.0",
+    "vite": "^7.1.7"
+  }
+}

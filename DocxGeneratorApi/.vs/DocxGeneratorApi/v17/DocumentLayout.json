@@ -1,0 +1,165 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|c:\\users\\p\\source\\repos\\docxgeneratorapi\\docxgeneratorapi\\controllers\\documentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|solutionrelative:docxgeneratorapi\\controllers\\documentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|c:\\users\\p\\source\\repos\\docxgeneratorapi\\docxgeneratorapi\\services\\documentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|solutionrelative:docxgeneratorapi\\services\\documentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|c:\\users\\p\\source\\repos\\docxgeneratorapi\\docxgeneratorapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|solutionrelative:docxgeneratorapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|c:\\users\\p\\source\\repos\\docxgeneratorapi\\docxgeneratorapi\\models\\generatedocxrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|solutionrelative:docxgeneratorapi\\models\\generatedocxrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|c:\\users\\p\\source\\repos\\docxgeneratorapi\\docxgeneratorapi\\models\\qrcodeservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|solutionrelative:docxgeneratorapi\\models\\qrcodeservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|c:\\users\\p\\source\\repos\\docxgeneratorapi\\docxgeneratorapi\\dockerfile||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|solutionrelative:docxgeneratorapi\\dockerfile||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|c:\\users\\p\\source\\repos\\docxgeneratorapi\\docxgeneratorapi\\docxgeneratorapi.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|solutionrelative:docxgeneratorapi\\docxgeneratorapi.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|c:\\users\\p\\source\\repos\\docxgeneratorapi\\docxgeneratorapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{562CBBAC-00A4-4092-9A46-D2B7643688FC}|DocxGeneratorApi\\DocxGeneratorApi.csproj|solutionrelative:docxgeneratorapi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 5,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1275085686:0:{83107a3e-496a-485e-b455-16ddb978e55e}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "QrCodeService.cs",
+              "DocumentMoniker": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\Models\\QrCodeService.cs",
+              "RelativeDocumentMoniker": "DocxGeneratorApi\\Models\\QrCodeService.cs",
+              "ToolTip": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\Models\\QrCodeService.cs",
+              "RelativeToolTip": "DocxGeneratorApi\\Models\\QrCodeService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-21T21:10:23.412Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Dockerfile",
+              "DocumentMoniker": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\Dockerfile",
+              "RelativeDocumentMoniker": "DocxGeneratorApi\\Dockerfile",
+              "ToolTip": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\Dockerfile",
+              "RelativeToolTip": "DocxGeneratorApi\\Dockerfile",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAUwB0AAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-09-07T18:27:31.427Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\appsettings.json",
+              "RelativeDocumentMoniker": "DocxGeneratorApi\\appsettings.json",
+              "ToolTip": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\appsettings.json",
+              "RelativeToolTip": "DocxGeneratorApi\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-09-07T15:47:37.848Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "DocumentController.cs",
+              "DocumentMoniker": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\Controllers\\DocumentController.cs",
+              "RelativeDocumentMoniker": "DocxGeneratorApi\\Controllers\\DocumentController.cs",
+              "ToolTip": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\Controllers\\DocumentController.cs",
+              "RelativeToolTip": "DocxGeneratorApi\\Controllers\\DocumentController.cs",
+              "ViewState": "AgIAABUAAAAAAAAAAAAYwCkAAABrAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-07T13:42:03.566Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "DocumentService.cs",
+              "DocumentMoniker": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\Services\\DocumentService.cs",
+              "RelativeDocumentMoniker": "DocxGeneratorApi\\Services\\DocumentService.cs",
+              "ToolTip": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\Services\\DocumentService.cs",
+              "RelativeToolTip": "DocxGeneratorApi\\Services\\DocumentService.cs",
+              "ViewState": "AgIAACIAAAAAAAAAAAAgwLsAAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-07T13:40:50.939Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "GenerateDocxRequest.cs",
+              "DocumentMoniker": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\Models\\GenerateDocxRequest.cs",
+              "RelativeDocumentMoniker": "DocxGeneratorApi\\Models\\GenerateDocxRequest.cs",
+              "ToolTip": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\Models\\GenerateDocxRequest.cs",
+              "RelativeToolTip": "DocxGeneratorApi\\Models\\GenerateDocxRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAA7AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-07T13:40:05.733Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "DocxGeneratorApi.csproj",
+              "DocumentMoniker": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\DocxGeneratorApi.csproj",
+              "RelativeDocumentMoniker": "DocxGeneratorApi\\DocxGeneratorApi.csproj",
+              "ToolTip": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\DocxGeneratorApi.csproj",
+              "RelativeToolTip": "DocxGeneratorApi\\DocxGeneratorApi.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-09-07T13:39:09.742Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\Program.cs",
+              "RelativeDocumentMoniker": "DocxGeneratorApi\\Program.cs",
+              "ToolTip": "C:\\Users\\P\\source\\repos\\DocxGeneratorApi\\DocxGeneratorApi\\Program.cs",
+              "RelativeToolTip": "DocxGeneratorApi\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-07T11:50:55.419Z"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{269a02dc-6af8-11d3-bdc4-00c04f688e50}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{56df62a4-05a3-4e5b-aa1a-99371ccfb997}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      args:
+        - NODE_ENV=production
+    container_name: backend-rent
+    ports:
+      - "5001:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - BREVO_API_KEY=${BREVO_API_KEY}
+      - MONGODB_URI=${MONGODB_URI}
+      - REDIS_URL=${REDIS_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=1d
+      - JWT_COOKIE_NAME=jwtAuthToken
+      - BCRYPT_SALT_ROUNDS=12
+      - WASABI_ACCESS_KEY=${WASABI_ACCESS_KEY}
+      - WASABI_SECRET_KEY=${WASABI_SECRET_KEY}
+      - WASABI_REGION=${WASABI_REGION}
+      - WASABI_ENDPOINT=${WASABI_ENDPOINT}
+      - WASABI_DICOM_BUCKET=${WASABI_DICOM_BUCKET}
+      - WASABI_DOCUMENTS_BUCKET=${WASABI_DOCUMENTS_BUCKET}
+      - WASABI_REPORTS_BUCKET=${WASABI_REPORTS_BUCKET}
+      - WASABI_BACKUPS_BUCKET=${WASABI_BACKUPS_BUCKET}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SENDER_EMAIL=${SENDER_EMAIL}
+      - ORTHANC_URL=http://orthanc-serverrent:8042
+      - ORTHANC_USERNAME=alice
+      - ORTHANC_PASSWORD=alicePassword
+      - FRONTEND_URL=http://206.189.139.34:5003
+      - ORTHANC_STORAGE_PATH=/mnt/volume_blr1_03/orthanc/dicom
+      - SHARED_TEMP_DIR=/tmp/node/restore
+    volumes:
+      - /mnt/volume_blr1_03/orthanc/dicom:/mnt/volume_blr1_03/orthanc/dicom:ro
+      - /tmp/node/restore:/tmp/node/restore:rw
+      - backend_cache:/home/nodejs/.cache
+    restart: unless-stopped
+    networks:
+      - medical-network
+
+  frontend:
+    build:
+      context: ./client
+      args:
+        - VITE_NODE_ENV=production
+        - VITE_BACKEND_URL=http://206.189.139.34:5003
+        - VITE_WS_URL=ws://206.189.139.34:5003
+        - VITE_ORTHANC_URL=http://206.189.139.34:8043
+    container_name: frontend-rent
+    ports:
+      - "5003:8080"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - medical-network
+
+volumes:
+  backend_cache:
+
+networks:
+  medical-network:
+    external: true
+    name: orthanc-rent_medical-network
