@@ -90,12 +90,12 @@ class QRDownloaderController {
                 dicomStudy: studyId,
                 reportStatus: { $in: ['finalized', 'verified', 'approved'] }
             })
-            .sort({ createdAt: -1 })
-            .select('_id reportStatus reportType createdAt doctorId reportId')
-            .populate('doctorId', 'fullName')
-            .lean();
+                .sort({ createdAt: -1 })
+                .select('_id reportStatus reportType createdAt doctorId reportId')
+                .populate('doctorId', 'fullName')
+                .lean();
 
-            const OHIF_BASE_URL = process.env.OHIF_BASE_URL || 'https://viewer.bharatpacs.com/viewer';
+            const OHIF_BASE_URL = process.env.OHIF_BASE_URL || 'https://viewer.xcentic.com/viewer';
             const uid = study.studyInstanceUID || study.orthancStudyID || '';
             const ohifUrl = uid ? `${OHIF_BASE_URL}?StudyInstanceUIDs=${encodeURIComponent(uid)}` : null;
 
