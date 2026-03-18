@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { 
-  Globe, 
+import {
+  Globe,
   ChevronDown,
   Plus,
   Search,
@@ -22,8 +22,8 @@ import ManualStudyCreator from '../admin/ManualStudyCreator';
 import SettingsModal from './SettingsModal';
 import api from '../../services/api';
 
-const Navbar = ({ 
-  title, 
+const Navbar = ({
+  title,
   subtitle,
   showOrganizationSelector = false,
   onCreateOrganization,
@@ -31,9 +31,9 @@ const Navbar = ({
   additionalActions = [],
   notifications = 0
 }) => {
-  const { 
-    currentUser, 
-    currentOrganizationContext, 
+  const {
+    currentUser,
+    currentOrganizationContext,
     availableOrganizations,
     switchOrganization,
     logout
@@ -206,7 +206,7 @@ const Navbar = ({
   const canAccessProfileModal = ['doctor_account', 'radiologist'].includes(currentUser?.role);
 
   // ✅ CHECK IF USER CAN CREATE MANUAL STUDIES
-  const canCreateManualStudy = ['admin','lab_staff'].includes(currentUser?.role);
+  const canCreateManualStudy = ['admin', 'lab_staff'].includes(currentUser?.role);
 
   // ✅ ADD: Settings access check (same logic as Search.jsx)
   const role = (currentUser?.role || '').toString().toLowerCase();
@@ -218,7 +218,7 @@ const Navbar = ({
       <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
         <div className="max-w-8xl mx-auto px-3">
           <div className="flex justify-between items-center h-10">
-            
+
             {/* LEFT SECTION - Logo + Title */}
             <div className="flex items-center space-x-2">
               <button
@@ -227,11 +227,11 @@ const Navbar = ({
               >
                 {showMobileMenu ? <X className="h-3.5 w-3.5" /> : <Menu className="h-3.5 w-3.5" />}
               </button>
-              
+
               <div className="flex items-center space-x-2">
-                <img 
-                  src={orgLogoUrl || '/rent.jpeg'} 
-                  alt="Radx1 Logo" 
+                <img
+                  src={orgLogoUrl || '/rent.jpeg'}
+                  alt="Radx1 Logo"
                   className="h-8 w-auto max-w-[80px] object-contain"
                 />
                 <div className="hidden md:block">
@@ -259,7 +259,8 @@ const Navbar = ({
                 </button>
               )}
 
-              {(['admin', 'assignor'].includes(currentUser?.role) || 
+
+              {/* {(['admin', 'assignor'].includes(currentUser?.role) || 
                 currentUser?.accountRoles?.some(role => ['admin', 'assignor', 'super_admin'].includes(role))) && (
                 <button
                   onClick={handleOpenCopyModal}
@@ -269,7 +270,7 @@ const Navbar = ({
                   <Copy className="h-3 w-3" />
                   <span>Copy Study</span>
                 </button>
-              )}
+              )} */}
 
               {canCreateManualStudy && (
                 <button
@@ -297,11 +298,10 @@ const Navbar = ({
                 <button
                   key={index}
                   onClick={action.onClick}
-                  className={`hidden md:flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors border ${
-                    action.variant === 'primary'
+                  className={`hidden md:flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors border ${action.variant === 'primary'
                       ? 'bg-gray-900 text-white border-gray-900 hover:bg-gray-800'
                       : 'text-gray-600 hover:bg-gray-100 border-gray-200'
-                  }`}
+                    }`}
                   title={action.tooltip}
                 >
                   {action.icon && <action.icon className="h-3 w-3" />}
@@ -310,7 +310,7 @@ const Navbar = ({
               ))}
 
               {/* Refresh */}
-              
+
 
               {notifications > 0 && (
                 <button className="relative p-1 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors">
@@ -322,7 +322,7 @@ const Navbar = ({
               )}
 
               {/* Organization Selector */}
-              
+
               <div className="relative" ref={profileDropdownRef}>
                 <button
                   onClick={() => setShowProfileDropdown(!showProfileDropdown)}
@@ -359,7 +359,7 @@ const Navbar = ({
                     <div className="py-1">
                       {/* Profile Settings - Only show for doctors/radiologists */}
                       {canAccessProfileModal && (
-                        <button 
+                        <button
                           onClick={handleOpenProfileModal}
                           className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-2"
                         >
@@ -370,7 +370,7 @@ const Navbar = ({
 
                       {/* Upload Logo - admin only */}
                       {hasSettingsAccess && (
-                        <button 
+                        <button
                           onClick={() => logoInputRef.current?.click()}
                           className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-2"
                         >
@@ -378,7 +378,7 @@ const Navbar = ({
                           <span>Upload Logo</span>
                         </button>
                       )}
-                      
+
                       <button className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-2">
                         <Settings className="h-3.5 w-3.5" />
                         <span>Account Settings</span>
@@ -411,7 +411,7 @@ const Navbar = ({
                   {title ? `${title}` : 'Menu'} {subtitle ? `- ${subtitle}` : ''}
                 </p>
               </div>
-              
+
               {additionalActions.map((action, index) => (
                 <button
                   key={index}
@@ -419,11 +419,10 @@ const Navbar = ({
                     action.onClick();
                     setShowMobileMenu(false);
                   }}
-                  className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${
-                    action.variant === 'primary' 
+                  className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${action.variant === 'primary'
                       ? 'bg-black text-white'
                       : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   {action.icon && <action.icon className="h-3.5 w-3.5" />}
                   <span>{action.label}</span>

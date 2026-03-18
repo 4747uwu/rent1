@@ -52,7 +52,7 @@ const HeaderColorPicker = ({ isOpen, onClose, currentColor, onSelectColor }) => 
             </svg>
           </button>
         </div>
-        
+
         <div className="p-3">
           <div className="grid grid-cols-4 gap-1.5">
             {HEADER_COLOR_PRESETS.map((preset, index) => (
@@ -62,11 +62,10 @@ const HeaderColorPicker = ({ isOpen, onClose, currentColor, onSelectColor }) => 
                   onSelectColor(preset);
                   onClose();
                 }}
-                className={`relative px-2 py-1.5 rounded-md transition-all border ${
-                  currentColor.name === preset.name 
-                    ? 'border-gray-900 ring-1 ring-gray-900/20 scale-[1.02] shadow-md' 
+                className={`relative px-2 py-1.5 rounded-md transition-all border ${currentColor.name === preset.name
+                    ? 'border-gray-900 ring-1 ring-gray-900/20 scale-[1.02] shadow-md'
                     : 'border-gray-200 hover:border-gray-400'
-                }`}
+                  }`}
               >
                 <div className={`h-6 rounded bg-gradient-to-r ${preset.gradient} flex items-center justify-center ${preset.textColor} text-[10px] font-semibold`}>
                   {preset.name}
@@ -88,7 +87,7 @@ const HeaderColorPicker = ({ isOpen, onClose, currentColor, onSelectColor }) => 
 const Dashboard = ({ isSuperAdminView = false }) => {
   const { currentUser, currentOrganizationContext } = useAuth();
   const navigate = useNavigate();
-  
+
   // ✅ PAGINATION STATE - Single source of truth
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -98,7 +97,7 @@ const Dashboard = ({ isSuperAdminView = false }) => {
     hasNextPage: false,
     hasPrevPage: false
   });
-  
+
   // State management
   const [studies, setStudies] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -133,31 +132,31 @@ const Dashboard = ({ isSuperAdminView = false }) => {
 
   // Column configuration
   const getDefaultColumnConfig = () => ({
-  selection:        { visible: true,  order: 1,  label: 'Select' },
-  bharatPacsId:     { visible: true,  order: 2,  label: 'BP ID' },
-  centerName:       { visible: true,  order: 3,  label: 'Center' },
-  location:         { visible: true,  order: 4,  label: 'Location' },
-  timeline:         { visible: true,  order: 5,  label: 'Timeline' },
-  patientName:      { visible: true,  order: 6,  label: 'Patient Name' },
-  ageGender:        { visible: true,  order: 7,  label: 'Age/Sex' },
-  modality:         { visible: true,  order: 8,  label: 'Modality' },
-  viewOnly:         { visible: true,  order: 9,  label: 'View' },
-  reporting:        { visible: true,  order: 10, label: 'Reporting' },
-  seriesCount:      { visible: true,  order: 11, label: 'Series' },
-  patientId:        { visible: true,  order: 12, label: 'Patient ID' },
-  referralDoctor:   { visible: true,  order: 13, label: 'Referral Dr.' },
-  clinicalHistory:  { visible: true,  order: 14, label: 'History' },
-  studyTime:        { visible: true,  order: 15, label: 'Study Time' },
-  uploadTime:       { visible: true,  order: 16, label: 'Upload Time' },
-  radiologist:      { visible: true,  order: 17, label: 'Radiologist' },
-  studyLock:        { visible: true,  order: 18, label: 'Lock/Unlock' },
-  caseStatus:       { visible: true,  order: 19, label: 'Status' },
-  printCount:       { visible: true,  order: 20, label: 'Print Report' },
-  rejectionReason:  { visible: true,  order: 21, label: 'Reverted Reason' },
-  assignedVerifier: { visible: true,  order: 22, label: 'Finalised By' },
-  verifiedDateTime: { visible: true,  order: 23, label: 'Finalised Date/Time' },
-  actions:          { visible: true,  order: 24, label: 'Actions' },
-});
+    selection: { visible: true, order: 1, label: 'Select' },
+    bharatPacsId: { visible: true, order: 2, label: 'BP ID' },
+    centerName: { visible: true, order: 3, label: 'Center' },
+    location: { visible: true, order: 4, label: 'Location' },
+    timeline: { visible: true, order: 5, label: 'Timeline' },
+    patientName: { visible: true, order: 6, label: 'Patient Name' },
+    ageGender: { visible: true, order: 7, label: 'Age/Sex' },
+    modality: { visible: true, order: 8, label: 'Modality' },
+    viewOnly: { visible: true, order: 9, label: 'View' },
+    reporting: { visible: true, order: 10, label: 'Reporting' },
+    seriesCount: { visible: true, order: 11, label: 'Series' },
+    patientId: { visible: true, order: 12, label: 'Patient ID' },
+    referralDoctor: { visible: true, order: 13, label: 'Referral Dr.' },
+    clinicalHistory: { visible: true, order: 14, label: 'History' },
+    studyTime: { visible: true, order: 15, label: 'Study Time' },
+    uploadTime: { visible: true, order: 16, label: 'Upload Time' },
+    radiologist: { visible: true, order: 17, label: 'Radiologist' },
+    studyLock: { visible: true, order: 18, label: 'Lock/Unlock' },
+    caseStatus: { visible: true, order: 19, label: 'Status' },
+    printCount: { visible: true, order: 20, label: 'Print Report' },
+    rejectionReason: { visible: true, order: 21, label: 'Reverted Reason' },
+    assignedVerifier: { visible: true, order: 22, label: 'Finalised By' },
+    verifiedDateTime: { visible: true, order: 23, label: 'Finalised Date/Time' },
+    actions: { visible: true, order: 24, label: 'Actions' },
+  });
 
 
   const [columnConfig, setColumnConfig] = useState(() => {
@@ -204,36 +203,36 @@ const Dashboard = ({ isSuperAdminView = false }) => {
   const fetchStudies = useCallback(async (filters = {}, page = null, limit = null) => {
     setLoading(true);
     setError(null);
-    
+
     // ✅ CRITICAL: Use parameters if provided, otherwise use current state
     const requestPage = page !== null ? page : pagination.currentPage;
     const requestLimit = limit !== null ? limit : pagination.recordsPerPage;
-    
+
     try {
       const endpoint = getApiEndpoint();
       const activeFilters = Object.keys(filters).length > 0 ? filters : searchFilters;
-      
-      const params = { 
+
+      const params = {
         ...activeFilters,
         page: requestPage,
         limit: requestLimit
       };
       delete params.category;
-    
+
       console.log('🔍 [Admin] Fetching studies:', {
         endpoint,
         requestPage,
         requestLimit,
         filters: params
       });
-      
+
       const response = await api.get(endpoint, { params });
-      
+
       if (response.data.success) {
         const rawStudies = response.data.data || [];
         const formattedStudies = formatStudiesForWorklist(rawStudies);
         setStudies(formattedStudies);
-        
+
         // ✅ CRITICAL: Update pagination with response data but keep our requested values
         setPagination({
           currentPage: requestPage, // Use what we REQUESTED
@@ -243,7 +242,7 @@ const Dashboard = ({ isSuperAdminView = false }) => {
           hasNextPage: response.data.pagination?.hasNextPage || false,
           hasPrevPage: response.data.pagination?.hasPrevPage || false
         });
-        
+
         console.log('✅ [Admin] Studies loaded:', {
           count: formattedStudies.length,
           page: requestPage,
@@ -263,38 +262,38 @@ const Dashboard = ({ isSuperAdminView = false }) => {
   // ✅ FETCH CATEGORY VALUES
   const fetchCategoryValues = useCallback(async (filters = {}) => {
     try {
-        const params = Object.keys(filters).length > 0 ? filters : searchFilters;
-        
-        console.log('🔍 [Admin] Fetching category values with params:', params);
-        
-        const response = await api.get('/admin/category-values', { params });
-        if (response.data.success) {
-            setCategoryValues({
-                all: response.data.all || 0,
-                created: response.data.created || 0,
-                history_created: response.data.history_created || 0,
-                unassigned: response.data.unassigned || 0,
-                assigned: response.data.assigned || 0,
-                pending: response.data.pending || 0,
-                draft: response.data.draft || 0,
-                verification_pending: response.data.verification_pending || 0,
-                final: response.data.final || 0,
-                urgent: response.data.urgent || 0,
-                reprint_need: response.data.reprint_need || 0,
-                reverted: response.data.reverted || 0  // ✅ NEW
-            });
+      const params = Object.keys(filters).length > 0 ? filters : searchFilters;
 
-            console.log('📊 [Admin] CATEGORY VALUES UPDATED:', response.data);
-        }
-    } catch (error) {
-        console.error('Error fetching category values:', error);
+      console.log('🔍 [Admin] Fetching category values with params:', params);
+
+      const response = await api.get('/admin/category-values', { params });
+      if (response.data.success) {
         setCategoryValues({
-            all: 0, created: 0, history_created: 0, unassigned: 0, assigned: 0,
-            pending: 0, draft: 0, verification_pending: 0, final: 0, urgent: 0, 
-            reprint_need: 0, reverted: 0  // ✅ NEW
+          all: response.data.all || 0,
+          created: response.data.created || 0,
+          history_created: response.data.history_created || 0,
+          unassigned: response.data.unassigned || 0,
+          assigned: response.data.assigned || 0,
+          pending: response.data.pending || 0,
+          draft: response.data.draft || 0,
+          verification_pending: response.data.verification_pending || 0,
+          final: response.data.final || 0,
+          urgent: response.data.urgent || 0,
+          reprint_need: response.data.reprint_need || 0,
+          reverted: response.data.reverted || 0  // ✅ NEW
         });
+
+        console.log('📊 [Admin] CATEGORY VALUES UPDATED:', response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching category values:', error);
+      setCategoryValues({
+        all: 0, created: 0, history_created: 0, unassigned: 0, assigned: 0,
+        pending: 0, draft: 0, verification_pending: 0, final: 0, urgent: 0,
+        reprint_need: 0, reverted: 0  // ✅ NEW
+      });
     }
-}, [searchFilters]);
+  }, [searchFilters]);
 
   // ✅ FETCH AVAILABLE ASSIGNEES
   const fetchAvailableAssignees = useCallback(async () => {
@@ -313,7 +312,7 @@ const Dashboard = ({ isSuperAdminView = false }) => {
   useEffect(() => {
     // Try to load saved filters from localStorage
     const savedFilters = localStorage.getItem('adminDashboardFilters');
-    
+
     let defaultFilters = {
       dateFilter: 'today',
       dateType: 'createdAt',
@@ -321,7 +320,7 @@ const Dashboard = ({ isSuperAdminView = false }) => {
       labId: 'all',
       priority: 'all'
     };
-    
+
     // If saved filters exist, use them
     if (savedFilters) {
       try {
@@ -331,7 +330,7 @@ const Dashboard = ({ isSuperAdminView = false }) => {
         console.warn('Error loading saved filters:', error);
       }
     }
-    
+
     setSearchFilters(defaultFilters);
     fetchStudies(defaultFilters, 1, 50);
     fetchCategoryValues(defaultFilters);
@@ -339,21 +338,21 @@ const Dashboard = ({ isSuperAdminView = false }) => {
   }, []); // ✅ Empty deps - only run once on mount
 
   // ✅ Save filters whenever they change
- // Line 318-327: Update the localStorage save to exclude search term
-useEffect(() => {
-  if (Object.keys(searchFilters).length > 0) {
-    try {
-      // ✅ FIX: Don't save search term to localStorage
-      const filtersToSave = { ...searchFilters };
-      delete filtersToSave.search; // Remove search before saving
-      
-      localStorage.setItem('adminDashboardFilters', JSON.stringify(filtersToSave));
-      console.log('💾 [Admin] Saved filters to localStorage (without search):', filtersToSave);
-    } catch (error) {
-      console.warn('Error saving filters:', error);
+  // Line 318-327: Update the localStorage save to exclude search term
+  useEffect(() => {
+    if (Object.keys(searchFilters).length > 0) {
+      try {
+        // ✅ FIX: Don't save search term to localStorage
+        const filtersToSave = { ...searchFilters };
+        delete filtersToSave.search; // Remove search before saving
+
+        localStorage.setItem('adminDashboardFilters', JSON.stringify(filtersToSave));
+        console.log('💾 [Admin] Saved filters to localStorage (without search):', filtersToSave);
+      } catch (error) {
+        console.warn('Error saving filters:', error);
+      }
     }
-  }
-}, [searchFilters]);
+  }, [searchFilters]);
 
   // ✅ FETCH STUDIES WHEN CURRENT VIEW CHANGES (SINGLE useEffect - Remove duplicate)
   useEffect(() => {
@@ -361,7 +360,7 @@ useEffect(() => {
     if (Object.keys(searchFilters).length === 0) {
       return;
     }
-    
+
     console.log(`🔄 [Admin] currentView changed to: ${currentView}`);
     // ✅ Reset to page 1, keep current limit
     fetchStudies(searchFilters, 1, pagination.recordsPerPage);
@@ -370,7 +369,7 @@ useEffect(() => {
   // ✅ SIMPLIFIED: Handle page change
   const handlePageChange = useCallback((newPage) => {
     console.log(`📄 [Admin] Changing page: ${pagination.currentPage} -> ${newPage}`);
-    
+
     // ✅ Just fetch with new page, keeping current limit
     fetchStudies(searchFilters, newPage, pagination.recordsPerPage);
   }, [fetchStudies, searchFilters, pagination.recordsPerPage]);
@@ -378,7 +377,7 @@ useEffect(() => {
   // ✅ SIMPLIFIED: Handle records per page change
   const handleRecordsPerPageChange = useCallback((newLimit) => {
     console.log(`📊 [Admin] Changing limit: ${pagination.recordsPerPage} -> ${newLimit}`);
-    
+
     // ✅ Fetch with new limit, reset to page 1
     fetchStudies(searchFilters, 1, newLimit);
   }, [fetchStudies, searchFilters]);
@@ -386,36 +385,36 @@ useEffect(() => {
   // Handlers
   const handleSearch = useCallback((searchParams) => {
     console.log('🔍 [Admin] NEW SEARCH:', searchParams);
-    
+
     // ✅ FIX: Remove search key if it's empty
     const cleanedParams = { ...searchParams };
     if (!cleanedParams.search || cleanedParams.search.trim() === '') {
-        delete cleanedParams.search;
+      delete cleanedParams.search;
     }
-    
+
     setSearchFilters(cleanedParams);
-    
+
     // ✅ Reset to page 1, keep current limit
     fetchStudies(cleanedParams, 1, pagination.recordsPerPage);
     fetchCategoryValues(cleanedParams);
-}, [fetchStudies, fetchCategoryValues, pagination.recordsPerPage]);
+  }, [fetchStudies, fetchCategoryValues, pagination.recordsPerPage]);
 
   const handleFilterChange = useCallback((filters) => {
     console.log('🔍 [Admin] FILTER CHANGE:', filters);
-    
+
     // ✅ FIX: Remove search key if it's empty
     const cleanedFilters = { ...filters };
     if (!cleanedFilters.search || cleanedFilters.search.trim() === '') {
-        delete cleanedFilters.search;
+      delete cleanedFilters.search;
     }
-    
+
     setSearchFilters(cleanedFilters);
-    
+
     // ✅ Reset to page 1, keep current limit
     fetchStudies(cleanedFilters, 1, pagination.recordsPerPage);
     fetchCategoryValues(cleanedFilters);
-}, [fetchStudies, fetchCategoryValues, pagination.recordsPerPage]);
-  
+  }, [fetchStudies, fetchCategoryValues, pagination.recordsPerPage]);
+
   // ✅ SIMPLIFIED: View change
   const handleViewChange = useCallback((view) => {
     console.log(`🔄 [Admin] VIEW CHANGE: ${currentView} -> ${view}`);
@@ -428,9 +427,9 @@ useEffect(() => {
   }, [studies]);
 
   const handleSelectStudy = useCallback((studyId) => {
-    setSelectedStudies(prev => 
-      prev.includes(studyId) 
-        ? prev.filter(id => id !== studyId) 
+    setSelectedStudies(prev =>
+      prev.includes(studyId)
+        ? prev.filter(id => id !== studyId)
         : [...prev, studyId]
     );
   }, []);
@@ -450,14 +449,14 @@ useEffect(() => {
   const handleAssignmentSubmit = useCallback(async (assignmentData) => {
     try {
       const { study, assignedToIds, assigneeRole, priority, notes, dueDate } = assignmentData;
-      
+
       console.log('🔄 [Admin] Submitting assignment:', {
         studyId: study._id,
         assignedToIds,
         assigneeRole,
         priority
       });
-      
+
       const response = await api.post(`/assigner/update-study-assignments/${study._id}`, {
         assignedToIds,
         assigneeRole,
@@ -492,16 +491,16 @@ useEffect(() => {
     setColumnConfig(defaultConfig);
   }, []);
 
-  
-const handleRefreshStudies = useCallback(() => {
+
+  const handleRefreshStudies = useCallback(() => {
     // Re-fetch studies from API
     fetchStudies();  // Your existing fetch function
-}, []);
+  }, []);
 
   const handleUpdateStudyDetails = useCallback(async (formData) => {
     try {
       console.log('🔄 Updating study details:', formData);
-      
+
       const response = await api.put(`/admin/studies/${formData.studyId}/details`, {
         patientName: formData.patientName,
         patientAge: formData.patientAge,
@@ -511,7 +510,7 @@ const handleRefreshStudies = useCallback(() => {
         accessionNumber: formData.accessionNumber,
         clinicalHistory: formData.clinicalHistory,
         caseType: formData.caseType,
-        priority: formData.priority, 
+        priority: formData.priority,
         assignmentPriority: formData.assignmentPriority
       });
 
@@ -536,7 +535,7 @@ const handleRefreshStudies = useCallback(() => {
     }
   }, [fetchStudies]);
 
-    const handleSelectColor = useCallback((color) => {
+  const handleSelectColor = useCallback((color) => {
     setHeaderColor(color);
     localStorage.setItem('adminWorklistTableHeaderColor', JSON.stringify(color));
     toast.success(`Header color changed to ${color.name}`, {
@@ -553,7 +552,7 @@ const handleRefreshStudies = useCallback(() => {
       variant: 'primary',
       tooltip: 'Manage organization templates'
     },
-   
+
     {
       label: 'Branding',
       icon: Palette,
@@ -598,15 +597,15 @@ const handleRefreshStudies = useCallback(() => {
     const actions = [];
 
     // Add Create Study action
-    if (['admin', 'super_admin', 'lab_staff'].includes(currentUser?.role)) {
-      actions.push({
-        label: 'Create Study',
-        icon: Plus,
-        onClick: handleOpenManualStudy,
-        variant: 'primary',
-        tooltip: 'Create Manual Study'
-      });
-    }
+    // if (['admin', 'super_admin', 'lab_staff'].includes(currentUser?.role)) {
+    //   actions.push({
+    //     label: 'Create Study',
+    //     icon: Plus,
+    //     onClick: handleOpenManualStudy,
+    //     variant: 'primary',
+    //     tooltip: 'Create Manual Study'
+    //   });
+    // }
 
     // Add User Management action
     if (['admin', 'super_admin'].includes(currentUser?.role)) {
@@ -661,7 +660,7 @@ const handleRefreshStudies = useCallback(() => {
       try {
         const res = await api.get('/admin/org-settings/query-number');
         if (res.data.success) setQueryCallNumber(res.data.queryCallNumber || '');
-      } catch {}
+      } catch { }
     };
     fetchQueryNumber();
   }, []);
@@ -689,7 +688,7 @@ const handleRefreshStudies = useCallback(() => {
           theme="admin"
         />
       )}
-      
+
       <Search
         onSearch={handleSearch}
         onFilterChange={handleFilterChange}
@@ -703,7 +702,7 @@ const handleRefreshStudies = useCallback(() => {
 
       <div className="flex-1 min-h-0 p-0 px-0">
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 h-full flex flex-col">
-          
+
           {/* COMPACT WORKLIST HEADER */}
           <div className="flex items-center justify-between px-3 py-1 border-b border-gray-200 bg-white">
             <div className="flex items-center gap-2">
@@ -734,19 +733,17 @@ const handleRefreshStudies = useCallback(() => {
                   <button
                     key={tab.key}
                     onClick={() => handleViewChange(tab.key)}
-                    className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all ${
-                      currentView === tab.key
+                    className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all ${currentView === tab.key
                         ? 'bg-gray-900 text-white shadow-sm'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-1">
                       <span>{tab.label}</span>
-                      <span className={`min-w-[16px] h-[16px] flex items-center justify-center rounded-full text-[8px] font-bold ${
-                        currentView === tab.key 
-                          ? 'bg-white text-gray-900' 
+                      <span className={`min-w-[16px] h-[16px] flex items-center justify-center rounded-full text-[8px] font-bold ${currentView === tab.key
+                          ? 'bg-white text-gray-900'
                           : 'bg-white text-gray-500'
-                      }`}>
+                        }`}>
                         {tab.count}
                       </span>
                     </div>
@@ -754,7 +751,7 @@ const handleRefreshStudies = useCallback(() => {
                 ))}
               </div>
             </div>
-            
+
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setShowColorPicker(true)}
@@ -793,7 +790,7 @@ const handleRefreshStudies = useCallback(() => {
               onPageChange={handlePageChange}
               onRecordsPerPageChange={handleRecordsPerPageChange}
               theme="admin"
-               onRefreshStudies={handleRefresh}  // ✅ PASS THIS
+              onRefreshStudies={handleRefresh}  // ✅ PASS THIS
 
               headerColor={headerColor}
               queryCallNumber={queryCallNumber}
