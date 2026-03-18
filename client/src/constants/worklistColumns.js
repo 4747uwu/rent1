@@ -11,11 +11,11 @@ export const WORKLIST_COLUMNS = {
     defaultVisible: true,
     alwaysVisible: true
   },
-  
+
   // 2. BHARAT PACS ID
   BHARAT_PACS_ID: {
     id: 'bharatPacsId',
-    label: 'Bharat PACS ID',
+    label: 'RADIVUE PACS ID',
     description: 'Unique study identifier',
     category: 'study',
     defaultVisible: true

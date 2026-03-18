@@ -29,7 +29,7 @@ const ShareModal = ({ study, isOpen, onClose }) => {
     if (!isOpen) return null;
 
     const studyInstanceUID = study?.studyInstanceUID || study?.studyInstanceUIDs || study?._id || '';
-    const viewerUrl = `https://viewer.bharatpacs.com/viewer?StudyInstanceUIDs=${encodeURIComponent(studyInstanceUID)}`;
+    const viewerUrl = `https://viewer.xcentic.com/viewer?StudyInstanceUIDs=${encodeURIComponent(studyInstanceUID)}`;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(viewerUrl).then(() => {
@@ -2375,7 +2375,7 @@ const UnifiedWorklistTable = ({
                             {isColumnVisible('bharatPacsId') && (
                                 <ResizableTableHeader
                                     columnId="bharatPacsId"
-                                    label="BHARAT PACS ID"
+                                    label="RADIVUE PACS ID"
                                     width={getColumnWidth('bharatPacsId')}
                                     onResize={handleColumnResize}
                                     minWidth={UNIFIED_WORKLIST_COLUMNS.BHARAT_PACS_ID.minWidth}

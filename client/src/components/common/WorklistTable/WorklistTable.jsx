@@ -36,13 +36,13 @@ const ShareModal = ({ study, isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const studyInstanceUID = study?.studyInstanceUID || study?.studyInstanceUIDs || study?._id || '';
-  const viewerUrl = `https://viewer.bharatpacs.com/viewer?StudyInstanceUIDs=${encodeURIComponent(studyInstanceUID)}`;
+  const viewerUrl = `hhttps://viewer.xcentic.com/viewer?StudyInstanceUIDs=${encodeURIComponent(studyInstanceUID)}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(viewerUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
-    }).catch(() => {});
+    }).catch(() => { });
   };
 
   return (
@@ -219,7 +219,7 @@ const formatTime = (value) => {
 
 const copyToClipboard = (text, label = 'ID') => {
   if (!text || text === 'N/A') return;
-  navigator.clipboard.writeText(text).catch(() => {});
+  navigator.clipboard.writeText(text).catch(() => { });
 };
 
 const PRIORITY_SORT_ORDER = {
@@ -606,19 +606,19 @@ const StudyRow = ({
   //  const userAccountRoles = userRoles.length > 0 ? userRoles : [userRole];
 
 
-// ✅ Viewer preference — persisted in localStorage
-const [selectedViewer, setSelectedViewer] = useState(
+  // ✅ Viewer preference — persisted in localStorage
+  const [selectedViewer, setSelectedViewer] = useState(
     () => localStorage.getItem('preferredOhifViewer') || 'viewer1'
-);
-const handleViewerChange = (e) => {
+  );
+  const handleViewerChange = (e) => {
     const v = e.target.value;
     setSelectedViewer(v);
     localStorage.setItem('preferredOhifViewer', v);
-};
+  };
 
 
-const [showViewerDropdownView, setShowViewerDropdownView] = useState(false);
-const [showViewerDropdownReport, setShowViewerDropdownReport] = useState(false);
+  const [showViewerDropdownView, setShowViewerDropdownView] = useState(false);
+  const [showViewerDropdownReport, setShowViewerDropdownReport] = useState(false);
 
   const assignInputRef = useRef(null);
   const downloadButtonRef = useRef(null);
@@ -634,9 +634,9 @@ const [showViewerDropdownReport, setShowViewerDropdownReport] = useState(false);
   const hasActiveViewers = activeViewers.length > 0;
   const [shareModal, setShareModal] = useState(false);
 
-  const printCount   = study.printCount   || 0;
-  const lastPrint    = study.lastPrintedAt || null;
-  const lastDownload = study.lastDownload  || null;
+  const printCount = study.printCount || 0;
+  const lastPrint = study.lastPrintedAt || null;
+  const lastDownload = study.lastDownload || null;
 
 
   const isSelected = selectedStudies?.includes(study._id);
@@ -873,32 +873,32 @@ const [showViewerDropdownReport, setShowViewerDropdownReport] = useState(false);
     }
   };
 
- const handleViewOnlyClick = (e) => {
+  const handleViewOnlyClick = (e) => {
     e.stopPropagation();
     try {
-        const src = study || {};
-        const studyInstanceUID = src.studyInstanceUID || src.studyInstanceUIDs || src.StudyInstanceUID || src.studyInstanceUid || src.orthancStudyID || src.studyId || src._id || '';
-        
-        let studyUIDs = '';
-        if (Array.isArray(studyInstanceUID) && studyInstanceUID.length) studyUIDs = studyInstanceUID.join(',');
-        else if (typeof studyInstanceUID === 'string' && studyInstanceUID.trim()) studyUIDs = studyInstanceUID.trim();
-        else studyUIDs = String(src._id || '');
+      const src = study || {};
+      const studyInstanceUID = src.studyInstanceUID || src.studyInstanceUIDs || src.StudyInstanceUID || src.studyInstanceUid || src.orthancStudyID || src.studyId || src._id || '';
 
-        const OHIF_VIEWERS = {
-            viewer1: 'https://viewer.xcentic.com/viewer',
-            viewer2: 'https://viewer2.xcentic.com/viewer',
-        };
+      let studyUIDs = '';
+      if (Array.isArray(studyInstanceUID) && studyInstanceUID.length) studyUIDs = studyInstanceUID.join(',');
+      else if (typeof studyInstanceUID === 'string' && studyInstanceUID.trim()) studyUIDs = studyInstanceUID.trim();
+      else studyUIDs = String(src._id || '');
 
-        // Determine format based on selectedViewer
-        const finalUrl = selectedViewer === 'viewer2' 
-            ? `${OHIF_VIEWERS.viewer2}/${studyUIDs}` // Viewer 2 format: /viewer/UID
-            : `${OHIF_VIEWERS.viewer1}?StudyInstanceUIDs=${encodeURIComponent(studyUIDs)}`; // Viewer 1 format: ?StudyInstanceUIDs=UID
+      const OHIF_VIEWERS = {
+        viewer1: 'https://viewer.xcentic.com/viewer',
+        viewer2: 'https://viewer2.xcentic.com/viewer',
+      };
 
-        window.open(finalUrl, '_blank');
+      // Determine format based on selectedViewer
+      const finalUrl = selectedViewer === 'viewer2'
+        ? `${OHIF_VIEWERS.viewer2}/${studyUIDs}` // Viewer 2 format: /viewer/UID
+        : `${OHIF_VIEWERS.viewer1}?StudyInstanceUIDs=${encodeURIComponent(studyUIDs)}`; // Viewer 1 format: ?StudyInstanceUIDs=UID
+
+      window.open(finalUrl, '_blank');
     } catch (error) {
-        window.open(`/ohif/viewer?StudyInstanceUIDs=${study?._id || ''}`, '_blank');
+      window.open(`/ohif/viewer?StudyInstanceUIDs=${study?._id || ''}`, '_blank');
     }
-};
+  };
 
   const handleOHIFReporting = async () => {
     setRestoringStudy(true);
@@ -925,9 +925,9 @@ const [showViewerDropdownReport, setShowViewerDropdownReport] = useState(false);
         (path) => window.open(path, '_blank'), reportingUrl, study,
         {
           daysThreshold: 10,
-          onRestoreStart: () => {},
-          onRestoreComplete: () => {},
-          onRestoreError: () => {}
+          onRestoreStart: () => { },
+          onRestoreComplete: () => { },
+          onRestoreError: () => { }
         }
       );
     } catch (error) {
@@ -956,45 +956,45 @@ const [showViewerDropdownReport, setShowViewerDropdownReport] = useState(false);
 
 
 
-       const handleDirectDownloadPDF = useCallback(async (study) => {
+  const handleDirectDownloadPDF = useCallback(async (study) => {
     try {
-        const response = await api.get(`/reports/studies/${study._id}/report-ids`);
+      const response = await api.get(`/reports/studies/${study._id}/report-ids`);
 
-        if (!response.data.success || !response.data.data?.reports?.length) {
-            toast.error('No finalized reports found');
-            return;
+      if (!response.data.success || !response.data.data?.reports?.length) {
+        toast.error('No finalized reports found');
+        return;
+      }
+
+      const { reports, totalReports } = response.data.data;
+
+      for (let i = 0; i < reports.length; i++) {
+        const reportMeta = reports[i];
+        if (i > 0) await new Promise(resolve => setTimeout(resolve, 800));
+
+        try {
+          const pdfResponse = await api.get(
+            `/reports/reports/${reportMeta.reportId}/download/pdf`,
+            { responseType: 'blob', timeout: 60000 }
+          );
+          const blob = new Blob([pdfResponse.data], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${study.patientName || 'report'}_${study.bharatPacsId || study._id}_${i + 1}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        } catch (err) {
+          toast.error(`Report ${i + 1} download failed`);
         }
-
-        const { reports, totalReports } = response.data.data;
-
-        for (let i = 0; i < reports.length; i++) {
-            const reportMeta = reports[i];
-            if (i > 0) await new Promise(resolve => setTimeout(resolve, 800));
-
-            try {
-                const pdfResponse = await api.get(
-                    `/reports/reports/${reportMeta.reportId}/download/pdf`,
-                    { responseType: 'blob', timeout: 60000 }
-                );
-                const blob = new Blob([pdfResponse.data], { type: 'application/pdf' });
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `${study.patientName || 'report'}_${study.bharatPacsId || study._id}_${i + 1}.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url);
-            } catch (err) {
-                toast.error(`Report ${i + 1} download failed`);
-            }
-        }
+      }
 
     } catch (error) {
-        console.error('❌ [Download PDF] Error:', error);
-        toast.error('Failed to fetch reports');
+      console.error('❌ [Download PDF] Error:', error);
+      toast.error('Failed to fetch reports');
     }
-}, []);
+  }, []);
 
   const handleDirectPrint = useCallback(async (study) => {
     try {
@@ -1236,80 +1236,79 @@ const [showViewerDropdownReport, setShowViewerDropdownReport] = useState(false);
       )}
 
       {/* 9. VIEW & REPORTING */}
-   <td className="px-1.5 py-2 sm:px-2 text-center border-r border-b border-slate-200 align-middle" style={{ width: `${getColumnWidth('viewOnly')}px` }}>
-    <div className="relative flex items-center justify-center gap-0.5">
-        <button onClick={handleViewOnlyClick} className="p-1 sm:p-1.5 hover:bg-gray-100 rounded-lg transition-all group hover:scale-110" title={`View Only — ${selectedViewer === 'viewer2' ? 'Viewer 2' : 'Viewer 1'}`}>
+      <td className="px-1.5 py-2 sm:px-2 text-center border-r border-b border-slate-200 align-middle" style={{ width: `${getColumnWidth('viewOnly')}px` }}>
+        <div className="relative flex items-center justify-center gap-0.5">
+          <button onClick={handleViewOnlyClick} className="p-1 sm:p-1.5 hover:bg-gray-100 rounded-lg transition-all group hover:scale-110" title={`View Only — ${selectedViewer === 'viewer2' ? 'Viewer 2' : 'Viewer 1'}`}>
             <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-700 group-hover:text-gray-900" />
-        </button>
-        <div className="relative">
+          </button>
+          <div className="relative">
             <button
-                className="p-0.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 transition-colors"
-    onClick={(e) => { e.stopPropagation(); setShowViewerDropdownView(prev => !prev); setShowViewerDropdownReport(false); }}
+              className="p-0.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 transition-colors"
+              onClick={(e) => { e.stopPropagation(); setShowViewerDropdownView(prev => !prev); setShowViewerDropdownReport(false); }}
             >
-                <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd"/></svg>
+              <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" /></svg>
             </button>
             {showViewerDropdownView && (
-                <div className="absolute left-full top-0 ml-1 bg-white border border-gray-200 rounded shadow-lg z-50 min-w-[80px]">
-                    {['viewer1', 'viewer2'].map(v => (
-                        <button
-                            key={v}
-                            onClick={(e) => { e.stopPropagation(); setSelectedViewer(v); localStorage.setItem('preferredOhifViewer', v); setShowViewerDropdownView(false); }}
-                            className={`w-full px-2 py-1.5 text-[9px] text-left hover:bg-gray-50 transition-colors ${selectedViewer === v ? 'font-bold text-blue-600 bg-blue-50' : 'text-gray-700'}`}
-                        >
-                            {v === 'viewer1' ? 'Viewer 1' : 'Viewer 2'}
-                        </button>
-                    ))}
-                </div>
+              <div className="absolute left-full top-0 ml-1 bg-white border border-gray-200 rounded shadow-lg z-50 min-w-[80px]">
+                {['viewer1', 'viewer2'].map(v => (
+                  <button
+                    key={v}
+                    onClick={(e) => { e.stopPropagation(); setSelectedViewer(v); localStorage.setItem('preferredOhifViewer', v); setShowViewerDropdownView(false); }}
+                    className={`w-full px-2 py-1.5 text-[9px] text-left hover:bg-gray-50 transition-colors ${selectedViewer === v ? 'font-bold text-blue-600 bg-blue-50' : 'text-gray-700'}`}
+                  >
+                    {v === 'viewer1' ? 'Viewer 1' : 'Viewer 2'}
+                  </button>
+                ))}
+              </div>
             )}
+          </div>
         </div>
-    </div>
-</td>
+      </td>
 
-{isColumnVisible('reporting') && (
-    <td className="px-1.5 py-2 sm:px-2 text-center border-r border-b border-slate-200 align-middle" style={{ width: `${getColumnWidth('reporting')}px` }}>
-        <div className="relative flex items-center justify-center gap-0.5">
+      {isColumnVisible('reporting') && (
+        <td className="px-1.5 py-2 sm:px-2 text-center border-r border-b border-slate-200 align-middle" style={{ width: `${getColumnWidth('reporting')}px` }}>
+          <div className="relative flex items-center justify-center gap-0.5">
             <button
-                onClick={handleOHIFReporting}
-                disabled={study.workflowStatus === 'new_study_received' || !study.isAssigned || !study.radiologist}
-                className={`p-1 sm:p-1.5 rounded-lg transition-all group ${
-                    study.workflowStatus === 'new_study_received' || !study.isAssigned
-                        ? 'opacity-40 cursor-not-allowed'
-                        : 'hover:bg-gray-100 hover:scale-110'
+              onClick={handleOHIFReporting}
+              disabled={study.workflowStatus === 'new_study_received' || !study.isAssigned || !study.radiologist}
+              className={`p-1 sm:p-1.5 rounded-lg transition-all group ${study.workflowStatus === 'new_study_received' || !study.isAssigned
+                ? 'opacity-40 cursor-not-allowed'
+                : 'hover:bg-gray-100 hover:scale-110'
                 }`}
-                title={
-                    study.workflowStatus === 'new_study_received'
-                        ? 'Available after study is received'
-                        : !study.isAssigned
-                        ? 'Available after assignment'
-                        : `Open ${selectedViewer === 'viewer2' ? 'Viewer 2' : 'Viewer 1'} + Reporting`
-                }
+              title={
+                study.workflowStatus === 'new_study_received'
+                  ? 'Available after study is received'
+                  : !study.isAssigned
+                    ? 'Available after assignment'
+                    : `Open ${selectedViewer === 'viewer2' ? 'Viewer 2' : 'Viewer 1'} + Reporting`
+              }
             >
-                <Monitor className="w-4 h-4 text-emerald-600" />
+              <Monitor className="w-4 h-4 text-emerald-600" />
             </button>
             <div className="relative">
-                <button
-                     className="p-0.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 transition-colors"
-    onClick={(e) => { e.stopPropagation(); setShowViewerDropdownReport(prev => !prev); setShowViewerDropdownView(false); }}
-                >
-                    <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd"/></svg>
-                </button>
-                {showViewerDropdownReport && (
-                    <div className="absolute left-full top-0 ml-1 bg-white border border-gray-200 rounded shadow-lg z-50 min-w-[80px]">
-                        {['viewer1', 'viewer2'].map(v => (
-                            <button
-                                key={v}
-                                onClick={(e) => { e.stopPropagation(); setSelectedViewer(v); localStorage.setItem('preferredOhifViewer', v); setShowViewerDropdownReport(false); }}
-                                className={`w-full px-2 py-1.5 text-[9px] text-left hover:bg-gray-50 transition-colors ${selectedViewer === v ? 'font-bold text-blue-600 bg-blue-50' : 'text-gray-700'}`}
-                            >
-                                {v === 'viewer1' ? 'Viewer 1' : 'Viewer 2'}
-                            </button>
-                        ))}
-                    </div>
-                )}
+              <button
+                className="p-0.5 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={(e) => { e.stopPropagation(); setShowViewerDropdownReport(prev => !prev); setShowViewerDropdownView(false); }}
+              >
+                <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" /></svg>
+              </button>
+              {showViewerDropdownReport && (
+                <div className="absolute left-full top-0 ml-1 bg-white border border-gray-200 rounded shadow-lg z-50 min-w-[80px]">
+                  {['viewer1', 'viewer2'].map(v => (
+                    <button
+                      key={v}
+                      onClick={(e) => { e.stopPropagation(); setSelectedViewer(v); localStorage.setItem('preferredOhifViewer', v); setShowViewerDropdownReport(false); }}
+                      className={`w-full px-2 py-1.5 text-[9px] text-left hover:bg-gray-50 transition-colors ${selectedViewer === v ? 'font-bold text-blue-600 bg-blue-50' : 'text-gray-700'}`}
+                    >
+                      {v === 'viewer1' ? 'Viewer 1' : 'Viewer 2'}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-        </div>
-    </td>
-)}
+          </div>
+        </td>
+      )}
 
       {/* 10. SERIES/IMAGES */}
       {isColumnVisible('seriesCount') && (
@@ -1469,11 +1468,10 @@ const [showViewerDropdownReport, setShowViewerDropdownReport] = useState(false);
               {/* ✅ NEW: Last download info */}
               {study.lastDownload?.downloadedAt ? (
                 <div className="flex flex-col items-center gap-0.5">
-                  <span className={`text-[8px] font-bold px-1 py-0.5 rounded ${
-                    study.lastDownload.downloadType === 'pdf'   ? 'bg-red-50 text-red-600 border border-red-200' :
-                    study.lastDownload.downloadType === 'docx'  ? 'bg-blue-50 text-blue-600 border border-blue-200' :
-                    'bg-purple-50 text-purple-600 border border-purple-200'
-                  }`}>
+                  <span className={`text-[8px] font-bold px-1 py-0.5 rounded ${study.lastDownload.downloadType === 'pdf' ? 'bg-red-50 text-red-600 border border-red-200' :
+                    study.lastDownload.downloadType === 'docx' ? 'bg-blue-50 text-blue-600 border border-blue-200' :
+                      'bg-purple-50 text-purple-600 border border-purple-200'
+                    }`}>
                     {study.lastDownload.downloadType?.toUpperCase() || 'DL'}
                   </span>
                   <div className="text-[7px] text-slate-500 whitespace-nowrap">
@@ -1784,8 +1782,8 @@ const WorklistTable = ({
   const [documentsModal, setDocumentsModal] = useState({ show: false, studyId: null });
   const [revertModal, setRevertModal] = useState({ show: false, study: null });
   const [printModal, setPrintModal] = useState({ show: false, report: null, reports: [] });
-      // ✅ Viewer preference — persisted in localStorage
-    
+  // ✅ Viewer preference — persisted in localStorage
+
   useEffect(() => {
     if (readyState === WebSocket.OPEN) {
       sendMessage({ type: 'subscribe_to_viewer_updates' });
@@ -2065,7 +2063,7 @@ const WorklistTable = ({
                 <input type="checkbox" checked={studies.length > 0 && selectedStudies.length === studies.length} onChange={(e) => onSelectAll?.(e.target.checked)} className="w-3.5 h-3.5 rounded border-white/30" />
               </ResizableTableHeader>
 
-              {isColumnVisible('bharatPacsId') && <ResizableTableHeader columnId="bharatPacsId" label={<>BHARAT<br />PACS ID</>} width={getColumnWidth('bharatPacsId')} onResize={handleColumnResize} minWidth={UNIFIED_WORKLIST_COLUMNS.BHARAT_PACS_ID.minWidth} maxWidth={UNIFIED_WORKLIST_COLUMNS.BHARAT_PACS_ID.maxWidth} />}
+              {isColumnVisible('bharatPacsId') && <ResizableTableHeader columnId="bharatPacsId" label={<>RADIVUE<br />PACS ID</>} width={getColumnWidth('bharatPacsId')} onResize={handleColumnResize} minWidth={UNIFIED_WORKLIST_COLUMNS.BHARAT_PACS_ID.minWidth} maxWidth={UNIFIED_WORKLIST_COLUMNS.BHARAT_PACS_ID.maxWidth} />}
               {(userRoles.includes('super_admin') || userRole === 'super_admin') && <ResizableTableHeader columnId="organization" label="ORGANIZATION" width={getColumnWidth('organization')} onResize={handleColumnResize} minWidth={UNIFIED_WORKLIST_COLUMNS.ORGANIZATION.minWidth} maxWidth={UNIFIED_WORKLIST_COLUMNS.ORGANIZATION.maxWidth} />}
               {isColumnVisible('centerName') && <ResizableTableHeader columnId="centerName" label={<>CENTER<br />NAME</>} width={getColumnWidth('centerName')} onResize={handleColumnResize} minWidth={UNIFIED_WORKLIST_COLUMNS.CENTER_NAME.minWidth} maxWidth={UNIFIED_WORKLIST_COLUMNS.CENTER_NAME.maxWidth} />}
               {isColumnVisible('location') && <ResizableTableHeader columnId="location" label={<>Location<br />NAME</>} width={getColumnWidth('location')} onResize={handleColumnResize} minWidth={UNIFIED_WORKLIST_COLUMNS.CENTER_NAME.minWidth} maxWidth={UNIFIED_WORKLIST_COLUMNS.CENTER_NAME.maxWidth} />}

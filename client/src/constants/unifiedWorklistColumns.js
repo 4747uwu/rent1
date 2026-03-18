@@ -12,11 +12,11 @@ export const UNIFIED_WORKLIST_COLUMNS = {
     minWidth: 40,
     maxWidth: 80
   },
-  
+
   // 2. BHARAT PACS ID
   BHARAT_PACS_ID: {
     id: 'bharatPacsId',
-    label: 'Bharat PACS ID',
+    label: 'RADIVUE PACS ID',
     description: 'Unique study identifier',
     category: 'study',
     tables: ['assignor', 'radiologist', 'verifier', 'lab_staff', 'receptionist'],
@@ -378,7 +378,7 @@ export const SINGLE_ROLE_DEFAULTS = {
     'clinicalHistory',
     'studyDateTime',
     'uploadDateTime',
-  
+
     'studyLock',
     'status',
     'assignedVerifier',
@@ -520,7 +520,7 @@ export const MULTI_ROLE_DEFAULTS = {
     'organization',
     'centerName',
     'location',              // ✅ NEW
-    
+
     'patientName',
     'ageGender',
     'modality',
@@ -575,7 +575,7 @@ export const getDefaultColumnsForUser = (accountRoles = []) => {
   }
 
   const roleKey = accountRoles.sort().join('+');
-  
+
   if (MULTI_ROLE_DEFAULTS[roleKey]) {
     return MULTI_ROLE_DEFAULTS[roleKey];
   }
