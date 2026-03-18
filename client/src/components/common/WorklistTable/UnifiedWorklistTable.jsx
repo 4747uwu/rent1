@@ -967,7 +967,7 @@ const UnifiedStudyRow = ({
 
             const OHIF_VIEWERS = {
                 viewer1: 'https://viewer.xcentic.com/viewer',
-            viewer2: 'https://viewer2.xcentic.com/viewer',
+                viewer2: 'https://viewer2.xcentic.com/viewer',
             };
 
             // Determine format based on selectedViewer
@@ -2308,7 +2308,7 @@ const UnifiedWorklistTable = ({
 
 
     return (
-        <div className="w-full h-full flex flex-col bg-black rounded-xl shadow-lg border-2 border-gray-300">
+        <div className="w-full h-full flex flex-col bg-white rounded-xl shadow-lg border-2 border-gray-300">
             {selectedStudies.length > 0 && (
                 <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 bg-blue-600 text-white text-[10px] sm:text-xs font-semibold border-b border-blue-700 flex-shrink-0 z-20">
                     <div className="flex items-center gap-1.5 sm:gap-2">

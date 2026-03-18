@@ -33,7 +33,7 @@ const QRStudyDecisionPage = () => {
 
   const openReport = () => {
     if (!data?.report?.downloadUrl) return;
-    const reportUrl = `https://pacs.bharatpacs.com${data.report.downloadUrl}`;
+    const reportUrl = `https://radivue.xcentic.com${data.report.downloadUrl}`;
     window.open(reportUrl, '_blank', 'noopener,noreferrer');
   };
 
