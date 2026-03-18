@@ -7,7 +7,7 @@ import FormData from 'form-data';
 import { generateUID } from '../utils/dicomUtils.js';
 import mongoose from 'mongoose';
 
-const PYTHON_SERVER_URL = process.env.PYTHON_SERVER_URL || 'http://206.189.165.52:8766';
+const PYTHON_SERVER_URL = process.env.PYTHON_SERVER_URL || 'http://159.89.165.112:8766';
 const ORTHANC_URL = 'http://159.89.165.112:8043';
 
 export const createManualStudy = async (req, res) => {
@@ -15,7 +15,7 @@ export const createManualStudy = async (req, res) => {
         console.log('📋 [Manual Study] Creating manual study...');
         console.log('📋 [Manual Study] Form data:', req.body);
         console.log('📋 [Manual Study] Files:', req.files);
-        
+
         const {
             patientName,
             patientId,
@@ -43,9 +43,9 @@ export const createManualStudy = async (req, res) => {
                     message: 'Missing required field: labId'
                 });
             }
-            
+
             console.log('📦 [Manual Study] ZIP mode - only lab validation required');
-            
+
         } else if (uploadMode === 'images') {
             // Images mode requires full patient info
             if (!patientName || !patientId || !labId || !modality) {
@@ -54,7 +54,7 @@ export const createManualStudy = async (req, res) => {
                     message: 'Missing required fields: patientName, patientId, labId, modality'
                 });
             }
-            
+
             console.log('🖼️ [Manual Study] Images mode - full validation required');
         } else {
             return res.status(400).json({
@@ -66,54 +66,54 @@ export const createManualStudy = async (req, res) => {
         // Resolve lab: allow either ObjectId or identifier string
         let lab = null;
         if (labId) {
-          if (mongoose.Types.ObjectId.isValid(labId)) {
-            lab = await Lab.findById(labId).populate('organization');
-          }
-          if (!lab) {
-            lab = await Lab.findOne({ identifier: String(labId).trim().toUpperCase() }).populate('organization');
-          }
+            if (mongoose.Types.ObjectId.isValid(labId)) {
+                lab = await Lab.findById(labId).populate('organization');
+            }
+            if (!lab) {
+                lab = await Lab.findOne({ identifier: String(labId).trim().toUpperCase() }).populate('organization');
+            }
         }
         if (!lab) {
-          return res.status(404).json({
-            success: false,
-            message: 'Lab not found'
-          });
+            return res.status(404).json({
+                success: false,
+                message: 'Lab not found'
+            });
         }
 
         const organization = await Organization.findById(lab.organization);
         if (!organization) {
-          return res.status(404).json({
-            success: false,
-            message: 'Organization not found'
-          });
+            return res.status(404).json({
+                success: false,
+                message: 'Organization not found'
+            });
         }
 
         // Build full lab location string from address fields
         let labLocation = '';
         if (lab.address) {
-          const parts = [];
-          if (lab.address.street) parts.push(lab.address.street);
-          if (lab.address.city) parts.push(lab.address.city);
-          if (lab.address.state) parts.push(lab.address.state);
-          if (lab.address.zipCode) parts.push(lab.address.zipCode);
-          if (lab.address.country) parts.push(lab.address.country);
-          labLocation = parts.filter(p => p && p.trim() !== '').join(', ');
+            const parts = [];
+            if (lab.address.street) parts.push(lab.address.street);
+            if (lab.address.city) parts.push(lab.address.city);
+            if (lab.address.state) parts.push(lab.address.state);
+            if (lab.address.zipCode) parts.push(lab.address.zipCode);
+            if (lab.address.country) parts.push(lab.address.country);
+            labLocation = parts.filter(p => p && p.trim() !== '').join(', ');
         }
         console.log(`🏥 [Manual Study] Lab: ${lab.name}, Organization: ${organization.name}, Location: ${labLocation || 'N/A'}`);
 
         // ✅ ZIP MODE: Skip patient/study creation, let Python handle everything
         if (uploadMode === 'zip' && req.files && req.files.zipFile) {
             console.log(`📦 [Manual Study] ZIP MODE - Processing...`);
-            
+
             const zipFile = Array.isArray(req.files.zipFile) ? req.files.zipFile[0] : req.files.zipFile;
             const formData = new FormData();
-            
+
             // ✅ Send ZIP with organization, lab info, and location
             formData.append('zipFile', zipFile.buffer, {
                 filename: zipFile.originalname,
                 contentType: zipFile.mimetype
             });
-            
+
             // Send organization, lab details including location
             formData.append('organization', organization.name);
             formData.append('labName', lab.name);
@@ -160,9 +160,9 @@ export const createManualStudy = async (req, res) => {
                         nodejsResponse: uploadResponse.data.nodejsBackendResponse
                     }
                 });
-                
+
                 return; // ✅ Exit early since Python handles everything
-                
+
             } catch (error) {
                 console.error('❌ [Manual Study] ZIP upload error:', error.message);
                 if (error.response) {
@@ -236,14 +236,14 @@ export const createManualStudy = async (req, res) => {
             if (req.files && req.files.images) {
                 const images = Array.isArray(req.files.images) ? req.files.images : [req.files.images];
                 console.log(`📤 [Manual Study] Uploading ${images.length} images to Python server...`);
-                
+
                 const formData = new FormData();
-                
+
                 // Add metadata
                 Object.keys(dicomMetadata).forEach(key => {
                     formData.append(key, dicomMetadata[key]);
                 });
-                
+
                 // Add image files
                 images.forEach(file => {
                     formData.append('images', file.buffer, {
@@ -251,7 +251,7 @@ export const createManualStudy = async (req, res) => {
                         contentType: file.mimetype
                     });
                 });
-                
+
                 // Convert to DICOM via Python server
                 const convertResponse = await axios.post(
                     `${PYTHON_SERVER_URL}/convert-to-dicom`,
@@ -275,8 +275,8 @@ export const createManualStudy = async (req, res) => {
                 // 🔍 Accept multiple possible response formats
                 const convertedFiles = Array.isArray(convertResponse.data.files) ? convertResponse.data.files
                     : Array.isArray(convertResponse.data.convertedFiles) ? convertResponse.data.convertedFiles
-                    : Array.isArray(convertResponse.data.dicomFiles) ? convertResponse.data.dicomFiles
-                    : [];
+                        : Array.isArray(convertResponse.data.dicomFiles) ? convertResponse.data.dicomFiles
+                            : [];
 
                 console.log(`📊 [Manual Study] Found ${convertedFiles.length} converted files from Python`);
 
@@ -286,23 +286,23 @@ export const createManualStudy = async (req, res) => {
                     filesProcessed = images.length;
                 } else {
                     let uploadedCount = 0;
-                    
+
                     // Upload each DICOM file to Orthanc and count successes
                     for (let i = 0; i < convertedFiles.length; i++) {
                         const dicomFile = convertedFiles[i];
-                        
+
                         // Handle different file structures
                         const base64String = typeof dicomFile === 'string' ? dicomFile
                             : (dicomFile.buffer || dicomFile.content || dicomFile.data || dicomFile.file || '');
-                        
+
                         if (!base64String) {
                             console.warn(`⚠️ [Manual Study] File ${i}: No buffer/data found, skipping`);
                             continue;
                         }
-                        
+
                         try {
                             const dicomBuffer = Buffer.from(base64String, 'base64');
-                            
+
                             const orthancResponse = await axios.post(
                                 `${ORTHANC_URL}/instances`,
                                 dicomBuffer,
@@ -320,7 +320,7 @@ export const createManualStudy = async (req, res) => {
                             if (orthancResponse && orthancResponse.status >= 200 && orthancResponse.status < 300) {
                                 uploadedCount++;
                                 console.log(`✅ [Manual Study] File ${i + 1}/${convertedFiles.length} uploaded to Orthanc`);
-                                
+
                                 if (!orthancStudyId && orthancResponse.data.ParentStudy) {
                                     orthancStudyId = orthancResponse.data.ParentStudy;
                                 }
@@ -329,12 +329,12 @@ export const createManualStudy = async (req, res) => {
                             console.error(`❌ [Manual Study] File ${i}: Orthanc upload failed:`, uploadErr.message);
                         }
                     }
-                    
+
                     filesProcessed = uploadedCount;
                     console.log(`✅ [Manual Study] Successfully uploaded ${uploadedCount}/${convertedFiles.length} files to Orthanc`);
                 }
             }
-            
+
             console.log(`📊 [Manual Study] Final filesProcessed: ${filesProcessed}`);
 
             if (!orthancStudyId) {
@@ -346,11 +346,11 @@ export const createManualStudy = async (req, res) => {
 
             // ✅ FIXED: Map urgency to valid uppercase priority enum values
             const priorityMap = {
-                'stat':      'STAT',
-                'urgent':    'PRIORITY',      // ✅ 'urgent' → 'PRIORITY' (not 'EMERGENCY')
+                'stat': 'STAT',
+                'urgent': 'PRIORITY',      // ✅ 'urgent' → 'PRIORITY' (not 'EMERGENCY')
                 'emergency': 'EMERGENCY',      // If needed
-                'normal':    'NORMAL',
-                'routine':   'NORMAL',
+                'normal': 'NORMAL',
+                'routine': 'NORMAL',
             };
             const resolvedPriority = priorityMap[(urgency || '').toLowerCase()] || 'NORMAL';
 
@@ -366,34 +366,34 @@ export const createManualStudy = async (req, res) => {
                     age: req.body.patientAge || '',
                     gender: patientSex || 'O'
                 },
-                
+
                 orthancStudyID: orthancStudyId,   // ✅ FIX: was orthancStudyId (lowercase d)
-                
+
                 studyInstanceUID: studyInstanceUID,
                 accessionNumber: finalAccessionNumber,
-                
+
                 studyDate: new Date(),
                 studyDescription: studyDescription || 'Manual Upload Study',
                 examDescription: studyDescription || 'Manual Upload Study',  // ✅ ADDED: Also set examDescription
                 modality: modality,
                 bodyPartExamined: bodyPartExamined || '',
-                
+
                 sourceLab: lab._id,
                 labLocation: labLocation || '',
                 institutionName: lab.name,  // ✅ Store lab name as institution
-                
+
                 workflowStatus: 'new_study_received',
                 // ✅ FIXED: Use valid uppercase priority
                 priority: resolvedPriority,
-                
+
                 // 🔧 Series and instance counts
                 seriesCount: 1,
                 instanceCount: filesProcessed,
                 seriesImages: `1/${filesProcessed}`,
-                
+
                 // ✅ ADDED: modalitiesInStudy for consistency
                 modalitiesInStudy: [modality],
-                
+
                 clinicalHistory: {
                     clinicalHistory: clinicalHistory || '',  // ✅ FIXED: Use correct field name
                     symptoms: clinicalHistory || '',         // Keep for backwards compatibility
@@ -402,7 +402,7 @@ export const createManualStudy = async (req, res) => {
                     indication: '',
                     clinicalContext: []
                 },
-                
+
                 referringPhysicianName: referringPhysician || '',  // ✅ ADDED
                 physicians: {
                     referring: {
@@ -412,13 +412,13 @@ export const createManualStudy = async (req, res) => {
                         institution: ''
                     }
                 },
-                
+
                 storageInfo: {
                     orthancAvailable: true,
                     orthancStudyID: orthancStudyId,   // ✅ FIX: uppercase D
                     cloudArchiveAvailable: false
                 },
-                
+
                 auditLog: [{
                     action: 'STUDY_UPLOADED',
                     actionType: 'STUDY_UPLOADED',
@@ -435,7 +435,7 @@ export const createManualStudy = async (req, res) => {
                         priority: resolvedPriority  // ✅ Log the mapped priority
                     }
                 }],
-                
+
                 createdAt: new Date(),
                 updatedAt: new Date()
             });
