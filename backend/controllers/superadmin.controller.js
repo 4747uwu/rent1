@@ -226,8 +226,8 @@ export const createOrganization = async (req, res) => {
         const adminUser = new User({
             organization: organization._id,
             organizationIdentifier: organization.identifier,
-            username: finalAdminEmail.split('@')[0].toLowerCase(),
-            email: finalAdminEmail,
+            username: finalEmail.split('@')[0].toLowerCase(),
+            email: finalEmail,
             password: adminPassword,
             tempPassword: adminPassword,
             fullName: adminFullName.trim(),
