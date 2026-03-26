@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
           setCurrentUser(session.user);
           setCurrentOrganizationContext(session.organizationContext || 'global');
           console.log('✅ Session restored:', session.user.email, 'Role:', session.user.role);
-          
+
           // If super admin, load available organizations
           if (session.user.role === 'super_admin') {
             await loadAvailableOrganizations();
@@ -54,27 +54,27 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       console.log('🔍 Attempting universal login:', { email });
-      
+
       const loginData = { email, password };
 
       const res = await axios.post(`${API_URL}/auth/login`, loginData);
-      
+
       if (res.data.success) {
         const { user, token, expiresIn, organizationContext, redirectTo } = res.data;
-        const visibleColumns  = res.data.user.visibleColumns;
+        const visibleColumns = res.data.user.visibleColumns;
         console.log('🔍 Login response received for:', res.data);
-        
+
         // ✅ Merge visibleColumns into user object before storing
         const enrichedUser = {
           ...user,
           visibleColumns: visibleColumns || []
         };
-        
+
         // Store session with organization context and enriched user data
         sessionManager.setSession(token, enrichedUser, expiresIn, organizationContext);
         setCurrentUser(enrichedUser);
         setCurrentOrganizationContext(organizationContext);
-        
+
         console.log('✅ Login successful:', {
           role: enrichedUser.role,
           organization: organizationContext,
@@ -82,12 +82,12 @@ export const AuthProvider = ({ children }) => {
           visibleColumns: enrichedUser.visibleColumns // ✅ Log to verify
         });
         console.log(res.data)
-        
+
         // Load available organizations for super admin
         if (enrichedUser.role === 'super_admin') {
           await loadAvailableOrganizations();
         }
-        
+
         return { user: enrichedUser, redirectTo };
       } else {
         throw new Error(res.data.message || 'Login failed');
@@ -125,22 +125,22 @@ export const AuthProvider = ({ children }) => {
       const token = sessionManager.getToken();
       if (!token) throw new Error('No authentication token');
 
-      const res = await axios.post(`${API_URL}/auth/switch-organization`, 
-        { organizationIdentifier }, 
+      const res = await axios.post(`${API_URL}/auth/switch-organization`,
+        { organizationIdentifier },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
       if (res.data.success) {
         const { token: newToken, expiresIn, organizationContext } = res.data;
-        
+
         // Update session with new token and context
         sessionManager.setSession(newToken, currentUser, expiresIn, organizationContext);
         setCurrentOrganizationContext(organizationContext);
-        
+
         console.log('✅ Switched organization context:', organizationContext);
         return true;
       }
-      
+
       return false;
     } catch (err) {
       console.error('Organization switch error:', err);
@@ -175,44 +175,44 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Get dashboard route based on role
- // Add this method to your useAuth hook if it doesn't exist
-const getDashboardRoute = () => {
+  // Add this method to your useAuth hook if it doesn't exist
+  const getDashboardRoute = () => {
     if (!currentUser?.role) return '/login';
-    
+
     switch (currentUser.role) {
-        case 'super_admin':
-            return '/superadmin/dashboard';
-        case 'admin':
-            return '/admin/dashboard';
-        case 'owner':
-            return '/owner/dashboard';
-        case 'lab_staff':
-            return '/lab/dashboard';
-        case 'doctor_account':
-            return '/doctor/dashboard';
-        // ✅ NEW ROLE ROUTES
-        case 'group_id':
-            return '/group/dashboard';
-        case 'assignor':
-            return '/assignor/dashboard';
-        case 'radiologist':
-            return '/radiologist/dashboard';
-        case 'verifier':
-            return '/verifier/dashboard';
-        case 'physician':
-            return '/physician/dashboard';
-        case 'receptionist':
-            return '/receptionist/dashboard';
-        case 'billing':
-            return '/billing/dashboard';
-        case 'typist':
-            return '/typist/dashboard';
-        case 'dashboard_viewer':
-            return '/dashboard/viewer';
-        default:
-            return '/dashboard';
+      case 'super_admin':
+        return '/superadmin/dashboard';
+      case 'admin':
+        return '/admin/dashboard';
+      case 'owner':
+        return '/owner/dashboard';
+      case 'lab_staff':
+        return '/lab/dashboard';
+      case 'doctor_account':
+        return '/doctor/dashboard';
+      // ✅ NEW ROLE ROUTES
+      case 'group_id':
+        return '/group/dashboard';
+      case 'assignor':
+        return '/assignor/dashboard';
+      case 'radiologist':
+        return '/radiologist/dashboard';
+      case 'verifier':
+        return '/verifier/dashboard';
+      case 'physician':
+        return '/physician/dashboard';
+      case 'receptionist':
+        return '/receptionist/dashboard';
+      case 'billing':
+        return '/billing/dashboard';
+      case 'typist':
+        return '/typist/dashboard';
+      case 'dashboard_viewer':
+        return '/dashboard/viewer';
+      default:
+        return '/dashboard';
     }
-};
+  };
 
   // Check if user has specific permission
   const hasPermission = (permission) => {
@@ -226,14 +226,14 @@ const getDashboardRoute = () => {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      currentUser, 
-      loading, 
+    <AuthContext.Provider value={{
+      currentUser,
+      loading,
       error,
       availableOrganizations,
       currentOrganizationContext,
-      login, 
-      logout, 
+      login,
+      logout,
       isAuthenticated,
       loadAvailableOrganizations,
       switchOrganization,

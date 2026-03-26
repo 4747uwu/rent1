@@ -14,6 +14,8 @@ router.get('/studies/reverted', protect, doctorController.getRevertedStudies);  
 router.get('/studies/rejected', protect, doctorController.getRejectedStudies);
 router.get('/studies', protect, doctorController.getAllStudiesForDoctor);
 router.post('/create-typist', protect, doctorController.createTypist);
+router.get('/dashboard-stats', protect, doctorController.getDoctorDashboardStats);
+router.put('/studies/:studyId/workflow-status', protect, doctorController.updateStudyWorkflowStatus);
 
 // Remove old routes (inprogress, accepted)
 // router.get('/studies/inprogress', protect, doctorController.getInProgressStudies);

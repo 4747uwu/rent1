@@ -992,15 +992,263 @@ export const getAllStudiesForDoctor = async (req, res) => {
     }
 };
 
+// ✅ GET DOCTOR DASHBOARD STATS — online/offline status + today's assigned/pending counts per doctor
+export const getDoctorDashboardStats = async (req, res) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
+        // Get all radiologists in the org
+        const radiologists = await User.find({
+            organizationIdentifier: user.organizationIdentifier,
+            role: { $in: ['radiologist', 'doctor_account'] },
+            isActive: true
+        }).select('_id fullName email isLoggedIn lastLoginAt').lean();
+
+        if (!radiologists.length) {
+            return res.status(200).json({ success: true, data: [] });
+        }
+
+        // Build today's date range (IST)
+        const IST_OFFSET = 5.5 * 60 * 60 * 1000;
+        const now = Date.now();
+        const currentTimeIST = new Date(now + IST_OFFSET);
+        const todayStartIST = new Date(
+            currentTimeIST.getFullYear(),
+            currentTimeIST.getMonth(),
+            currentTimeIST.getDate(),
+            0, 0, 0, 0
+        );
+        const todayEndIST = new Date(
+            currentTimeIST.getFullYear(),
+            currentTimeIST.getMonth(),
+            currentTimeIST.getDate(),
+            23, 59, 59, 999
+        );
+        const todayStartUTC = new Date(todayStartIST.getTime() - IST_OFFSET);
+        const todayEndUTC = new Date(todayEndIST.getTime() - IST_OFFSET);
+
+        const radIds = radiologists.map(r => r._id);
+
+        const pendingStatuses = [
+            'new_study_received',
+            'pending_assignment',
+            'assigned_to_doctor',
+            'doctor_opened_report',
+            'report_in_progress',
+            'history_created',
+            'history_updated'
+        ];
+
+        // Aggregation: per-doctor assigned today + pending today
+        const stats = await DicomStudy.aggregate([
+            {
+                $match: {
+                    organizationIdentifier: user.organizationIdentifier,
+                    'assignment.assignedTo': { $in: radIds }
+                }
+            },
+            { $unwind: '$assignment' },
+            {
+                $match: {
+                    'assignment.assignedTo': { $in: radIds },
+                    'assignment.assignedAt': { $gte: todayStartUTC, $lte: todayEndUTC }
+                }
+            },
+            {
+                $group: {
+                    _id: '$assignment.assignedTo',
+                    assignedTodayCount: { $sum: 1 },
+                    pendingTodayCount: {
+                        $sum: {
+                            $cond: [{ $in: ['$workflowStatus', pendingStatuses] }, 1, 0]
+                        }
+                    }
+                }
+            }
+        ]);
+
+        // Build a map for quick lookup
+        const statsMap = {};
+        stats.forEach(s => {
+            statsMap[s._id.toString()] = {
+                assignedTodayCount: s.assignedTodayCount,
+                pendingTodayCount: s.pendingTodayCount
+            };
+        });
+
+        // Merge with radiologist info
+        const result = radiologists.map(r => ({
+            _id: r._id,
+            fullName: r.fullName,
+            email: r.email,
+            isLoggedIn: r.isLoggedIn || false,
+            lastLoginAt: r.lastLoginAt || null,
+            assignedTodayCount: statsMap[r._id.toString()]?.assignedTodayCount || 0,
+            pendingTodayCount: statsMap[r._id.toString()]?.pendingTodayCount || 0
+        }));
+
+        console.log(`✅ DOCTOR DASHBOARD STATS: ${result.length} doctors fetched`);
+
+        return res.status(200).json({ success: true, data: result });
+
+    } catch (error) {
+        console.error('❌ Error fetching doctor dashboard stats:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch doctor dashboard stats',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
+// ✅ UPDATE STUDY WORKFLOW STATUS — manual status change from frontend
+export const updateStudyWorkflowStatus = async (req, res) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
+        // Role check
+        const allowedRoles = ['admin', 'assignor', 'verifier', 'super_admin'];
+        const userRoles = user.accountRoles?.length ? user.accountRoles : [user.role];
+        const hasPermission = userRoles.some(r => allowedRoles.includes(r));
+        if (!hasPermission) {
+            return res.status(403).json({ success: false, message: 'Insufficient permissions to change workflow status' });
+        }
+
+        const { studyId } = req.params;
+        const { workflowStatus } = req.body;
+
+        if (!workflowStatus) {
+            return res.status(400).json({ success: false, message: 'workflowStatus is required' });
+        }
+
+        const validStatuses = [
+            'new_study_received',
+            'pending_assignment',
+            'assigned_to_doctor',
+            'doctor_opened_report',
+            'report_in_progress',
+            'history_created',
+            'history_updated',
+            'report_drafted',
+            'draft_saved',
+            'report_finalized',
+            'verification_pending',
+            'verification_in_progress',
+            'report_verified',
+            'report_completed',
+            'report_rejected',
+            'revert_to_radiologist',
+            'final_report_downloaded',
+            'report_reprint_needed',
+            'archived'
+        ];
+
+        if (!validStatuses.includes(workflowStatus)) {
+            return res.status(400).json({ success: false, message: `Invalid workflow status: ${workflowStatus}` });
+        }
+
+        const study = await DicomStudy.findOne({
+            _id: studyId,
+            organizationIdentifier: user.organizationIdentifier
+        });
+
+        if (!study) {
+            return res.status(404).json({ success: false, message: 'Study not found' });
+        }
+
+        const previousStatus = study.workflowStatus;
+        study.workflowStatus = workflowStatus;
+
+        // ✅ FIX: Also update currentCategory to stay in sync with workflowStatus
+        const WORKFLOW_TO_CATEGORY = {
+            'new_study_received':       'CREATED',
+            'metadata_extracted':       'CREATED',
+            'history_pending':          'CREATED',
+            'history_created':          'HISTORY_CREATED',
+            'history_verified':         'HISTORY_CREATED',
+            'pending_assignment':       'UNASSIGNED',
+            'awaiting_radiologist':     'UNASSIGNED',
+            'assigned_to_doctor':       'ASSIGNED',
+            'assignment_accepted':      'ASSIGNED',
+            'doctor_opened_report':     'PENDING',
+            'report_in_progress':       'PENDING',
+            'pending_completion':       'PENDING',
+            'report_drafted':           'DRAFT',
+            'draft_saved':              'DRAFT',
+            'report_finalized':         'FINAL',
+            'final_approved':           'FINAL',
+            'verification_pending':     'VERIFICATION_PENDING',
+            'verification_in_progress': 'VERIFICATION_PENDING',
+            'report_verified':          'COMPLETED',
+            'report_completed':         'COMPLETED',
+            'final_report_downloaded':  'COMPLETED',
+            'archived':                 'COMPLETED',
+            'report_rejected':          'REVERTED',
+            'revert_to_radiologist':    'REVERTED',
+            'report_reprint_needed':    'REPRINT_NEED',
+            'reprint_requested':        'REPRINT',
+            'correction_needed':        'REPRINT',
+            'urgent_priority':          'URGENT',
+            'emergency_case':           'URGENT',
+        };
+
+        const newCategory = WORKFLOW_TO_CATEGORY[workflowStatus];
+        if (newCategory) {
+            study.currentCategory = newCategory;
+        }
+
+        // Push to status history
+        if (!study.statusHistory) study.statusHistory = [];
+        study.statusHistory.push({
+            status: workflowStatus,
+            changedAt: new Date(),
+            changedBy: user._id,
+            changedByName: user.fullName || user.email,
+            previousStatus: previousStatus,
+            notes: `Manually changed from ${previousStatus} to ${workflowStatus}`
+        });
+
+        await study.save();
+
+        console.log(`✅ WORKFLOW STATUS UPDATED: ${studyId} → ${previousStatus} → ${workflowStatus} by ${user.fullName}`);
+
+        return res.status(200).json({
+            success: true,
+            message: `Workflow status updated to ${workflowStatus}`,
+            data: {
+                studyId,
+                previousStatus,
+                newStatus: workflowStatus,
+                changedBy: user.fullName
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Error updating workflow status:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to update workflow status',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
 
 // Update exports at the bottom
 export default {
     getValues,
     getPendingStudies,
-    getDraftedStudies,      // ✅ NEW
+    getDraftedStudies,
     getCompletedStudies,
-    getRevertedStudies,     // ✅ NEW
+    getRevertedStudies,
     getRejectedStudies,
     getAllStudiesForDoctor,
-    createTypist
+    createTypist,
+    getDoctorDashboardStats,
+    updateStudyWorkflowStatus
 };

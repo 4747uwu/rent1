@@ -205,7 +205,7 @@ router.put('/manage-users/:userId', protect, async (req, res) => {
 const manualUpload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 500 * 1024 * 1024 // 200MB per file
+    fileSize: 5 * 1024 * 1024 * 1024 // 5GB per file
   },
   fileFilter: (req, file, cb) => {
     console.log('🔍 [Multer] Checking file:', {

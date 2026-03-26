@@ -16,6 +16,7 @@ const buildVerifierBaseQuery = (req, workflowStatuses = null) => {
     const queryFilters = {
         organizationIdentifier: user.organizationIdentifier
     };
+    const orGroups = []; // ✅ FIX: Use orGroups array to safely merge $or conditions
 
     // ✅ DETERMINE VERIFIABLE STATUSES based on verification requirements
     let verifiableStatuses = [
@@ -73,12 +74,9 @@ const buildVerifierBaseQuery = (req, workflowStatuses = null) => {
         console.log('🔓 [Verifier] No radiologist restriction - seeing all org studies');
     }
 
-    // ✅ CRITICAL: COMBINE FILTERS WITH $OR LOGIC
+    // ✅ CRITICAL: COMBINE LAB/RADIOLOGIST FILTERS via orGroups (not direct $or)
     if (radiologistFilter && labFilter) {
-        queryFilters.$or = [
-            radiologistFilter,
-            labFilter
-        ];
+        orGroups.push([radiologistFilter, labFilter]);
         console.log('🔀 [Verifier Filter] Using $OR: study matches if assigned to bound radiologist OR from bound lab');
     } else if (radiologistFilter) {
         Object.assign(queryFilters, radiologistFilter);
@@ -99,20 +97,16 @@ const buildVerifierBaseQuery = (req, workflowStatuses = null) => {
         if (filterEndDate) queryFilters[dateField].$lte = filterEndDate;
     }
 
-    // ✅ SEARCH - no regex on clinicalHistory
+    // ✅ FIX: SEARCH - match admin controller pattern (search all relevant fields, no $or clobber)
     if (req.query.search) {
-        const searchTerm = req.query.search.trim();
-        const looksLikeId = /^[a-zA-Z0-9\-_.]+$/.test(searchTerm) && searchTerm.length <= 30;
-
-        if (looksLikeId) {
-            queryFilters.$or = [
-                { bharatPacsId: { $regex: `^${searchTerm}`, $options: 'i' } },
-                { accessionNumber: { $regex: `^${searchTerm}`, $options: 'i' } },
-                { 'patientInfo.patientID': { $regex: `^${searchTerm}`, $options: 'i' } }
-            ];
-        } else {
-            queryFilters.$text = { $search: searchTerm };
-        }
+        orGroups.push([
+            { bharatPacsId:                      { $regex: req.query.search, $options: 'i' } },
+            { accessionNumber:                   { $regex: req.query.search, $options: 'i' } },
+            { studyInstanceUID:                  { $regex: req.query.search, $options: 'i' } },
+            { 'patientInfo.patientName':         { $regex: req.query.search, $options: 'i' } },
+            { 'patientInfo.patientID':           { $regex: req.query.search, $options: 'i' } },
+            { 'clinicalHistory.clinicalHistory': { $regex: req.query.search, $options: 'i' } },
+        ]);
     }
 
     // ✅ MODALITY - single field, hits index
@@ -138,6 +132,13 @@ const buildVerifierBaseQuery = (req, workflowStatuses = null) => {
     // ✅ PRIORITY filter
     if (req.query.priority && req.query.priority !== 'all') {
         queryFilters.priority = req.query.priority;
+    }
+
+    // ✅ FIX: MERGE $or GROUPS safely (prevents clobber bug — matches admin controller)
+    if (orGroups.length === 1) {
+        queryFilters.$or = orGroups[0];
+    } else if (orGroups.length > 1) {
+        queryFilters.$and = orGroups.map(group => ({ $or: group }));
     }
 
     console.log('🔍 [Verifier Query] Final filters:', JSON.stringify(queryFilters, null, 2));

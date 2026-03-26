@@ -633,6 +633,43 @@ const StudyRow = ({
   const [restoringStudy, setRestoringStudy] = useState(false);
   const hasActiveViewers = activeViewers.length > 0;
   const [shareModal, setShareModal] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [changingStatus, setChangingStatus] = useState(false);
+
+  const WORKFLOW_STATUS_OPTIONS = [
+    { value: 'new_study_received', label: 'New' },
+    { value: 'pending_assignment', label: 'Pending' },
+    { value: 'assigned_to_doctor', label: 'Assigned' },
+    { value: 'doctor_opened_report', label: 'Opened' },
+    { value: 'report_in_progress', label: 'In Progress' },
+    { value: 'report_drafted', label: 'Drafted' },
+    { value: 'report_finalized', label: 'Finalized' },
+    { value: 'verification_pending', label: 'Verification Pending' },
+    { value: 'report_verified', label: 'Verified' },
+    { value: 'report_completed', label: 'Completed' },
+    { value: 'final_report_downloaded', label: 'Downloaded' },
+    { value: 'report_rejected', label: 'Rejected' },
+    { value: 'revert_to_radiologist', label: 'Reverted' },
+    { value: 'archived', label: 'Archived' },
+  ];
+
+  const handleWorkflowStatusChange = async (newStatus) => {
+    setChangingStatus(true);
+    try {
+      const response = await api.put(`/doctor/studies/${study._id}/workflow-status`, { workflowStatus: newStatus });
+      if (response.data.success) {
+        toast.success(`Status changed to ${newStatus.replace(/_/g, ' ')}`);
+        onRefreshStudies?.();
+      } else {
+        toast.error(response.data.message || 'Failed to change status');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to change status');
+    } finally {
+      setChangingStatus(false);
+      setShowStatusDropdown(false);
+    }
+  };
 
   const printCount = study.printCount || 0;
   const lastPrint = study.lastPrintedAt || null;
@@ -1169,7 +1206,7 @@ const StudyRow = ({
         >
           <button
             className="w-full text-left hover:underline decoration-gray-900 mb-0.5"
-            onClick={() => onPatienIdClick?.(study.patientId, study)}
+            onClick={(e) => handleViewOnlyClick(e)}
           >
             <div
               className={`text-[10px] sm:text-xs font-bold ${isUrgent ? 'text-rose-600' : 'text-slate-800'
@@ -1649,6 +1686,34 @@ const StudyRow = ({
                 >
                   <Share2 className="w-3.5 h-3.5 text-sky-600" />
                 </button>
+
+                {/* ✅ Workflow Status Change Dropdown — admin/assignor only */}
+                {(userAccountRoles.includes('admin') || userAccountRoles.includes('assignor')) && (
+                  <div className="relative">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setShowStatusDropdown(prev => !prev); }}
+                      disabled={changingStatus}
+                      className="p-1 hover:bg-amber-50 rounded transition-all hover:scale-110"
+                      title="Change Workflow Status"
+                    >
+                      <Edit className="w-3.5 h-3.5 text-amber-600" />
+                    </button>
+                    {showStatusDropdown && (
+                      <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-[9999] min-w-[160px] max-h-[200px] overflow-y-auto">
+                        {WORKFLOW_STATUS_OPTIONS.map(opt => (
+                          <button
+                            key={opt.value}
+                            onClick={(e) => { e.stopPropagation(); handleWorkflowStatusChange(opt.value); }}
+                            disabled={study.workflowStatus === opt.value || changingStatus}
+                            className={`w-full px-2.5 py-1.5 text-left text-[9px] font-medium hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${study.workflowStatus === opt.value ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-700'}`}
+                          >
+                            {study.workflowStatus === opt.value && '✓ '}{opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
 
@@ -2095,7 +2160,7 @@ const WorklistTable = ({
           </thead>
           <tbody>
             {sortStudiesByPriority(studies).map((study, index) => (
-              <StudyRow key={study._id} study={study} activeViewers={activeViweres[study._id] || []} index={index} selectedStudies={selectedStudies} availableAssignees={availableAssignees} onSelectStudy={onSelectStudy} onPatienIdClick={onPatienIdClick} onAssignDoctor={onAssignDoctor} onShowDetailedView={handleShowDetailedView} onViewReport={handleViewReport} onShowStudyNotes={handleShowStudyNotes} onViewStudy={handleViewStudy} onEditPatient={handleEditPatient} onAssignmentSubmit={onAssignmentSubmit} onShowTimeline={handleShowTimeline} onToggleLock={handleToggleStudyLock} onShowDocuments={handleShowDocuments} onShowRevertModal={handleShowRevertModal} setPrintModal={setPrintModal} userRole={userRole} userRoles={userAccountRoles} getColumnWidth={getColumnWidth} isColumnVisible={isColumnVisible} onShowDeleteModal={handleShowDeleteModal} onDirectPrint={handleDirectPrint} />
+              <StudyRow key={study._id} study={study} activeViewers={activeViweres[study._id] || []} index={index} selectedStudies={selectedStudies} availableAssignees={availableAssignees} onSelectStudy={onSelectStudy} onPatienIdClick={onPatienIdClick} onAssignDoctor={onAssignDoctor} onShowDetailedView={handleShowDetailedView} onViewReport={handleViewReport} onShowStudyNotes={handleShowStudyNotes} onViewStudy={handleViewStudy} onEditPatient={handleEditPatient} onAssignmentSubmit={onAssignmentSubmit} onShowTimeline={handleShowTimeline} onToggleLock={handleToggleStudyLock} onShowDocuments={handleShowDocuments} onShowRevertModal={handleShowRevertModal} setPrintModal={setPrintModal} userRole={userRole} userRoles={userAccountRoles} getColumnWidth={getColumnWidth} isColumnVisible={isColumnVisible} onShowDeleteModal={handleShowDeleteModal} onDirectPrint={handleDirectPrint} onRefreshStudies={onRefreshStudies} />
             ))}
           </tbody>
         </table>

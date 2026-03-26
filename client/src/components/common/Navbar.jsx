@@ -14,7 +14,9 @@ import {
   Menu,
   X,
   Copy,
-  Upload
+  Upload,
+  Download,
+  Monitor
 } from 'lucide-react';
 import StudyCopyModal from '../StudyCopy/StudyCopyModal';
 import DoctorProfileModal from '../doctor/DoctorProfileModal';
@@ -48,6 +50,7 @@ const Navbar = ({
   const [showProfileModal, setShowProfileModal] = useState(false); // ✅ ADD
   const [showManualStudyModal, setShowManualStudyModal] = useState(false); // ✅ ADD
   const [showSettingsModal, setShowSettingsModal] = useState(false); // ✅ ADD
+  const [showRouterModal, setShowRouterModal] = useState(false);
 
   const orgDropdownRef = useRef(null);
   const profileDropdownRef = useRef(null);
@@ -211,6 +214,7 @@ const Navbar = ({
   // ✅ ADD: Settings access check (same logic as Search.jsx)
   const role = (currentUser?.role || '').toString().toLowerCase();
   const hasSettingsAccess = ['admin', 'super_admin', 'group_id'].includes(role);
+  const isLabStaff = currentUser?.role === 'lab_staff' || currentUser?.accountRoles?.includes('lab_staff');
 
   return (
     <>
@@ -234,14 +238,7 @@ const Navbar = ({
                   alt="Radx1 Logo"
                   className="h-8 w-auto max-w-[80px] object-contain"
                 />
-                <div className="hidden md:block">
-                  <div className="flex items-center space-x-1.5">
-                    <h1 className="text-sm font-bold text-gray-900 tracking-tight">RADX1</h1>
-                    <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap">
-                      {title ? `· ${title}` : ''} {subtitle ? `- ${subtitle}` : ''}
-                    </span>
-                  </div>
-                </div>
+
               </div>
             </div>
 
@@ -294,13 +291,24 @@ const Navbar = ({
                 </button>
               )}
 
+              {isLabStaff && (
+                <button
+                  onClick={() => setShowRouterModal(true)}
+                  className="hidden md:flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium text-gray-600 hover:bg-gray-100 transition-colors border border-gray-200"
+                  title="Download Router EXE"
+                >
+                  <Download className="h-3 w-3" />
+                  <span>Router EXE</span>
+                </button>
+              )}
+
               {additionalActions.map((action, index) => (
                 <button
                   key={index}
                   onClick={action.onClick}
                   className={`hidden md:flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors border ${action.variant === 'primary'
-                      ? 'bg-gray-900 text-white border-gray-900 hover:bg-gray-800'
-                      : 'text-gray-600 hover:bg-gray-100 border-gray-200'
+                    ? 'bg-gray-900 text-white border-gray-900 hover:bg-gray-800'
+                    : 'text-gray-600 hover:bg-gray-100 border-gray-200'
                     }`}
                   title={action.tooltip}
                 >
@@ -420,8 +428,8 @@ const Navbar = ({
                     setShowMobileMenu(false);
                   }}
                   className={`w-full flex items-center space-x-2 px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${action.variant === 'primary'
-                      ? 'bg-black text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-black text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
                     }`}
                 >
                   {action.icon && <action.icon className="h-3.5 w-3.5" />}
@@ -476,6 +484,56 @@ const Navbar = ({
           onNavigate={(path) => { window.location.href = path; }}
           theme="default"
         />
+      )}
+
+      {/* ✅ Router EXE Download Modal */}
+      {showRouterModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowRouterModal(false)}>
+          <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-sm mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 bg-gray-900 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <Monitor className="h-4 w-4 text-white" />
+                <h3 className="text-sm font-bold text-white uppercase">Download Router EXE</h3>
+              </div>
+              <button onClick={() => setShowRouterModal(false)} className="p-1 hover:bg-gray-700 rounded transition-colors">
+                <X className="h-4 w-4 text-white" />
+              </button>
+            </div>
+            <div className="p-5">
+              {(() => {
+                const ua = navigator.userAgent || '';
+                const is64 = /x86_64|x86-64|Win64|x64|amd64|WOW64/.test(ua);
+                return (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                      <Monitor className="h-4 w-4 text-gray-600" />
+                      <div>
+                        <div className="text-[11px] text-gray-500 uppercase font-medium">Detected System</div>
+                        <div className="text-sm font-bold text-gray-900">{is64 ? '64-bit' : '32-bit'}</div>
+                      </div>
+                    </div>
+                    {is64 ? (
+                      <a
+                        href="https://drive.google.com/file/d/1clvfKahVbuf2Vpttb4RNFDupvJQq76AS/view?usp=sharing"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-xs font-bold uppercase hover:bg-black transition-colors shadow-sm"
+                      >
+                        <Download className="h-4 w-4" />
+                        Download for 64-bit
+                      </a>
+                    ) : (
+                      <div className="w-full text-center px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div className="text-xs font-bold text-amber-700 uppercase">32-bit EXE Coming Soon</div>
+                        <div className="text-[10px] text-amber-600 mt-1">The 32-bit version is currently under development.</div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Hidden file input for logo upload */}

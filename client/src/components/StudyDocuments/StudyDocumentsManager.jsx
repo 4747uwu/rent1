@@ -47,7 +47,7 @@ export const StudyDocumentsManager = ({ studyId, isOpen, onClose, studyMeta = nu
     const handleFileUpload = async (files) => {
         if (!canManageDocs || !files?.[0]) return;
         const file = files[0];
-        if (file.size > 10 * 1024 * 1024) return toast.error('Max 10MB');
+        if (file.size > 5 * 1024 * 1024 * 1024) return toast.error('Max 5GB');
 
         setUploading(true);
         const formData = new FormData();
@@ -138,7 +138,7 @@ export const StudyDocumentsManager = ({ studyId, isOpen, onClose, studyMeta = nu
                                     {uploading ? 'Uploading...' : 'Drop file or Click to Add'}
                                     <input type="file" className="hidden" onChange={(e) => handleFileUpload(e.target.files)} disabled={uploading} />
                                 </label>
-                                <span className="text-[9px] text-gray-400 font-bold">(MAX 10MB)</span>
+                                <span className="text-[9px] text-gray-400 font-bold">(MAX 5GB)</span>
                             </div>
                         </div>
                     ) : (

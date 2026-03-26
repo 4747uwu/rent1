@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, UserPlus, Building, Shield, Users, ChevronRight, DollarSign, Clock3 } from 'lucide-react';
+import { X, Shield, Users, ChevronRight, IndianRupee, Clock3 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 const SettingsModal = ({ isOpen, onClose, onNavigate, theme = 'default' }) => {
@@ -8,9 +8,8 @@ const SettingsModal = ({ isOpen, onClose, onNavigate, theme = 'default' }) => {
     const isAdmin = role === 'admin';
     const isGroupId = role === 'group_id';
 
-    const canCreateDoctor = ['admin', 'group_id'].includes(role);
-    const canCreateLab = ['admin'].includes(role);
     const canCreateUser = ['admin', 'group_id'].includes(role);
+    const canCreateLab = ['admin'].includes(role);
     const canManageUsers = isAdmin || isGroupId;
 
     const settingsOptions = [];
@@ -23,25 +22,12 @@ const SettingsModal = ({ isOpen, onClose, onNavigate, theme = 'default' }) => {
             onClick: () => { onNavigate('/admin/user-management'); onClose(); }
         });
     }
-    if (canCreateDoctor) {
-        settingsOptions.push({
-            id: 'create-doctor', label: 'Create Doctor',
-            description: 'Add a new doctor account',
-            icon: UserPlus,
-            onClick: () => { onNavigate('/admin/create-doctor'); onClose(); }
-        });
-    }
+
     if (canCreateLab) {
-        settingsOptions.push({
-            id: 'create-lab', label: 'Create Lab / Center',
-            description: 'Register a new laboratory',
-            icon: Building,
-            onClick: () => { onNavigate('/admin/create-lab'); onClose(); }
-        });
         settingsOptions.push({
             id: 'billing-modules', label: 'Billing Modules',
             description: 'Manage billing service items & pricing',
-            icon: DollarSign,
+            icon: IndianRupee,
             onClick: () => { onNavigate('/admin/billing-modules'); onClose(); }
         });
         settingsOptions.push({

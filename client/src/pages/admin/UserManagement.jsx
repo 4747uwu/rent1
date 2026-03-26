@@ -26,7 +26,8 @@ import {
     Shield,
     Columns3,
     Link2,
-    ChevronRight
+    ChevronRight,
+    IndianRupee,
 } from 'lucide-react';
 import ColumnSelector from '../../components/common/ColumnSelector';
 import { getDefaultColumnsForRole } from '../../constants/worklistColumns';
@@ -69,6 +70,11 @@ const UserManagement = ({ isEmbedded = false }) => {
     // ✅ NEW: Available radiologists and labs for verifier assignment
     const [availableRadiologists, setAvailableRadiologists] = useState([]);
     const [availableLabs, setAvailableLabs] = useState([]);
+
+    // ✅ NEW: Billing modules for lab_staff
+    const [availableBillingModules, setAvailableBillingModules] = useState([]);
+    const [selectedBillingModules, setSelectedBillingModules] = useState([]);
+    const [billingModuleSearch, setBillingModuleSearch] = useState('');
 
 
     const [compressionModal, setCompressionModal] = useState({
@@ -210,6 +216,25 @@ const UserManagement = ({ isEmbedded = false }) => {
             toast.error('Failed to load user settings');
         }
 
+        // ✅ Fetch billing modules for lab_staff
+        if (user.role === 'lab_staff' && user.lab) {
+            try {
+                const [modulesRes, configRes] = await Promise.all([
+                    api.get('/billing/modules'),
+                    api.get(`/billing/lab/${user.lab}`).catch(() => ({ data: { data: null } }))
+                ]);
+                setAvailableBillingModules(modulesRes.data.data || []);
+                const currentItems = configRes.data?.data?.billingItems || [];
+                setSelectedBillingModules(currentItems.map(item => {
+                    // module may be populated object or string ID
+                    const mod = item.module;
+                    return typeof mod === 'object' ? (mod._id || mod).toString() : (mod || '').toString();
+                }).filter(Boolean));
+            } catch (err) {
+                console.error('Failed to fetch billing modules:', err);
+            }
+        }
+
         setEditForm({
             fullName: user.fullName || '',
             email: user.email || '',
@@ -237,6 +262,9 @@ const UserManagement = ({ isEmbedded = false }) => {
             assignedLabs: [],
             labAccessMode: 'all',
         });
+        setAvailableBillingModules([]);
+        setSelectedBillingModules([]);
+        setBillingModuleSearch('');
     };
 
     // ✅ SAVE USER CHANGES
@@ -297,6 +325,24 @@ const UserManagement = ({ isEmbedded = false }) => {
 
             await api.put(`/admin/manage-users/${editModal.user._id}`, updateData);
 
+            // ✅ Save billing modules for lab_staff
+            if (editModal.user.role === 'lab_staff' && editModal.user.lab) {
+                const billingItems = selectedBillingModules.map(modId => {
+                    const mod = availableBillingModules.find(m => m._id === modId);
+                    return {
+                        module: modId,
+                        moduleName: mod?.name || '',
+                        moduleCode: mod?.code || '',
+                        modality: mod?.modality || '',
+                        price: mod?.defaultPrice || 0,
+                        isActive: true
+                    };
+                });
+                await api.post(`/billing/lab/${editModal.user.lab}`, {
+                    billingItems
+                });
+            }
+
             toast.success('User updated successfully!');
             handleCloseEditModal();
             fetchOrganizationUsers();
@@ -345,6 +391,20 @@ const UserManagement = ({ isEmbedded = false }) => {
                 : [...prev.assignedRadiologists, idStr]
         }));
     };
+
+    // ✅ NEW: Toggle billing module
+    const handleToggleBillingModule = (moduleId) => {
+        setSelectedBillingModules(prev =>
+            prev.includes(moduleId) ? prev.filter(id => id !== moduleId) : [...prev, moduleId]
+        );
+    };
+
+    const filteredBillingModules = availableBillingModules.filter(m => {
+        if (m.isActive === false) return false;
+        if (!billingModuleSearch) return true;
+        const s = billingModuleSearch.toLowerCase();
+        return m.name?.toLowerCase().includes(s) || m.code?.toLowerCase().includes(s) || m.modality?.toLowerCase().includes(s);
+    });
 
     const handleToggleUserStatus = async (userId, currentStatus) => {
         try {
@@ -918,6 +978,7 @@ const UserManagement = ({ isEmbedded = false }) => {
                                 <div className={`grid h-full ${
                                     editModal.user?.role === 'verifier' ? 'grid-cols-1 lg:grid-cols-12' :
                                     editModal.user?.role === 'assignor' ? 'grid-cols-1 lg:grid-cols-12' :
+                                    editModal.user?.role === 'lab_staff' ? 'grid-cols-1 lg:grid-cols-12' :
                                     'grid-cols-1 lg:grid-cols-10'
                                 }`}>
 
@@ -1106,6 +1167,58 @@ const UserManagement = ({ isEmbedded = false }) => {
                                         </div>
                                     )}
 
+                                    {/* ══════ BILLING MODULES (lab_staff only) ══════ */}
+                                    {editModal.user?.role === 'lab_staff' && (
+                                        <div className="lg:col-span-4 px-5 py-4 overflow-y-auto border-r border-gray-100">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center gap-1.5">
+                                                    <IndianRupee className="w-3.5 h-3.5 text-amber-600" />
+                                                    <h4 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Billing Modules</h4>
+                                                </div>
+                                                <span className="text-[10px] text-gray-400">{selectedBillingModules.length} attached</span>
+                                            </div>
+
+                                            {availableBillingModules.length === 0 ? (
+                                                <div className="border border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                                    <p className="text-xs text-gray-400">No billing modules configured.</p>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <div className="relative mb-2">
+                                                        <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Search modules..."
+                                                            value={billingModuleSearch}
+                                                            onChange={(e) => setBillingModuleSearch(e.target.value)}
+                                                            className="w-full pl-7 pr-2 py-1 border border-gray-200 rounded-md text-[11px] focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                                        />
+                                                    </div>
+                                                    <div className="border border-gray-200 rounded-lg divide-y divide-gray-100 max-h-[50vh] overflow-y-auto">
+                                                        {filteredBillingModules.map(mod => {
+                                                            const isChecked = selectedBillingModules.includes(mod._id);
+                                                            return (
+                                                                <label key={mod._id} className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer transition-colors ${isChecked ? 'bg-amber-50' : 'hover:bg-gray-50'}`}>
+                                                                    <input type="checkbox" checked={isChecked} onChange={() => handleToggleBillingModule(mod._id)} className="w-3 h-3 rounded border-gray-300 text-amber-600 focus:ring-amber-500" />
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <span className="text-xs font-medium text-gray-800 truncate">{mod.name}</span>
+                                                                            {mod.code && <span className="text-[8px] bg-gray-100 text-gray-500 px-1 py-0.5 rounded font-mono">{mod.code}</span>}
+                                                                            <span className="text-[8px] bg-blue-50 text-blue-600 px-1 py-0.5 rounded">{mod.modality}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    {mod.defaultPrice != null && (
+                                                                        <span className="text-[10px] text-emerald-600 font-medium flex-shrink-0">₹{Number(mod.defaultPrice).toLocaleString()}</span>
+                                                                    )}
+                                                                </label>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+
                                     {/* ══════ COLUMN 2: Verifier Assignments (verifier only) ══════ */}
                                     {editModal.user?.role === 'verifier' && (
                                         <div className="lg:col-span-4 px-5 py-4 overflow-y-auto border-r border-gray-100">
@@ -1250,6 +1363,7 @@ const UserManagement = ({ isEmbedded = false }) => {
                                     <div className={`${
                                         editModal.user?.role === 'verifier' ? 'lg:col-span-5' : 
                                         editModal.user?.role === 'assignor' ? 'lg:col-span-5' : 
+                                        editModal.user?.role === 'lab_staff' ? 'lg:col-span-5' :
                                         'lg:col-span-7'
                                     } px-5 py-4 flex flex-col overflow-hidden`}>
                                         <div className="flex items-center gap-1.5 mb-3">

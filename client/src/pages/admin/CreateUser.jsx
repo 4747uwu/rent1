@@ -23,7 +23,15 @@ import {
     Upload,
     X,
     Search,
+    Mail,
+    IndianRupee,
+    FileText,
+    Clock,
+    Briefcase,
 } from 'lucide-react';
+
+const MODALITY_OPTIONS = ['CT', 'MRI', 'MR', 'XR', 'CR', 'DX', 'US', 'MG', 'NM', 'PT', 'RF', 'OT'];
+const SUBSPECIALTY_OPTIONS = ['Neuroradiology', 'Musculoskeletal', 'Body/Abdominal', 'Chest/Thoracic', 'Cardiac', 'Breast Imaging', 'Pediatric', 'Interventional', 'Emergency', 'Oncology'];
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import ColumnSelector from '../../components/common/ColumnSelector';
@@ -44,8 +52,18 @@ const CreateUser = () => {
 
     // ✅ NEW: Signature image state for radiologist
     const fileInputRef = useRef(null);
+    const panCardInputRef = useRef(null);
+    const regCertInputRef = useRef(null);
+    const mouInputRef = useRef(null);
+    const otherDocsInputRef = useRef(null);
     const [signatureImage, setSignatureImage] = useState(null);
     const [signaturePreview, setSignaturePreview] = useState(null);
+
+    // Document upload state
+    const [panCardFile, setPanCardFile] = useState(null);
+    const [regCertFile, setRegCertFile] = useState(null);
+    const [mouFile, setMouFile] = useState(null);
+    const [otherDocs, setOtherDocs] = useState([]);
 
     // Form data
     const [formData, setFormData] = useState({
@@ -64,10 +82,26 @@ const CreateUser = () => {
         // ✅ NEW: Radiologist-specific fields
         specialization: '',
         licenseNumber: '',
+        registrationNumber: '',
         department: '',
         qualifications: [],
         yearsOfExperience: '',
-        contactPhoneOffice: ''
+        contactPhoneOffice: '',
+        mobileNumber: '',
+        emailId: '',
+        // Professional details
+        reportingModalityExpertise: [],
+        subSpecialtyTags: [],
+        reportingAvailability: 'day',
+        tatPreference: '',
+        // Financial details
+        panCardNumber: '',
+        bankDetails: {
+            accountHolderName: '',
+            accountNumber: '',
+            ifscCode: '',
+            bankName: ''
+        }
     });
 
     // Role-specific configuration
@@ -267,12 +301,51 @@ const CreateUser = () => {
         }
     };
 
-    // Handle input changes
+    // Handle input changes (supports dot-notation for nested objects)
     const handleInputChange = (e) => {
         const { name, value } = e.target;
+        if (name.includes('.')) {
+            const [parent, child] = name.split('.');
+            setFormData(prev => ({
+                ...prev,
+                [parent]: {
+                    ...prev[parent],
+                    [child]: value
+                }
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
+    };
+
+    // ✅ Doc upload handler factory
+    const handleDocUpload = (setter) => (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 50 * 1024 * 1024) { toast.error('File must be < 50MB'); return; }
+        setter(file);
+    };
+
+    // Toggle modality expertise
+    const toggleModality = (mod) => {
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            reportingModalityExpertise: prev.reportingModalityExpertise.includes(mod)
+                ? prev.reportingModalityExpertise.filter(m => m !== mod)
+                : [...prev.reportingModalityExpertise, mod]
+        }));
+    };
+
+    // Toggle sub-specialty tag
+    const toggleSubSpecialty = (tag) => {
+        setFormData(prev => ({
+            ...prev,
+            subSpecialtyTags: prev.subSpecialtyTags.includes(tag)
+                ? prev.subSpecialtyTags.filter(t => t !== tag)
+                : [...prev.subSpecialtyTags, tag]
         }));
     };
 
@@ -740,11 +813,20 @@ const CreateUser = () => {
                 ...(isRadiologistSelected() && {
                     specialization: formData.specialization,
                     licenseNumber: formData.licenseNumber,
+                    registrationNumber: formData.registrationNumber,
                     department: formData.department,
                     qualifications: formData.qualifications.filter(q => q.trim()),
                     yearsOfExperience: formData.yearsOfExperience ? parseInt(formData.yearsOfExperience) : undefined,
                     contactPhoneOffice: formData.contactPhoneOffice,
-                    signature: signatureBase64,           // ✅ FIX: was 'signatureImageData'
+                    mobileNumber: formData.mobileNumber,
+                    emailId: formData.emailId,
+                    reportingModalityExpertise: formData.reportingModalityExpertise,
+                    subSpecialtyTags: formData.subSpecialtyTags,
+                    reportingAvailability: formData.reportingAvailability,
+                    tatPreference: formData.tatPreference,
+                    panCardNumber: formData.panCardNumber,
+                    bankDetails: formData.bankDetails,
+                    signature: signatureBase64,
                     signatureMetadata: signatureImage ? {
                         originalName: signatureImage.name,
                         originalSize: signatureImage.size,
@@ -970,128 +1052,223 @@ const CreateUser = () => {
                                 </div>
                             )}
 
-                        {/* Radiologist Details (conditional) */}
+                        {/* ═══ RADIOLOGIST PROFILE (conditional) ═══ */}
                         {isRadiologistSelected() && (
-                            <div>
-                                <div className="flex items-center gap-1.5 mb-2">
-                                    <Stethoscope className="w-3.5 h-3.5 text-teal-600" />
-                                    <h4 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Professional Details</h4>
-                                </div>
-                                <div className="space-y-2.5">
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Specialization <span className="text-red-500">*</span></label>
-                                        <input
-                                            type="text"
-                                            value={formData.specialization}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))}
-                                            className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                                            placeholder="e.g., Neuroradiology"
-                                            required={isRadiologistSelected()}
-                                        />
+                            <div className="space-y-3">
+                                {/* ── 1. CONTACT INFO ── */}
+                                <div>
+                                    <div className="flex items-center gap-1.5 mb-2">
+                                        <Phone className="w-3.5 h-3.5 text-sky-600" />
+                                        <h4 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Contact Info</h4>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">License No.</label>
-                                            <input
-                                                type="text"
-                                                value={formData.licenseNumber}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, licenseNumber: e.target.value }))}
-                                                className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                                                placeholder="License #"
-                                            />
+                                            <label className="block text-[10px] font-medium text-gray-600 mb-0.5">Mobile Number</label>
+                                            <input type="tel" name="mobileNumber" value={formData.mobileNumber} onChange={handleInputChange} className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-teal-500" placeholder="+91" />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-700 mb-1">Experience</label>
-                                            <input
-                                                type="number"
-                                                value={formData.yearsOfExperience}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, yearsOfExperience: e.target.value }))}
-                                                className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                                                placeholder="Years"
-                                                min="0"
-                                            />
+                                            <label className="block text-[10px] font-medium text-gray-600 mb-0.5">Email ID</label>
+                                            <input type="email" name="emailId" value={formData.emailId} onChange={handleInputChange} className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-teal-500" placeholder="doctor@email.com" />
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Department</label>
-                                        <input
-                                            type="text"
-                                            value={formData.department}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
-                                            className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                                            placeholder="Department"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Office Phone</label>
-                                        <input
-                                            type="tel"
-                                            value={formData.contactPhoneOffice}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, contactPhoneOffice: e.target.value }))}
-                                            className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                                            placeholder="+91 98765 43210"
-                                        />
-                                    </div>
+                                </div>
 
-                                    {/* Qualifications */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">Qualifications</label>
-                                        <div className="space-y-1.5">
-                                            {formData.qualifications.map((qual, index) => (
-                                                <div key={index} className="flex gap-1.5">
-                                                    <input
-                                                        type="text"
-                                                        value={qual}
-                                                        onChange={(e) => handleQualificationChange(index, e.target.value)}
-                                                        className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                                                        placeholder="e.g., MD, MBBS"
-                                                    />
-                                                    <button type="button" onClick={() => removeQualification(index)} className="px-2 py-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                                        <X className="w-3.5 h-3.5" />
-                                                    </button>
+                                {/* ── 2. PROFESSIONAL DETAILS ── */}
+                                <div>
+                                    <div className="flex items-center gap-1.5 mb-2">
+                                        <Stethoscope className="w-3.5 h-3.5 text-teal-600" />
+                                        <h4 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Professional Details</h4>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="block text-[10px] font-medium text-gray-600 mb-0.5">Specialization <span className="text-red-500">*</span></label>
+                                                <input type="text" value={formData.specialization} onChange={(e) => setFormData(prev => ({ ...prev, specialization: e.target.value }))} className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-teal-500" placeholder="e.g., Neuroradiology" required={isRadiologistSelected()} />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-medium text-gray-600 mb-0.5">Experience (yrs)</label>
+                                                <input type="number" value={formData.yearsOfExperience} onChange={(e) => setFormData(prev => ({ ...prev, yearsOfExperience: e.target.value }))} className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-teal-500" placeholder="0" min="0" />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="block text-[10px] font-medium text-gray-600 mb-0.5">Registration No. (MCI)</label>
+                                                <input type="text" name="registrationNumber" value={formData.registrationNumber} onChange={handleInputChange} className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-teal-500" placeholder="MCI/SMC #" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-medium text-gray-600 mb-0.5">License No.</label>
+                                                <input type="text" value={formData.licenseNumber} onChange={(e) => setFormData(prev => ({ ...prev, licenseNumber: e.target.value }))} className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-teal-500" placeholder="License #" />
+                                            </div>
+                                        </div>
+
+                                        {/* Reporting Modality Expertise */}
+                                        <div>
+                                            <label className="block text-[10px] font-medium text-gray-600 mb-1">Modality Expertise</label>
+                                            <div className="flex flex-wrap gap-1">
+                                                {MODALITY_OPTIONS.map(mod => (
+                                                    <button key={mod} type="button" onClick={() => toggleModality(mod)} className={`px-1.5 py-0.5 rounded text-[9px] font-medium border transition-colors ${formData.reportingModalityExpertise.includes(mod) ? 'bg-teal-100 border-teal-400 text-teal-700' : 'bg-gray-50 border-gray-200 text-gray-500 hover:border-teal-300'}`}>{mod}</button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Sub-specialty Tags */}
+                                        <div>
+                                            <label className="block text-[10px] font-medium text-gray-600 mb-1">Sub-specialty Tags</label>
+                                            <div className="flex flex-wrap gap-1">
+                                                {SUBSPECIALTY_OPTIONS.map(tag => (
+                                                    <button key={tag} type="button" onClick={() => toggleSubSpecialty(tag)} className={`px-1.5 py-0.5 rounded text-[9px] font-medium border transition-colors ${formData.subSpecialtyTags.includes(tag) ? 'bg-indigo-100 border-indigo-400 text-indigo-700' : 'bg-gray-50 border-gray-200 text-gray-500 hover:border-indigo-300'}`}>{tag}</button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Availability + TAT */}
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="block text-[10px] font-medium text-gray-600 mb-0.5">Availability</label>
+                                                <select name="reportingAvailability" value={formData.reportingAvailability} onChange={handleInputChange} className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-teal-500 bg-white">
+                                                    <option value="day">Day Shift</option>
+                                                    <option value="night">Night Shift</option>
+                                                    <option value="both">Both</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-medium text-gray-600 mb-0.5">TAT Preference</label>
+                                                <input type="text" name="tatPreference" value={formData.tatPreference} onChange={handleInputChange} className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-teal-500" placeholder="e.g., 2 hrs" />
+                                            </div>
+                                        </div>
+
+                                        {/* Qualifications */}
+                                        <div>
+                                            <label className="block text-[10px] font-medium text-gray-600 mb-1">Qualifications</label>
+                                            <div className="space-y-1">
+                                                {formData.qualifications.map((qual, index) => (
+                                                    <div key={index} className="flex gap-1">
+                                                        <input type="text" value={qual} onChange={(e) => handleQualificationChange(index, e.target.value)} className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-teal-500" placeholder="e.g., MD, MBBS" />
+                                                        <button type="button" onClick={() => removeQualification(index)} className="px-1.5 text-red-500 hover:bg-red-50 rounded"><X className="w-3 h-3" /></button>
+                                                    </div>
+                                                ))}
+                                                <button type="button" onClick={addQualification} className="w-full px-2 py-1 border border-dashed border-gray-300 rounded text-[10px] text-gray-500 hover:border-teal-400 hover:text-teal-600 transition-colors">+ Add Qualification</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* ── 3. FINANCIAL DETAILS ── */}
+                                <div>
+                                    <div className="flex items-center gap-1.5 mb-2">
+                                        <IndianRupee className="w-3.5 h-3.5 text-emerald-600" />
+                                        <h4 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Financial Details</h4>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div>
+                                            <label className="block text-[10px] font-medium text-gray-600 mb-0.5">PAN Card Number</label>
+                                            <input type="text" name="panCardNumber" value={formData.panCardNumber} onChange={handleInputChange} className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 uppercase" placeholder="ABCDE1234F" maxLength={10} />
+                                        </div>
+                                        <div className="bg-gray-50 rounded p-2 border border-gray-200">
+                                            <p className="text-[9px] font-semibold text-gray-500 uppercase mb-1.5">Bank Account</p>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <label className="block text-[10px] font-medium text-gray-600 mb-0.5">Holder Name</label>
+                                                    <input type="text" name="bankDetails.accountHolderName" value={formData.bankDetails.accountHolderName} onChange={handleInputChange} className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-emerald-500" placeholder="Name" />
                                                 </div>
-                                            ))}
-                                            <button
-                                                type="button"
-                                                onClick={addQualification}
-                                                className="w-full px-3 py-1.5 border border-dashed border-gray-300 rounded-lg text-xs text-gray-500 hover:border-teal-400 hover:text-teal-600 transition-colors"
-                                            >
-                                                + Add Qualification
-                                            </button>
+                                                <div>
+                                                    <label className="block text-[10px] font-medium text-gray-600 mb-0.5">Account Number</label>
+                                                    <input type="text" name="bankDetails.accountNumber" value={formData.bankDetails.accountNumber} onChange={handleInputChange} className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-emerald-500" placeholder="Acc No." />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-medium text-gray-600 mb-0.5">IFSC Code</label>
+                                                    <input type="text" name="bankDetails.ifscCode" value={formData.bankDetails.ifscCode} onChange={handleInputChange} className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-emerald-500 uppercase" placeholder="ABCD0123" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-medium text-gray-600 mb-0.5">Bank Name</label>
+                                                    <input type="text" name="bankDetails.bankName" value={formData.bankDetails.bankName} onChange={handleInputChange} className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-emerald-500" placeholder="Bank" />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    {/* Digital Signature */}
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                                            <Award className="w-3 h-3 text-purple-600" />
-                                            Signature <span className="text-gray-400 font-normal">(optional)</span>
-                                        </label>
-                                        {!signaturePreview ? (
-                                            <div className="border border-dashed border-gray-300 rounded-lg p-3 text-center hover:border-teal-400 transition-colors">
-                                                <Upload className="mx-auto w-6 h-6 text-gray-300 mb-1" />
-                                                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleSignatureUpload} className="hidden" id="signature-upload" />
-                                                <label htmlFor="signature-upload" className="text-xs text-teal-600 font-medium cursor-pointer hover:underline">
-                                                    Upload Image
-                                                </label>
-                                                <p className="text-[10px] text-gray-400 mt-0.5">PNG/JPG, max 5MB</p>
+                                {/* ── 4. DOCUMENT UPLOADS ── */}
+                                <div>
+                                    <div className="flex items-center gap-1.5 mb-2">
+                                        <FileText className="w-3.5 h-3.5 text-rose-600" />
+                                        <h4 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Documents</h4>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {/* PAN Card */}
+                                        {!panCardFile ? (
+                                            <div className="border border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-teal-400 transition-colors cursor-pointer" onClick={() => panCardInputRef.current?.click()}>
+                                                <p className="text-xs text-gray-500">PAN Card <span className="text-gray-400">(click to upload)</span></p>
+                                                <input ref={panCardInputRef} type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" className="hidden" onChange={handleDocUpload(setPanCardFile)} />
                                             </div>
                                         ) : (
-                                            <div className="border border-indigo-200 rounded-lg p-2 bg-indigo-50">
-                                                <div className="flex items-center justify-between mb-1.5">
-                                                    <span className="text-[10px] font-medium text-indigo-800 flex items-center gap-1">
-                                                        <CheckCircle className="w-3 h-3" /> Uploaded
-                                                    </span>
-                                                    <button type="button" onClick={removeSignature} className="text-indigo-500 hover:text-indigo-700">
-                                                        <X className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-                                                <div className="bg-white rounded p-2 flex items-center justify-center">
-                                                    <img src={signaturePreview} alt="Signature" className="max-h-16 object-contain" />
-                                                </div>
+                                            <div className="border border-blue-200 bg-blue-50 rounded-lg p-2 flex items-center justify-between">
+                                                <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-blue-600" /><span className="text-xs text-blue-900 truncate max-w-[160px]">{panCardFile.name}</span></div>
+                                                <button type="button" onClick={() => { setPanCardFile(null); if(panCardInputRef.current) panCardInputRef.current.value=''; }} className="text-blue-600 hover:text-blue-800"><X className="w-3.5 h-3.5" /></button>
                                             </div>
                                         )}
+                                        {/* Registration Certificate */}
+                                        {!regCertFile ? (
+                                            <div className="border border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-teal-400 transition-colors cursor-pointer" onClick={() => regCertInputRef.current?.click()}>
+                                                <p className="text-xs text-gray-500">Registration Certificate <span className="text-gray-400">(click)</span></p>
+                                                <input ref={regCertInputRef} type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" className="hidden" onChange={handleDocUpload(setRegCertFile)} />
+                                            </div>
+                                        ) : (
+                                            <div className="border border-green-200 bg-green-50 rounded-lg p-2 flex items-center justify-between">
+                                                <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-green-600" /><span className="text-xs text-green-900 truncate max-w-[160px]">{regCertFile.name}</span></div>
+                                                <button type="button" onClick={() => { setRegCertFile(null); if(regCertInputRef.current) regCertInputRef.current.value=''; }} className="text-green-600 hover:text-green-800"><X className="w-3.5 h-3.5" /></button>
+                                            </div>
+                                        )}
+                                        {/* MOU */}
+                                        {!mouFile ? (
+                                            <div className="border border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-teal-400 transition-colors cursor-pointer" onClick={() => mouInputRef.current?.click()}>
+                                                <p className="text-xs text-gray-500">MOU / Agreement <span className="text-gray-400">(click)</span></p>
+                                                <input ref={mouInputRef} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleDocUpload(setMouFile)} />
+                                            </div>
+                                        ) : (
+                                            <div className="border border-purple-200 bg-purple-50 rounded-lg p-2 flex items-center justify-between">
+                                                <div className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5 text-purple-600" /><span className="text-xs text-purple-900 truncate max-w-[160px]">{mouFile.name}</span></div>
+                                                <button type="button" onClick={() => { setMouFile(null); if(mouInputRef.current) mouInputRef.current.value=''; }} className="text-purple-600 hover:text-purple-800"><X className="w-3.5 h-3.5" /></button>
+                                            </div>
+                                        )}
+                                        {/* Other Docs */}
+                                        <div className="border border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-teal-400 transition-colors cursor-pointer" onClick={() => otherDocsInputRef.current?.click()}>
+                                            <p className="text-xs text-gray-500">Other Supporting Docs <span className="text-gray-400">(click)</span></p>
+                                            <input ref={otherDocsInputRef} type="file" multiple className="hidden" onChange={(e) => setOtherDocs(prev => [...prev, ...Array.from(e.target.files)])} />
+                                        </div>
+                                        {otherDocs.length > 0 && otherDocs.map((doc, i) => (
+                                            <div key={i} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded px-2 py-1">
+                                                <span className="text-[10px] text-gray-700 truncate max-w-[160px]">{doc.name}</span>
+                                                <button type="button" onClick={() => setOtherDocs(prev => prev.filter((_, idx) => idx !== i))} className="text-red-400 hover:text-red-600"><X className="w-3 h-3" /></button>
+                                            </div>
+                                        ))}
                                     </div>
+                                </div>
+
+                                {/* ── 5. DIGITAL SIGNATURE ── */}
+                                <div>
+                                    <div className="flex items-center gap-1.5 mb-2">
+                                        <Award className="w-3.5 h-3.5 text-purple-600" />
+                                        <h4 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Signature <span className="text-gray-400 font-normal normal-case">(optional)</span></h4>
+                                    </div>
+                                    {!signaturePreview ? (
+                                        <div className="border border-dashed border-gray-300 rounded-lg p-2.5 text-center hover:border-teal-400 transition-colors">
+                                            <Upload className="mx-auto w-5 h-5 text-gray-300 mb-1" />
+                                            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleSignatureUpload} className="hidden" id="signature-upload" />
+                                            <label htmlFor="signature-upload" className="text-xs text-teal-600 font-medium cursor-pointer hover:underline">Upload Image</label>
+                                            <p className="text-[9px] text-gray-400 mt-0.5">PNG/JPG, max 5MB</p>
+                                        </div>
+                                    ) : (
+                                        <div className="border border-indigo-200 rounded-lg p-2 bg-indigo-50">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-[10px] font-medium text-indigo-800 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Uploaded</span>
+                                                <button type="button" onClick={removeSignature} className="text-indigo-500 hover:text-indigo-700"><X className="w-3.5 h-3.5" /></button>
+                                            </div>
+                                            <div className="bg-white rounded p-1.5 flex items-center justify-center">
+                                                <img src={signaturePreview} alt="Signature" className="max-h-12 object-contain" />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}

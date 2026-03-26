@@ -25,8 +25,6 @@ export const loginUser = async (req, res) => {
     try {
         const loginInput = email.trim().toLowerCase();
 
-        // Support login by username OR email
-        // If no @ symbol, treat as username OR auto-append @radivue.com
         const query = {
             $or: [
                 { email: loginInput.toLowerCase() },
@@ -45,7 +43,6 @@ export const loginUser = async (req, res) => {
         .populate('organization', 'name identifier status displayName features subscription')
         .populate('lab', 'name identifier isActive fullIdentifier settings');
 
-        // Verify user exists and password is correct
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(401).json({ 
                 success: false, 
@@ -53,7 +50,6 @@ export const loginUser = async (req, res) => {
             });
         }
 
-        // Check if user account is active
         if (!user.isActive) {
             return res.status(403).json({ 
                 success: false, 
@@ -61,7 +57,6 @@ export const loginUser = async (req, res) => {
             });
         }
 
-        // Check organization status (for non-super admin users)
         if (user.role !== 'super_admin' && user.organization) {
             if (user.organization.status !== 'active') {
                 return res.status(403).json({ 
@@ -70,7 +65,6 @@ export const loginUser = async (req, res) => {
                 });
             }
 
-            // Check subscription status
             if (user.organization.subscription?.subscriptionEndDate && 
                 new Date() > new Date(user.organization.subscription.subscriptionEndDate)) {
                 return res.status(403).json({ 
@@ -80,13 +74,12 @@ export const loginUser = async (req, res) => {
             }
         }
 
-        // Update login tracking
         user.isLoggedIn = true;
         user.lastLoginAt = new Date();
         user.loginCount = (user.loginCount || 0) + 1;
         await user.save();
 
-        // Generate JWT token with organization context
+        
         const tokenPayload = {
             userId: user._id,
             role: user.role,

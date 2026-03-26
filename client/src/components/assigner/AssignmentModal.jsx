@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { X, User } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 const AssignmentModalContent = ({ 
   study, availableAssignees, onSubmit, onClose, position, searchTerm: externalSearchTerm = ''
@@ -9,9 +10,29 @@ const AssignmentModalContent = ({
   const [selectedRadiologistIds, setSelectedRadiologistIds] = useState([]);
   const [currentlyAssignedIds, setCurrentlyAssignedIds] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [doctorStats, setDoctorStats] = useState({});
   const modalRef = useRef(null);
 
   const searchTerm = externalSearchTerm;
+
+  // ✅ Fetch doctor dashboard stats (online/offline, assigned today, pending today)
+  useEffect(() => {
+    const fetchDoctorStats = async () => {
+      try {
+        const response = await api.get('/doctor/dashboard-stats');
+        if (response.data.success && response.data.data) {
+          const statsMap = {};
+          response.data.data.forEach(doc => {
+            statsMap[doc._id] = doc;
+          });
+          setDoctorStats(statsMap);
+        }
+      } catch (err) {
+        console.error('Failed to fetch doctor stats:', err);
+      }
+    };
+    fetchDoctorStats();
+  }, []);
 
   useEffect(() => {
     let assignedIds = [];
@@ -128,6 +149,8 @@ const AssignmentModalContent = ({
               const isAssigned = currentlyAssignedIds.includes(radiologist._id?.toString());
               const isSelected = selectedRadiologistIds.includes(radiologist._id?.toString());
               const hasWorkload = radiologist.workload?.currentWorkload > 0;
+              const stats = doctorStats[radiologist._id?.toString()];
+              const isOnline = stats?.isLoggedIn || false;
               
               return (
                 <div
@@ -147,6 +170,13 @@ const AssignmentModalContent = ({
                         {radiologist.fullName || radiologist.email.split('@')[0]}
                       </div>
                       
+                      {/* ✅ Online/Offline Status Badge */}
+                      <span className={`px-1 py-0.5 text-[7px] font-bold rounded uppercase ${
+                        isOnline ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-gray-100 text-gray-500 border border-gray-300'
+                      }`}>
+                        {isOnline ? 'Available' : 'Offline'}
+                      </span>
+
                       {/* Compact Badges */}
                       {isAssigned && !isSelected && <span className="px-1 py-0.5 bg-red-100 text-red-700 text-[7px] font-bold rounded uppercase">Remove</span>}
                       {isSelected && !isAssigned && <span className="px-1 py-0.5 bg-green-100 text-green-700 text-[7px] font-bold rounded uppercase">Add</span>}
@@ -156,6 +186,15 @@ const AssignmentModalContent = ({
                       <div className="text-[8px] text-gray-500 truncate">{radiologist.email}</div>
                     )}
                     
+                    {/* ✅ Today's Case Counts */}
+                    {stats && (
+                      <div className="text-[8px] text-gray-500 mt-0.5 font-medium uppercase flex items-center gap-2">
+                        <span className="text-blue-600">{stats.assignedTodayCount} Assigned</span>
+                        <span className="text-gray-400">·</span>
+                        <span className="text-amber-600">{stats.pendingTodayCount} Pending</span>
+                      </div>
+                    )}
+
                     {hasWorkload && (
                       <div className="text-[8px] text-gray-500 mt-0.5 font-medium uppercase">
                         {radiologist.workload.currentWorkload} Active

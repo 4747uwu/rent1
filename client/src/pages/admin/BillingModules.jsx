@@ -6,7 +6,7 @@ import api from '../../services/api.jsx';
 import toast from 'react-hot-toast';
 import {
     Plus, Edit2, Trash2, X, Check, Search,
-    DollarSign, Activity, ArrowLeft, Loader, Tag
+    IndianRupee, Activity, ArrowLeft, Loader, Tag
 } from 'lucide-react';
 
 const MODALITIES = ['CT', 'MRI', 'MR', 'XR', 'CR', 'DX', 'US', 'MG', 'NM', 'PT', 'RF', 'OT', 'OTHER'];
@@ -143,7 +143,7 @@ const BillingModules = () => {
                         </button>
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                                <DollarSign className="w-6 h-6 text-emerald-600" />
+                                <IndianRupee className="w-6 h-6 text-emerald-600" />
                                 Billing Modules
                             </h1>
                             <p className="text-gray-500 text-sm mt-0.5">
@@ -189,7 +189,7 @@ const BillingModules = () => {
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="text-center py-20">
-                        <DollarSign className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                        <IndianRupee className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                         <p className="text-lg text-gray-500">No billing modules found</p>
                         <p className="text-sm mt-1 text-gray-400">Create your first billing module to get started</p>
                     </div>

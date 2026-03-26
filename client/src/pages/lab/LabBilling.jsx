@@ -9,6 +9,7 @@ import {
     Search,
     Download,
     Eye,
+    Activity,
     ChevronLeft,
     ChevronRight,
     Filter,
