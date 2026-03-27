@@ -17,12 +17,12 @@ import useVisibleColumns from '../../hooks/useVisibleColumns';
 const LabDashboard = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  
+
   // ✅ RESOLVE VISIBLE COLUMNS ONCE
 
-    const { visibleColumns, columnsLoading } = useVisibleColumns(currentUser);
+  const { visibleColumns, columnsLoading } = useVisibleColumns(currentUser);
 
-  
+
 
   console.log('🎯 Lab Dashboard Visible Columns:', {
     total: visibleColumns.length,
@@ -44,8 +44,8 @@ const LabDashboard = () => {
     hasPrevPage: false
   });
 
-  
-  
+
+
   // State management
   const [studies, setStudies] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -113,9 +113,9 @@ const LabDashboard = () => {
   // ✅ ENDPOINT MAPPING - removed inprogress
   const getApiEndpoint = useCallback(() => {
     switch (currentView) {
-      case 'pending':   return '/lab/studies/pending';
+      case 'pending': return '/lab/studies/pending';
       case 'completed': return '/lab/studies/completed';
-      default:          return '/lab/studies';   // ✅ all = no status filter
+      default: return '/lab/studies';   // ✅ all = no status filter
     }
   }, [currentView]);
 
@@ -123,36 +123,36 @@ const LabDashboard = () => {
   const fetchStudies = useCallback(async (filters = {}, page = null, limit = null) => {
     setLoading(true);
     setError(null);
-    
+
     // ✅ CRITICAL: Use parameters if provided, otherwise use current state
     const requestPage = page !== null ? page : pagination.currentPage;
     const requestLimit = limit !== null ? limit : pagination.recordsPerPage;
-    
+
     try {
       const endpoint = getApiEndpoint();
       const activeFilters = Object.keys(filters).length > 0 ? filters : searchFilters;
-      
-      const params = { 
+
+      const params = {
         ...activeFilters,
         page: requestPage,
         limit: requestLimit
       };
       delete params.category; // ✅ Don't send category in params
-      
+
       console.log('🔍 [Lab] Fetching studies:', {
         endpoint,
         requestPage,
         requestLimit,
         filters: params
       });
-      
+
       const response = await api.get(endpoint, { params });
-      
+
       if (response.data.success) {
         const rawStudies = response.data.data || [];
         const formattedStudies = formatStudiesForWorklist(rawStudies);
         setStudies(formattedStudies);
-        
+
         // ✅ CRITICAL: Update pagination with response data but keep our requested values
         setPagination({
           currentPage: requestPage,
@@ -162,7 +162,7 @@ const LabDashboard = () => {
           hasNextPage: response.data.pagination?.hasNextPage || false,
           hasPrevPage: response.data.pagination?.hasPrevPage || false
         });
-        
+
         console.log('✅ [Lab] Studies loaded:', {
           count: formattedStudies.length,
           page: requestPage,
@@ -183,9 +183,9 @@ const LabDashboard = () => {
   const fetchCategoryValues = useCallback(async (filters = {}) => {
     try {
       const params = Object.keys(filters).length > 0 ? filters : searchFilters;
-      
+
       console.log('🔍 [Lab] Fetching category values with params:', params);
-      
+
       const response = await api.get('/lab/values', { params });
       if (response.data.success) {
         setCategoryValues({
@@ -210,7 +210,7 @@ const LabDashboard = () => {
       modality: 'all',
       priority: 'all'
     };
-    
+
     setSearchFilters(defaultFilters);
     fetchStudies(defaultFilters, 1, 50);
     fetchCategoryValues(defaultFilters);
@@ -226,7 +226,7 @@ const LabDashboard = () => {
   // ✅ SIMPLIFIED: Handle page change
   const handlePageChange = useCallback((newPage) => {
     console.log(`📄 [Lab] Changing page: ${pagination.currentPage} -> ${newPage}`);
-    
+
     // ✅ Just fetch with new page, keeping current limit
     fetchStudies(searchFilters, newPage, pagination.recordsPerPage);
   }, [fetchStudies, searchFilters, pagination.recordsPerPage]);
@@ -234,7 +234,7 @@ const LabDashboard = () => {
   // ✅ SIMPLIFIED: Handle records per page change
   const handleRecordsPerPageChange = useCallback((newLimit) => {
     console.log(`📊 [Lab] Changing limit: ${pagination.recordsPerPage} -> ${newLimit}`);
-    
+
     // ✅ Fetch with new limit, reset to page 1
     fetchStudies(searchFilters, 1, newLimit);
   }, [fetchStudies, searchFilters]);
@@ -243,7 +243,7 @@ const LabDashboard = () => {
   const handleSearch = useCallback((searchParams) => {
     console.log('🔍 [Lab] NEW SEARCH:', searchParams);
     setSearchFilters(searchParams);
-    
+
     // ✅ Reset to page 1, keep current limit
     fetchStudies(searchParams, 1, pagination.recordsPerPage);
     fetchCategoryValues(searchParams);
@@ -252,7 +252,7 @@ const LabDashboard = () => {
   const handleFilterChange = useCallback((filters) => {
     console.log('🔍 [Lab] FILTER CHANGE:', filters);
     setSearchFilters(filters);
-    
+
     // ✅ Reset to page 1, keep current limit
     fetchStudies(filters, 1, pagination.recordsPerPage);
     fetchCategoryValues(filters);
@@ -269,9 +269,9 @@ const LabDashboard = () => {
   }, [studies]);
 
   const handleSelectStudy = useCallback((studyId) => {
-    setSelectedStudies(prev => 
-      prev.includes(studyId) 
-        ? prev.filter(id => id !== studyId) 
+    setSelectedStudies(prev =>
+      prev.includes(studyId)
+        ? prev.filter(id => id !== studyId)
         : [...prev, studyId]
     );
   }, []);
@@ -285,7 +285,7 @@ const LabDashboard = () => {
   const handleUpdateStudyDetails = useCallback(async (formData) => {
     try {
       console.log('🔄 [Lab] Updating study details:', formData);
-      
+
       const response = await api.put(`/admin/studies/${formData.studyId}/details`, {
         patientName: formData.patientName,
         patientAge: formData.patientAge,
@@ -342,7 +342,7 @@ const LabDashboard = () => {
   const additionalActions = [
     {
       label: 'Billing',
-      icon: Receipt,
+      // icon: Receipt,
       onClick: () => navigate('/lab/billing'),
       variant: 'secondary',
       tooltip: 'View ongoing billing statements'
@@ -358,8 +358,8 @@ const LabDashboard = () => {
 
   // ✅ CATEGORY TABS - removed inprogress
   const categoryTabs = [
-    { key: 'all',       label: 'All',       count: categoryValues.all },
-    { key: 'pending',   label: 'Pending',   count: categoryValues.pending },
+    { key: 'all', label: 'All', count: categoryValues.all },
+    { key: 'pending', label: 'Pending', count: categoryValues.pending },
     { key: 'completed', label: 'Completed', count: categoryValues.completed }
   ];
 
@@ -373,20 +373,20 @@ const LabDashboard = () => {
         additionalActions={additionalActions}
         notifications={0}
       />
-      
+
       <Search
         onSearch={handleSearch}
         onFilterChange={handleFilterChange}
         loading={loading}
         totalStudies={categoryValues.all}
         currentCategory={currentView}
-                onRefresh={handleRefresh}
+        onRefresh={handleRefresh}
 
       />
 
       <div className="flex-1 min-h-0 p-0 px-0">
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 h-full flex flex-col">
-          
+
           <div className="flex items-center justify-between px-3 py-1 border-b border-gray-200 bg-white">
             <div className="flex items-center gap-2">
               <h2 className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">
@@ -409,19 +409,17 @@ const LabDashboard = () => {
                   <button
                     key={tab.key}
                     onClick={() => handleViewChange(tab.key)}
-                    className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all ${
-                      currentView === tab.key
+                    className={`px-2 py-0.5 text-[10px] font-medium rounded transition-all ${currentView === tab.key
                         ? 'bg-gray-900 text-white shadow-sm'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-1">
                       <span>{tab.label}</span>
-                      <span className={`min-w-[16px] h-[16px] flex items-center justify-center rounded-full text-[8px] font-bold ${
-                        currentView === tab.key 
-                          ? 'bg-white text-gray-900' 
+                      <span className={`min-w-[16px] h-[16px] flex items-center justify-center rounded-full text-[8px] font-bold ${currentView === tab.key
+                          ? 'bg-white text-gray-900'
                           : 'bg-white text-gray-500'
-                      }`}>
+                        }`}>
                         {tab.count}
                       </span>
                     </div>
@@ -429,7 +427,7 @@ const LabDashboard = () => {
                 ))}
               </div>
             </div>
-            
+
             <div className="flex items-center gap-1">
               <ColumnConfigurator
                 columnConfig={columnConfig}
@@ -453,7 +451,7 @@ const LabDashboard = () => {
               onRecordsPerPageChange={handleRecordsPerPageChange}
               // ✅ PASS RESOLVED COLUMNS
               visibleColumns={visibleColumns}
-              columnConfig={columnConfig} 
+              columnConfig={columnConfig}
               userRole={currentUser?.primaryRole || currentUser?.role || 'lab_staff'}
               userRoles={currentUser?.accountRoles?.length > 0 ? currentUser?.accountRoles : [currentUser?.role || 'lab_staff']}
             />

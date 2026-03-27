@@ -7,7 +7,7 @@ import Verifier from '../models/verifierModel.js';
 // ✅ UPDATED: More flexible base query for verifiers
 const buildVerifierBaseQuery = (req, workflowStatuses = null) => {
     const user = req.user;
-    
+
     if (user.role !== 'verifier') {
         throw new Error('Access denied: Verifier role required');
     }
@@ -16,7 +16,6 @@ const buildVerifierBaseQuery = (req, workflowStatuses = null) => {
     const queryFilters = {
         organizationIdentifier: user.organizationIdentifier
     };
-    const orGroups = []; // ✅ FIX: Use orGroups array to safely merge $or conditions
 
     // ✅ DETERMINE VERIFIABLE STATUSES based on verification requirements
     let verifiableStatuses = [
@@ -33,14 +32,14 @@ const buildVerifierBaseQuery = (req, workflowStatuses = null) => {
     // 1. Doctor's requireReportVerification flag
     // 2. Lab's requireReportVerification setting
     // 3. Study's explicit requiresVerification flag
-    
+
     // For now, always include it and let the query filter below handle it
     verifiableStatuses.push('report_completed');
 
     // ✅ WORKFLOW STATUS OVERRIDE
     if (workflowStatuses && workflowStatuses.length > 0) {
-        queryFilters.workflowStatus = workflowStatuses.length === 1 
-            ? workflowStatuses[0] 
+        queryFilters.workflowStatus = workflowStatuses.length === 1
+            ? workflowStatuses[0]
             : { $in: workflowStatuses };
     } else {
         queryFilters.workflowStatus = { $in: verifiableStatuses };
@@ -51,7 +50,7 @@ const buildVerifierBaseQuery = (req, workflowStatuses = null) => {
     const labAccessMode = user.roleConfig?.labAccessMode || 'all';
 
     let labFilter = null;
-    
+
     if (labAccessMode === 'selected' && assignedLabs.length > 0) {
         labFilter = { sourceLab: { $in: assignedLabs } };
         console.log(`🏥 [Verifier] Restricted to ${assignedLabs.length} lab(s):`, assignedLabs);
@@ -65,7 +64,7 @@ const buildVerifierBaseQuery = (req, workflowStatuses = null) => {
 
     // ✅ FILTER BY ASSIGNED RADIOLOGISTS (doctor binding)
     const assignedRadiologists = user.roleConfig?.assignedRadiologists || [];
-    
+
     let radiologistFilter = null;
     if (assignedRadiologists.length > 0) {
         radiologistFilter = { 'assignment.assignedTo': { $in: assignedRadiologists } };
@@ -74,9 +73,12 @@ const buildVerifierBaseQuery = (req, workflowStatuses = null) => {
         console.log('🔓 [Verifier] No radiologist restriction - seeing all org studies');
     }
 
-    // ✅ CRITICAL: COMBINE LAB/RADIOLOGIST FILTERS via orGroups (not direct $or)
+    // ✅ CRITICAL: COMBINE FILTERS WITH $OR LOGIC
     if (radiologistFilter && labFilter) {
-        orGroups.push([radiologistFilter, labFilter]);
+        queryFilters.$or = [
+            radiologistFilter,
+            labFilter
+        ];
         console.log('🔀 [Verifier Filter] Using $OR: study matches if assigned to bound radiologist OR from bound lab');
     } else if (radiologistFilter) {
         Object.assign(queryFilters, radiologistFilter);
@@ -97,16 +99,20 @@ const buildVerifierBaseQuery = (req, workflowStatuses = null) => {
         if (filterEndDate) queryFilters[dateField].$lte = filterEndDate;
     }
 
-    // ✅ FIX: SEARCH - match admin controller pattern (search all relevant fields, no $or clobber)
+    // ✅ SEARCH - no regex on clinicalHistory
     if (req.query.search) {
-        orGroups.push([
-            { bharatPacsId:                      { $regex: req.query.search, $options: 'i' } },
-            { accessionNumber:                   { $regex: req.query.search, $options: 'i' } },
-            { studyInstanceUID:                  { $regex: req.query.search, $options: 'i' } },
-            { 'patientInfo.patientName':         { $regex: req.query.search, $options: 'i' } },
-            { 'patientInfo.patientID':           { $regex: req.query.search, $options: 'i' } },
-            { 'clinicalHistory.clinicalHistory': { $regex: req.query.search, $options: 'i' } },
-        ]);
+        const searchTerm = req.query.search.trim();
+        const looksLikeId = /^[a-zA-Z0-9\-_.]+$/.test(searchTerm) && searchTerm.length <= 30;
+
+        if (looksLikeId) {
+            queryFilters.$or = [
+                { bharatPacsId: { $regex: `^${searchTerm}`, $options: 'i' } },
+                { accessionNumber: { $regex: `^${searchTerm}`, $options: 'i' } },
+                { 'patientInfo.patientID': { $regex: `^${searchTerm}`, $options: 'i' } }
+            ];
+        } else {
+            queryFilters.$text = { $search: searchTerm };
+        }
     }
 
     // ✅ MODALITY - single field, hits index
@@ -134,13 +140,6 @@ const buildVerifierBaseQuery = (req, workflowStatuses = null) => {
         queryFilters.priority = req.query.priority;
     }
 
-    // ✅ FIX: MERGE $or GROUPS safely (prevents clobber bug — matches admin controller)
-    if (orGroups.length === 1) {
-        queryFilters.$or = orGroups[0];
-    } else if (orGroups.length > 1) {
-        queryFilters.$and = orGroups.map(group => ({ $or: group }));
-    }
-
     console.log('🔍 [Verifier Query] Final filters:', JSON.stringify(queryFilters, null, 2));
     return queryFilters;
 };
@@ -149,21 +148,21 @@ const buildVerifierBaseQuery = (req, workflowStatuses = null) => {
 const executeStudyQuery = async (queryFilters, limit) => {
     try {
         const totalStudies = await DicomStudy.countDocuments(queryFilters);
-        
+
         const studies = await DicomStudy.find(queryFilters)
             .populate('organization', 'name identifier contactEmail contactPhone address')
             .populate('patient', 'patientID patientNameRaw firstName lastName age gender dateOfBirth contactNumber')
             .populate('sourceLab', 'name labName identifier location contactPerson contactNumber')
-            
+
             // ✅ CRITICAL: Assignment information with firstName/lastName for fallback
             .populate('assignment.assignedTo', 'fullName firstName lastName email role specialization organizationIdentifier')
             .populate('assignment.assignedBy', 'fullName firstName lastName email role')
-            
+
             // ✅ CRITICAL: Report and verification info
             .populate('reportInfo.verificationInfo.verifiedBy', 'fullName firstName lastName email role specialization')
             .populate('reportInfo.modernReports.reportId', 'doctorId createdBy workflowInfo')
             .populate('currentReportStatus.lastReportedBy', 'fullName firstName lastName email role')
-            
+
             // ✅ CRITICAL: CategoryTracking populations (THIS WAS MISSING!)
             .populate('categoryTracking.created.uploadedBy', 'fullName firstName lastName email role')
             .populate('categoryTracking.historyCreated.createdBy', 'fullName firstName lastName email role')
@@ -171,14 +170,14 @@ const executeStudyQuery = async (queryFilters, limit) => {
             .populate('categoryTracking.assigned.assignedBy', 'fullName firstName lastName email role')
             .populate('categoryTracking.final.finalizedBy', 'fullName firstName lastName email role')
             .populate('categoryTracking.urgent.markedUrgentBy', 'fullName firstName lastName email role')
-            
+
             // ✅ Study lock info
             .populate('studyLock.lockedBy', 'fullName firstName lastName email role')
-            
-            .sort({ 
-                'reportInfo.finalizedAt': -1, 
+
+            .sort({
+                'reportInfo.finalizedAt': -1,
                 'reportInfo.verificationInfo.verifiedAt': -1,
-                createdAt: -1 
+                createdAt: -1
             })
             .limit(limit)
             .lean();
@@ -194,7 +193,7 @@ const executeStudyQuery = async (queryFilters, limit) => {
         }
 
         return { studies, totalStudies };
-        
+
     } catch (error) {
         console.error('❌ Error in executeStudyQuery:', error);
         throw error;
@@ -207,21 +206,21 @@ export const getValues = async (req, res) => {
     try {
         const startTime = Date.now();
         const user = req.user;
-        
+
         if (!user || user.role !== 'verifier') {
             return res.status(403).json({ success: false, message: 'Access denied: Verifier role required' });
         }
 
         const queryFilters = buildVerifierBaseQuery(req);
-        
+
         console.log(`🔍 Verifier dashboard query filters:`, JSON.stringify(queryFilters, null, 2));
 
         // ✅ SIMPLIFIED: Only 2 status categories for counting
         const statusCategories = {
-    pending: ['verification_pending', 'verification_in_progress'],
-    verified: ['report_completed', 'final_report_downloaded'],
-    rejected: ['report_rejected', 'revert_to_radiologist'],
-};
+            pending: ['verification_pending', 'verification_in_progress'],
+            verified: ['report_completed', 'final_report_downloaded'],
+            rejected: ['report_rejected', 'revert_to_radiologist'],
+        };
 
         const pipeline = [
             { $match: queryFilters },
@@ -247,18 +246,18 @@ export const getValues = async (req, res) => {
 
         // ✅ SIMPLIFIED: Calculate only verified and rejected
         let pending = 0;
-let verified = 0;
-let rejected = 0;
+        let verified = 0;
+        let rejected = 0;
 
         statusCounts.forEach(({ _id: status, count }) => {
-    if (statusCategories.pending.includes(status)) {
-        pending += count;
-    } else if (statusCategories.verified.includes(status)) {
-        verified += count;
-    } else if (statusCategories.rejected.includes(status)) {
-        rejected += count;
-    }
-});
+            if (statusCategories.pending.includes(status)) {
+                pending += count;
+            } else if (statusCategories.verified.includes(status)) {
+                verified += count;
+            } else if (statusCategories.rejected.includes(status)) {
+                rejected += count;
+            }
+        });
 
         const processingTime = Date.now() - startTime;
         console.log(`🎯 Verifier dashboard values fetched in ${processingTime}ms`);
@@ -291,8 +290,8 @@ let rejected = 0;
 
     } catch (error) {
         console.error('❌ Error fetching verifier dashboard values:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: 'Server error fetching verifier dashboard statistics.',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -303,7 +302,7 @@ export const getVerifiedStudies = async (req, res) => {
     try {
         const startTime = Date.now();
         const limit = parseInt(req.query.limit) || 50;
-        
+
         const user = req.user;
         if (!user || user.role !== 'verifier') {
             return res.status(403).json({ success: false, message: 'Access denied: Verifier role required' });
@@ -313,7 +312,7 @@ export const getVerifiedStudies = async (req, res) => {
         // NOT 'report_verified' — that was the bug
         const verifiedStatuses = ['report_completed', 'final_report_downloaded'];
         const queryFilters = buildVerifierBaseQuery(req, verifiedStatuses);
-        
+
         const { studies, totalStudies } = await executeStudyQuery(queryFilters, limit);
         const processingTime = Date.now() - startTime;
 
@@ -342,8 +341,8 @@ export const getVerifiedStudies = async (req, res) => {
 
     } catch (error) {
         console.error('❌ VERIFIER VERIFIED: Error fetching verified studies:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: 'Server error fetching verified studies.',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -355,7 +354,7 @@ export const getRejectedStudies = async (req, res) => {
     try {
         const startTime = Date.now();
         const limit = parseInt(req.query.limit) || 50;
-        
+
         const user = req.user;
         if (!user || user.role !== 'verifier') {
             return res.status(403).json({ success: false, message: 'Access denied: Verifier role required' });
@@ -365,7 +364,7 @@ export const getRejectedStudies = async (req, res) => {
         // AND revertInfo.isReverted = true — so also include revert_to_radiologist
         const rejectedStatuses = ['report_rejected', 'revert_to_radiologist'];  // ✅
         const queryFilters = buildVerifierBaseQuery(req, rejectedStatuses);
-        
+
         const { studies, totalStudies } = await executeStudyQuery(queryFilters, limit);
         const processingTime = Date.now() - startTime;
 
@@ -394,8 +393,8 @@ export const getRejectedStudies = async (req, res) => {
 
     } catch (error) {
         console.error('❌ VERIFIER REJECTED: Error fetching rejected studies:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: 'Server error fetching rejected studies.',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -406,10 +405,10 @@ export const getRejectedStudies = async (req, res) => {
 export const verifyReport = async (req, res) => {
     try {
         const { studyId } = req.params;
-        const { 
-            verificationNotes, 
-            corrections = [], 
-            approved, 
+        const {
+            verificationNotes,
+            corrections = [],
+            approved,
             rejectionReason,
             verificationTimeMinutes,
         } = req.body;
@@ -466,17 +465,17 @@ export const verifyReport = async (req, res) => {
                 // ✅ UPDATED: Accept more statuses for verification
                 const verifiableStatuses = [
                     'verification_pending',
-                    'report_finalized', 
+                    'report_finalized',
                     'report_completed',
-                    
+
                     'verification_in_progress'
                 ];
-                
+
                 if (!verifiableStatuses.includes(study.workflowStatus)) {
                     await session.abortTransaction();
-                    return res.status(400).json({ 
-                        success: false, 
-                        message: `Study is not in a state that can be verified. Current status: ${study.workflowStatus}. Expected one of: ${verifiableStatuses.join(', ')}` 
+                    return res.status(400).json({
+                        success: false,
+                        message: `Study is not in a state that can be verified. Current status: ${study.workflowStatus}. Expected one of: ${verifiableStatuses.join(', ')}`
                     });
                 }
             } else {
@@ -484,7 +483,7 @@ export const verifyReport = async (req, res) => {
             }
 
             const now = new Date();
-            
+
             // ✅ STEP 1: Update DicomStudy
             // ✅ SIMPLIFIED: Check if study needs reprint when approved
             const needsReprint = study.reprintNeeded === true;
@@ -493,16 +492,16 @@ export const verifyReport = async (req, res) => {
                 // - If approved && reprintNeeded → report_reprint_needed
                 // - If approved && !reprintNeeded → report_completed
                 // - If rejected → report_rejected
-                workflowStatus: approved 
+                workflowStatus: approved
                     ? (needsReprint ? 'report_reprint_needed' : 'report_completed')
                     : 'report_rejected',
-                currentCategory: approved 
+                currentCategory: approved
                     ? (needsReprint ? 'REPRINT_NEED' : 'COMPLETED')
                     : 'REVERTED',
-                'reportInfo.verificationInfo.verifiedBy':            user._id,
-                'reportInfo.verificationInfo.verifiedAt':            now,
-                'reportInfo.verificationInfo.verificationStatus':    approved ? 'verified' : 'rejected',
-                'reportInfo.verificationInfo.verificationNotes':     verificationNotes || '',
+                'reportInfo.verificationInfo.verifiedBy': user._id,
+                'reportInfo.verificationInfo.verifiedAt': now,
+                'reportInfo.verificationInfo.verificationStatus': approved ? 'verified' : 'rejected',
+                'reportInfo.verificationInfo.verificationNotes': verificationNotes || '',
                 'reportInfo.verificationInfo.verificationTimeMinutes': verificationTimeMinutes || 0
             };
 
@@ -523,7 +522,7 @@ export const verifyReport = async (req, res) => {
             }
 
             const historyEntry = {
-                action: approved 
+                action: approved
                     ? (needsReprint ? 'report_reprint_needed' : 'report_completed')
                     : 'rejected',
                 performedBy: user._id,
@@ -534,7 +533,7 @@ export const verifyReport = async (req, res) => {
             studyUpdateData.$push = {
                 'reportInfo.verificationInfo.verificationHistory': historyEntry,
                 'statusHistory': {
-                    status: approved 
+                    status: approved
                         ? (needsReprint ? 'report_reprint_needed' : 'report_completed')
                         : 'report_rejected',
                     changedAt: now,
@@ -553,7 +552,7 @@ export const verifyReport = async (req, res) => {
                         revertCount: 0
                     };
                 }
-                
+
                 const revertRecord = {
                     revertedAt: now,
                     revertedBy: user._id,
@@ -564,15 +563,15 @@ export const verifyReport = async (req, res) => {
                     notes: verificationNotes || '',
                     resolved: false
                 };
-                
+
                 // Add to revert history
                 studyUpdateData.$push['revertInfo.revertHistory'] = revertRecord;
-                
+
                 // Set current revert and flags
                 studyUpdateData['revertInfo.currentRevert'] = revertRecord;
                 studyUpdateData['revertInfo.isReverted'] = true;
                 studyUpdateData.$inc = { 'revertInfo.revertCount': 1 };
-                
+
                 console.log('🔄 [Verify Reject] Adding revertInfo for rejected study:', {
                     revertedBy: user.fullName,
                     reason: rejectionReason?.substring(0, 100),
@@ -581,8 +580,8 @@ export const verifyReport = async (req, res) => {
             }
 
             const updatedStudy = await DicomStudy.findByIdAndUpdate(
-                studyId, 
-                studyUpdateData, 
+                studyId,
+                studyUpdateData,
                 { session, new: true }
             ).populate('reportInfo.verificationInfo.verifiedBy', 'fullName email role');
 
@@ -653,8 +652,8 @@ export const verifyReport = async (req, res) => {
                     const VerifierModel = mongoose.model('Verifier');
                     await VerifierModel.findOneAndUpdate(
                         { userAccount: user._id },
-                        { 
-                            $inc: { 
+                        {
+                            $inc: {
                                 'verificationStats.totalReportsVerified': 1,
                                 'verificationStats.reportsVerifiedToday': 1,
                                 'verificationStats.reportsVerifiedThisMonth': 1
@@ -688,7 +687,8 @@ export const verifyReport = async (req, res) => {
                     corrections: !approved ? corrections : undefined,
                     rejectionReason: !approved ? rejectionReason : undefined,
                     adminBypass: hasAdminRole,
-  reportModelUpdated: reports.length > 0                }
+                    reportModelUpdated: reports.length > 0
+                }
             });
 
         } catch (error) {
@@ -700,8 +700,8 @@ export const verifyReport = async (req, res) => {
 
     } catch (error) {
         console.error('❌ Error verifying report:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: 'Server error verifying report.',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -729,9 +729,9 @@ export const startVerification = async (req, res) => {
 
         // Check if study is in correct state
         if (!['report_finalized', 'report_drafted'].includes(study.workflowStatus)) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Study is not ready for verification' 
+            return res.status(400).json({
+                success: false,
+                message: 'Study is not ready for verification'
             });
         }
 
@@ -770,8 +770,8 @@ export const startVerification = async (req, res) => {
 
     } catch (error) {
         console.error('❌ Error starting verification:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: 'Server error starting verification.',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -836,15 +836,15 @@ export const getPendingStudies = async (req, res) => {
     try {
         const startTime = Date.now();
         const limit = parseInt(req.query.limit) || 50;
-        
+
         const user = req.user;
         if (!user || user.role !== 'verifier') {
             return res.status(403).json({ success: false, message: 'Access denied: Verifier role required' });
         }
 
-const pendingStatuses = ['verification_pending', 'verification_in_progress'];
+        const pendingStatuses = ['verification_pending', 'verification_in_progress'];
         const queryFilters = buildVerifierBaseQuery(req, pendingStatuses);
-        
+
         const { studies, totalStudies } = await executeStudyQuery(queryFilters, limit);
 
         const processingTime = Date.now() - startTime;
@@ -874,8 +874,8 @@ const pendingStatuses = ['verification_pending', 'verification_in_progress'];
 
     } catch (error) {
         console.error('❌ VERIFIER PENDING: Error fetching pending studies:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: 'Server error fetching pending studies.',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -887,7 +887,7 @@ export const getInProgressStudies = async (req, res) => {
     try {
         const startTime = Date.now();
         const limit = parseInt(req.query.limit) || 50;
-        
+
         const user = req.user;
         if (!user || user.role !== 'verifier') {
             return res.status(403).json({ success: false, message: 'Access denied: Verifier role required' });
@@ -895,7 +895,7 @@ export const getInProgressStudies = async (req, res) => {
 
         const inProgressStatuses = ['verification_in_progress'];
         const queryFilters = buildVerifierBaseQuery(req, inProgressStatuses);
-        
+
         const { studies, totalStudies } = await executeStudyQuery(queryFilters, limit);
 
         const processingTime = Date.now() - startTime;
@@ -925,8 +925,8 @@ export const getInProgressStudies = async (req, res) => {
 
     } catch (error) {
         console.error('❌ VERIFIER IN-PROGRESS: Error fetching in-progress studies:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: 'Server error fetching in-progress studies.',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -938,7 +938,7 @@ export const getAllStudiesForVerifier = async (req, res) => {
     try {
         const startTime = Date.now();
         const limit = parseInt(req.query.limit) || 50;
-        
+
         const user = req.user;
         if (!user || user.role !== 'verifier') {
             return res.status(403).json({ success: false, message: 'Access denied: Verifier role required' });
@@ -954,7 +954,7 @@ export const getAllStudiesForVerifier = async (req, res) => {
         ];  // ✅
 
         const queryFilters = buildVerifierBaseQuery(req, allStatuses);
-        
+
         const { studies, totalStudies } = await executeStudyQuery(queryFilters, limit);
 
         const processingTime = Date.now() - startTime;
@@ -984,8 +984,8 @@ export const getAllStudiesForVerifier = async (req, res) => {
 
     } catch (error) {
         console.error('❌ VERIFIER ALL: Error fetching all studies:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: 'Server error fetching all studies.',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -996,14 +996,14 @@ export const getAllStudiesForVerifier = async (req, res) => {
 export const getAssignedRadiologists = async (req, res) => {
     try {
         const user = req.user;
-        
+
         if (!user || user.role !== 'verifier') {
             return res.status(403).json({ success: false, message: 'Access denied: Verifier role required' });
         }
 
         // Get assigned radiologists from user's roleConfig
         const assignedRadiologistIds = user.roleConfig?.assignedRadiologists || [];
-        
+
         if (assignedRadiologistIds.length === 0) {
             return res.status(200).json({
                 success: true,
@@ -1028,8 +1028,8 @@ export const getAssignedRadiologists = async (req, res) => {
 
     } catch (error) {
         console.error('❌ Error fetching assigned radiologists:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: 'Server error fetching assigned radiologists.',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
@@ -1091,13 +1091,13 @@ export const getReportForVerification = async (req, res) => {
             reportStatus: { $in: ['finalized', 'draft'] },
             organizationIdentifier: user.organizationIdentifier
         })
-        .sort({ 
-            // Prioritize finalized reports for verification
-            reportStatus: 1, // 'draft' < 'finalized' alphabetically
-            createdAt: -1 
-        })
-        .populate('doctorId', 'fullName email')
-        .lean();
+            .sort({
+                // Prioritize finalized reports for verification
+                reportStatus: 1, // 'draft' < 'finalized' alphabetically
+                createdAt: -1
+            })
+            .populate('doctorId', 'fullName email')
+            .lean();
 
         if (report) {
             console.log('✅ [Verifier Report] Modern report found:', {
@@ -1137,7 +1137,7 @@ export const getReportForVerification = async (req, res) => {
 
         // ✅ STEP 5: Fallback to legacy reports in DicomStudy
         console.log('📋 [Verifier Report] No modern report found, checking legacy reports');
-        
+
         // Check uploaded reports
         if (study.uploadedReports && study.uploadedReports.length > 0) {
             const latestReport = study.uploadedReports
@@ -1146,7 +1146,7 @@ export const getReportForVerification = async (req, res) => {
 
             if (latestReport) {
                 console.log('✅ [Verifier Report] Legacy uploaded report found');
-                
+
                 return res.status(200).json({
                     success: true,
                     data: {
@@ -1155,7 +1155,7 @@ export const getReportForVerification = async (req, res) => {
                             reportType: latestReport.reportType || 'uploaded-report',
                             reportStatus: latestReport.reportStatus,
                             reportContent: {
-                                htmlContent: latestReport.data ? 
+                                htmlContent: latestReport.data ?
                                     `<div class="legacy-report">
                                         <h3>Legacy Report</h3>
                                         <p><strong>Filename:</strong> ${latestReport.filename}</p>
@@ -1163,7 +1163,7 @@ export const getReportForVerification = async (req, res) => {
                                         <div class="report-content">
                                             ${latestReport.data.includes('<') ? latestReport.data : `<pre>${latestReport.data}</pre>`}
                                         </div>
-                                    </div>` : 
+                                    </div>` :
                                     '<p>No content available</p>'
                             },
                             createdAt: latestReport.uploadedAt,
@@ -1185,7 +1185,7 @@ export const getReportForVerification = async (req, res) => {
         // ✅ STEP 6: Check for basic report content in reportInfo
         if (study.reportInfo?.reportContent) {
             console.log('✅ [Verifier Report] Basic report content found');
-            
+
             return res.status(200).json({
                 success: true,
                 data: {
@@ -1194,8 +1194,8 @@ export const getReportForVerification = async (req, res) => {
                         reportType: 'basic-report',
                         reportStatus: study.workflowStatus === 'report_finalized' ? 'finalized' : 'draft',
                         reportContent: {
-                            htmlContent: study.reportInfo.reportContent.includes('<') ? 
-                                study.reportInfo.reportContent : 
+                            htmlContent: study.reportInfo.reportContent.includes('<') ?
+                                study.reportInfo.reportContent :
                                 `<pre>${study.reportInfo.reportContent}</pre>`
                         },
                         createdAt: study.reportInfo.startedAt || study.createdAt,
@@ -1235,7 +1235,7 @@ export const getReportForVerification = async (req, res) => {
 export const updateReportDuringVerification = async (req, res) => {
     try {
         const { studyId } = req.params;
-        const { 
+        const {
             htmlContent,
             verificationNotes,
             templateId,
@@ -1256,9 +1256,9 @@ export const updateReportDuringVerification = async (req, res) => {
 
         // ✅ VALIDATION: Verifier role required
         if (!user || user.role !== 'verifier') {
-            return res.status(403).json({ 
-                success: false, 
-                message: 'Access denied: Verifier role required' 
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied: Verifier role required'
             });
         }
 
@@ -1304,7 +1304,7 @@ export const updateReportDuringVerification = async (req, res) => {
 
             // ✅ STEP 2: Find THE MOST RECENT finalized report for this study
             const Report = mongoose.model('Report');
-            
+
             // If reportId provided, target that specific report; otherwise fall back to most recent finalized
             let existingReport = null;
             if (reportId && mongoose.Types.ObjectId.isValid(reportId)) {
@@ -1319,8 +1319,8 @@ export const updateReportDuringVerification = async (req, res) => {
                     dicomStudy: studyId,
                     reportStatus: { $in: ['finalized', 'verified'] }
                 })
-                .sort({ createdAt: -1 })
-                .session(session);
+                    .sort({ createdAt: -1 })
+                    .session(session);
                 console.log('🔍 [Verifier Update] Fallback to most recent finalized/verified report:', existingReport?._id);
             }
 
@@ -1348,7 +1348,7 @@ export const updateReportDuringVerification = async (req, res) => {
 
             // Update content
             existingReport.reportContent.htmlContent = htmlContent;
-            
+
             // Update plain text
             const plainText = htmlContent.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
             existingReport.reportContent.plainTextContent = plainText;

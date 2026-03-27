@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { Copy, UserPlus, Lock, Unlock, Edit, Clock, Download, Paperclip, MessageSquare, FileText, RotateCcw, Monitor, Eye, ChevronLeft, ChevronRight, CheckCircle, XCircle, Share2, Printer, X, IndianRupee } from 'lucide-react';
+import { Copy, UserPlus, Lock, Unlock, Edit, Clock, DollarSign, Download, Paperclip, MessageSquare, FileText, RotateCcw, Monitor, Eye, ChevronLeft, ChevronRight, CheckCircle, XCircle, Share2, Printer, X, IndianRupee } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AssignmentModal from '../../assigner/AssignmentModal';
 import StudyDetailedView from '../PatientDetailedView';
@@ -20,6 +20,7 @@ import { navigateWithRestore } from '../../../utils/backupRestoreHelper';
 import useWebSocket from '../../../hooks/useWebSocket';
 import MultiAssignModal from '../../assigner/MultiAssignModal';
 import StudyBillingModal from './StudyBillingModal';
+import RevertModal from '../../../components/RevertModal.jsx';
 
 
 
@@ -671,7 +672,7 @@ const UnifiedStudyRow = ({
     getColumnWidth, // ✅ NEW PROP
     setPrintModal,  // ✅ ADD THIS PROP
     onRefreshStudies, // ✅ ADD THIS PROP
-
+    onShowRevertModal, // ✅ ADD THIS PROP
 }) => {
     const navigate = useNavigate();
     // console.log(study)
@@ -1477,8 +1478,7 @@ const UnifiedStudyRow = ({
 
             )}
 
-            {/* ASSIGNED RADIOLOGIST (read-only for non-assignor roles) */}
-            {isColumnVisible('assignedRadiologist') && !userRoles.includes('assignor') && (
+            {/* {isColumnVisible('assignedRadiologist') && !userRoles.includes('assignor') && (
                 <td className="px-3 py-3.5 border-r border-b border-slate-200 align-center" style={{ width: `${getColumnWidth('assignedRadiologist')}px` }}>
                     <div className="text-xs text-slate-700 whitespace-normal break-words leading-tight">
                         {typeof study.radiologist === 'string'
@@ -1502,7 +1502,9 @@ const UnifiedStudyRow = ({
                         </div>
                     )}
                 </td>
-            )}
+            )} */}
+
+
 
             {/* 19. LOCK/UNLOCK TOGGLE */}
             {isColumnVisible('studyLock') && (
@@ -1556,7 +1558,13 @@ const UnifiedStudyRow = ({
                             {study.caseStatusCategory || formatWorkflowStatus(study.workflowStatus)}
                         </span>
 
-                        <span className="text-[11px] text-slate-600 whitespace-normal break-words leading-tight">{study.workflowStatus ? formatWorkflowStatus(study.workflowStatus) : '-'}</span>
+                        <span className="text-[11px] text-slate-600 whitespace-normal break-words leading-tight">
+                            {study.workflowStatus
+                                ? study.workflowStatus === 'report_completed'
+                                    ? 'Final Report'
+                                    : formatWorkflowStatus(study.workflowStatus)
+                                : '-'}
+                        </span>
                         {study.statusHistory && study.statusHistory.length > 0 && (() => {
                             const currentStatusEntry = study.statusHistory
                                 .slice()
@@ -1828,11 +1836,11 @@ const UnifiedStudyRow = ({
                             </>
                         )}
 
-                        {study.workflowStatus === 'final_report_downloaded' && (
+                        {['report_completed', 'final_report_downloaded'].includes(study.workflowStatus) && (
                             <button
                                 onClick={() => onShowRevertModal?.(study)}
                                 className="p-1 hover:bg-rose-50 rounded transition-all hover:scale-110"
-                                title="Revert to Radiologist (report was downloaded)"
+                                title="Revert to Radiologist"
                             >
                                 <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
                             </button>
@@ -2262,6 +2270,16 @@ const UnifiedWorklistTable = ({
     const [timelineModal, setTimelineModal] = useState({ show: false, studyId: null, studyData: null });
     const [documentsModal, setDocumentsModal] = useState({ show: false, studyId: null });
     const [printModal, setPrintModal] = useState({ show: false, report: null, reports: [] });
+    const [revertModal, setRevertModal] = useState({ show: false, study: null });
+
+    const handleShowRevertModal = useCallback((study) => {
+        setRevertModal({ show: true, study });
+    }, []);
+
+    const handleRevertSuccess = useCallback(() => {
+        setRevertModal({ show: false, study: null });
+        onRefreshStudies?.();
+    }, [onRefreshStudies]);
 
     const handleShowTimeline = useCallback((study) => {
         setTimelineModal({ show: true, studyId: study._id, studyData: study });
@@ -2629,7 +2647,7 @@ const UnifiedWorklistTable = ({
                             )}
 
                             {/* 16. ASSIGNED RADIOLOGIST */}
-                            {isColumnVisible('assignedRadiologist') && (
+                            {(userRoles.includes('assignor') || userRoles.includes('admin')) && isColumnVisible('assignedRadiologist') && (
                                 <ResizableTableHeader
                                     columnId="assignedRadiologist"
                                     label="RADIOLOGIST"
@@ -2747,6 +2765,7 @@ const UnifiedWorklistTable = ({
                                 onShowTimeline={handleShowTimeline}
                                 onToggleLock={handleToggleStudyLock}
                                 onShowDocuments={handleShowDocuments}
+                                onShowRevertModal={handleShowRevertModal}
                                 userRole={userRole}
                                 userRoles={userAccountRoles}
                                 isColumnVisible={isColumnVisible}
@@ -2806,6 +2825,14 @@ const UnifiedWorklistTable = ({
                     report={printModal.report}
                     reports={printModal.reports}  // ✅ THIS WAS MISSING
                     onClose={handleClosePrintModal}
+                />
+            )}
+            {revertModal.show && (
+                <RevertModal
+                    isOpen={revertModal.show}
+                    study={revertModal.study}
+                    onClose={() => setRevertModal({ show: false, study: null })}
+                    onSuccess={handleRevertSuccess}
                 />
             )}
         </div>

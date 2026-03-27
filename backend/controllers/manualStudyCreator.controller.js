@@ -4,6 +4,7 @@ import Lab from '../models/labModel.js';
 import Organization from '../models/organisation.js';
 import axios from 'axios';
 import FormData from 'form-data';
+import fs from 'fs';
 import { generateUID } from '../utils/dicomUtils.js';
 import mongoose from 'mongoose';
 
@@ -108,8 +109,8 @@ export const createManualStudy = async (req, res) => {
             const zipFile = Array.isArray(req.files.zipFile) ? req.files.zipFile[0] : req.files.zipFile;
             const formData = new FormData();
 
-            // ✅ Send ZIP with organization, lab info, and location
-            formData.append('zipFile', zipFile.buffer, {
+            // ✅ Stream ZIP from disk instead of loading into memory
+            formData.append('zipFile', fs.createReadStream(zipFile.path), {
                 filename: zipFile.originalname,
                 contentType: zipFile.mimetype
             });
@@ -120,8 +121,9 @@ export const createManualStudy = async (req, res) => {
             formData.append('labIdentifier', lab.identifier);
             formData.append('labLocation', labLocation);
 
+            const fileSizeMB = (zipFile.size / 1024 / 1024).toFixed(2);
             console.log(`🐍 [Manual Study] Sending to Python server: ${PYTHON_SERVER_URL}/upload-zip-to-orthanc`);
-            console.log(`📦 [Manual Study] ZIP file size: ${(zipFile.size / 1024 / 1024).toFixed(2)} MB`);
+            console.log(`📦 [Manual Study] ZIP file size: ${fileSizeMB} MB (streaming from disk)`);
             console.log(`📍 [Manual Study] Lab location for ZIP: ${labLocation || 'N/A'}`);
 
             try {
@@ -133,7 +135,7 @@ export const createManualStudy = async (req, res) => {
                         headers: formData.getHeaders(),
                         maxBodyLength: Infinity,
                         maxContentLength: Infinity,
-                        timeout: 300000
+                        timeout: 1800000 // 30 minutes for large files
                     }
                 );
 
@@ -169,6 +171,9 @@ export const createManualStudy = async (req, res) => {
                     console.error('Python server response:', error.response.data);
                 }
                 throw new Error(`ZIP processing failed: ${error.response?.data?.message || error.message}`);
+            } finally {
+                // ✅ Clean up temp file
+                try { if (zipFile.path) fs.unlinkSync(zipFile.path); } catch (e) { /* ignore */ }
             }
         }
 
@@ -244,9 +249,9 @@ export const createManualStudy = async (req, res) => {
                     formData.append(key, dicomMetadata[key]);
                 });
 
-                // Add image files
+                // Add image files (stream from disk)
                 images.forEach(file => {
-                    formData.append('images', file.buffer, {
+                    formData.append('images', fs.createReadStream(file.path), {
                         filename: file.originalname,
                         contentType: file.mimetype
                     });
@@ -260,7 +265,7 @@ export const createManualStudy = async (req, res) => {
                         headers: formData.getHeaders(),
                         maxBodyLength: Infinity,
                         maxContentLength: Infinity,
-                        timeout: 300000
+                        timeout: 1800000 // 30 minutes for large files
                     }
                 );
 
@@ -465,6 +470,12 @@ export const createManualStudy = async (req, res) => {
 
     } catch (error) {
         console.error('❌ [Manual Study] Error:', error);
+        // ✅ Clean up any temp files on error
+        if (req.files) {
+            Object.values(req.files).flat().forEach(f => {
+                try { if (f.path) fs.unlinkSync(f.path); } catch (e) { /* ignore */ }
+            });
+        }
         res.status(500).json({
             success: false,
             message: 'Failed to create manual study',

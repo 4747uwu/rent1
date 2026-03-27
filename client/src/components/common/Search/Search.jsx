@@ -38,16 +38,13 @@ const Search = ({
     // ✅ NEW: Auto-refresh state
     const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(() => {
         const saved = localStorage.getItem('autoRefreshEnabled');
-        return saved ? JSON.parse(saved) : false;
+        return saved !== null ? JSON.parse(saved) : true;
     });
     
-    const [refreshInterval, setRefreshInterval] = useState(() => {
-        const saved = localStorage.getItem('refreshInterval');
-        return saved ? parseInt(saved) : 5;
-    });
+    const REFRESH_INTERVAL_SECONDS = 30;
     
     const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
-    const [timeUntilRefresh, setTimeUntilRefresh] = useState(refreshInterval * 60);
+    const [timeUntilRefresh, setTimeUntilRefresh] = useState(REFRESH_INTERVAL_SECONDS);
     
     // State management
     const [searchTerm, setSearchTerm] = useState('');
@@ -89,18 +86,18 @@ const Search = ({
     // ✅ NEW: Auto-refresh timer effect
     useEffect(() => {
         if (!autoRefreshEnabled) {
-            setTimeUntilRefresh(refreshInterval * 60);
+            setTimeUntilRefresh(REFRESH_INTERVAL_SECONDS);
             return;
         }
 
         const interval = setInterval(() => {
             const elapsed = Math.floor((Date.now() - lastRefreshTime) / 1000);
-            const remaining = (refreshInterval * 60) - elapsed;
+            const remaining = REFRESH_INTERVAL_SECONDS - elapsed;
             
             if (remaining <= 0) {
                 console.log('🔄 [Search] Auto-refresh triggered');
                 setLastRefreshTime(Date.now());
-                setTimeUntilRefresh(refreshInterval * 60);
+                setTimeUntilRefresh(REFRESH_INTERVAL_SECONDS);
                 onRefresh?.();
             } else {
                 setTimeUntilRefresh(remaining);
@@ -108,16 +105,12 @@ const Search = ({
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [autoRefreshEnabled, refreshInterval, lastRefreshTime, onRefresh]);
+    }, [autoRefreshEnabled, lastRefreshTime, onRefresh]);
 
     // ✅ NEW: Save auto-refresh settings to localStorage
     useEffect(() => {
         localStorage.setItem('autoRefreshEnabled', JSON.stringify(autoRefreshEnabled));
     }, [autoRefreshEnabled]);
-
-    useEffect(() => {
-        localStorage.setItem('refreshInterval', refreshInterval.toString());
-    }, [refreshInterval]);
 
     // ✅ NEW: Format countdown timer
     const formatCountdown = (seconds) => {
@@ -125,15 +118,6 @@ const Search = ({
         const secs = seconds % 60;
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
-
-    // ✅ NEW: Refresh interval options
-    const refreshIntervalOptions = [
-        { value: 2, label: '2 min' },
-        { value: 3, label: '3 min' },
-        { value: 5, label: '5 min' },
-        { value: 10, label: '10 min' },
-        { value: 15, label: '15 min' }
-    ];
 
     // Check if user is admin or assignor
     const isAdmin = role === 'admin';
@@ -340,9 +324,9 @@ const Search = ({
 
     const handleRefreshClick = useCallback(() => {
         setLastRefreshTime(Date.now());
-        setTimeUntilRefresh(refreshInterval * 60);
+        setTimeUntilRefresh(REFRESH_INTERVAL_SECONDS);
         onRefresh?.();
-    }, [onRefresh, refreshInterval]);
+    }, [onRefresh]);
 
     // ✅ NEW: Toggle auto-refresh
     const handleToggleAutoRefresh = useCallback(() => {
@@ -350,16 +334,9 @@ const Search = ({
         setAutoRefreshEnabled(newState);
         if (newState) {
             setLastRefreshTime(Date.now());
-            setTimeUntilRefresh(refreshInterval * 60);
+            setTimeUntilRefresh(REFRESH_INTERVAL_SECONDS);
         }
-    }, [autoRefreshEnabled, refreshInterval]);
-
-    // ✅ NEW: Change refresh interval
-    const handleRefreshIntervalChange = useCallback((newInterval) => {
-        setRefreshInterval(newInterval);
-        setLastRefreshTime(Date.now());
-        setTimeUntilRefresh(newInterval * 60);
-    }, []);
+    }, [autoRefreshEnabled]);
 
     // Options
     const modalityMultiSelectOptions = [
@@ -581,19 +558,6 @@ const Search = ({
 
                 {/* AUTO-REFRESH CONTROLS */}
                 <div className={`flex items-center gap-1 pl-1.5 border-l border-${themeColors.border} order-6`}>
-                    <select
-                        value={refreshInterval}
-                        onChange={(e) => handleRefreshIntervalChange(parseInt(e.target.value))}
-                        className={`hidden sm:block px-1.5 py-0.5 text-[11px] border ${isGreenTheme ? 'border-teal-300' : 'border-gray-200'} rounded bg-white ${isGreenTheme ? 'text-teal-700' : 'text-gray-600'} focus:outline-none focus:ring-1 ${isGreenTheme ? 'focus:ring-teal-500' : 'focus:ring-gray-500'}`}
-                        title="Auto-refresh interval"
-                    >
-                        {refreshIntervalOptions.map(option => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
-
                     <button
                         onClick={handleToggleAutoRefresh}
                         className={`flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-medium rounded border transition-colors ${

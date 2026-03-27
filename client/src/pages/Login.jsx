@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
   Eye, EyeOff, Mail, Lock, AlertCircle, Loader,
-  Shield, Activity, Cloud, Lock as LockIcon, CheckCircle2
+  Shield, Activity, Cloud, DollarSign, Lock as LockIcon, CheckCircle2
 } from 'lucide-react';
 
 /* ── Inject keyframes once ── */
@@ -29,9 +29,9 @@ const ProfessionalBg = () => (
     {/* Geometric accents */}
     <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-50/50 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3" />
     <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-sky-50/50 rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/3" />
-    
+
     {/* Subtle grid pattern */}
-    <div className="absolute inset-0" style={{ 
+    <div className="absolute inset-0" style={{
       backgroundImage: 'radial-gradient(#e2e8f0 1px, transparent 1px)',
       backgroundSize: '32px 32px',
       opacity: 0.4
@@ -71,9 +71,9 @@ const LoginPage = () => {
     try {
       const { email, password } = formData;
       if (!email.trim() || !password.trim()) throw new Error('Please provide both email and password');
-      
+
       const loginEmail = email.includes('@') ? email.trim() : `${email.trim()}@radivue.com`;
-      
+
       const { user, redirectTo } = await login(loginEmail, password);
       const from = location.state?.from || redirectTo || getDashboardRoute();
       navigate(from, { replace: true });
@@ -108,7 +108,7 @@ const LoginPage = () => {
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-sky-600 text-xs font-bold tracking-wide uppercase mb-6 border border-blue-100 shadow-sm">
               <Activity className="w-4 h-4" /> Cloud PACS Platform
             </div>
-            
+
             <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 mb-6 leading-tight">
               Next-Generation
               <br />
@@ -116,7 +116,7 @@ const LoginPage = () => {
                 Diagnostic Imaging
               </span>
             </h1>
-            
+
             <p className="text-base lg:text-lg text-slate-600 mb-10 max-w-md mx-auto lg:mx-0 leading-relaxed font-medium">
               A professional suite for high-performance radiology. Secure, ultra-fast, and accessible from anywhere.
             </p>
@@ -144,14 +144,14 @@ const LoginPage = () => {
 
         {/* ═══ RIGHT — LOGIN FORM ═══ */}
         <div className="w-full lg:w-1/2 flex flex-col justify-center pl-0 lg:pl-12 relative">
-          
+
           <div className="radx-up radx-d1 w-full max-w-md mx-auto bg-white p-8 lg:p-10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100">
-            
+
             {/* Form Logo */}
             <div className="flex justify-center mb-8">
-              <img 
-                src="/rent.jpeg" 
-                alt="RADX1 Logo" 
+              <img
+                src="/rent.jpeg"
+                alt="RADX1 Logo"
                 className="h-14 w-auto object-contain drop-shadow-sm"
               />
             </div>
@@ -162,7 +162,7 @@ const LoginPage = () => {
             </div>
 
             <form className="space-y-5" onSubmit={handleSubmit}>
-              
+
               {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-xs font-bold uppercase text-slate-500 mb-1.5">Username / Email</label>
@@ -201,7 +201,7 @@ const LoginPage = () => {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-               
+
               </div>
 
               {/* Error Alert */}
@@ -225,7 +225,7 @@ const LoginPage = () => {
               </button>
             </form>
 
-          
+
           </div>
         </div>
 

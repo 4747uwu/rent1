@@ -21,6 +21,14 @@ const SettingsModal = ({ isOpen, onClose, onNavigate, theme = 'default' }) => {
             icon: Shield,
             onClick: () => { onNavigate('/admin/user-management'); onClose(); }
         });
+
+        settingsOptions.push({
+            id: 'create-lab',
+            label: 'Add Hospital',
+            description: 'Add a new hospital',
+            icon: Users,
+            onClick: () => { onNavigate('/admin/create-lab'); onClose(); }
+        })
     }
 
     if (canCreateLab) {
@@ -44,6 +52,8 @@ const SettingsModal = ({ isOpen, onClose, onNavigate, theme = 'default' }) => {
             icon: Users,
             onClick: () => { onNavigate('/admin/create-user'); onClose(); }
         });
+
+
     }
 
     if (settingsOptions.length === 0 || !isOpen) return null;

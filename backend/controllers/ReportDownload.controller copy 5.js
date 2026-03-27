@@ -33,8 +33,9 @@ const buildDocxPayload = async (report, outputFormat = 'pdf') => {
     }
 
     let templateName = 'MyReport.docx';
-
+    
     if (!hasHeaderFooter) {
+        // ✅ No header/footer: use MyReportNoHeader template with image count increment
         templateName = 'MyReportNoHeader.docx';
         if (imageCount > 0 && imageCount <= 5) {
             templateName = `MyReportNoHeader${imageCount}.docx`;
@@ -43,6 +44,7 @@ const buildDocxPayload = async (report, outputFormat = 'pdf') => {
         }
         console.log(`📄 Using NoHeader template (no branding): ${templateName}`);
     } else {
+        // ✅ Has header/footer: use standard MyReport template with image count increment
         if (imageCount > 0 && imageCount <= 5) {
             templateName = `MyReport${imageCount}.docx`;
         } else if (imageCount > 5) {
@@ -76,29 +78,45 @@ const buildDocxPayload = async (report, outputFormat = 'pdf') => {
         '--agegender--': `${report.patientInfo?.age || report.patient?.age || '[Age]'} / ${report.patientInfo?.gender || report.patient?.gender || '[Gender]'}`,
         '--referredby--': report.studyInfo?.referringPhysician?.name || report.dicomStudy?.referringPhysician || '[Referring Physician]',
         '--reporteddate--': report.studyInfo?.studyDate
-            ? new Date(report.studyInfo.studyDate).toLocaleDateString('en-GB')
-            : new Date().toLocaleDateString('en-GB'),
+  ? new Date(report.studyInfo.studyDate).toLocaleDateString('en-GB')
+  : new Date().toLocaleDateString('en-GB'),
         '--studydate--': report.studyInfo?.studyDate ? new Date(report.studyInfo.studyDate).toLocaleDateString() : '[Study Date]',
         '--modality--': report.studyInfo?.modality || report.dicomStudy?.modality || '[Modality]',
         '--clinicalhistory--': report.patientInfo?.clinicalHistory || '[Clinical History]',
         '--Content--': htmlContent
     };
 
+    // if (doctorData) {
+    //     placeholders['--drname--'] = doctorData.fullName;
+    //     placeholders['--department--'] = doctorData.department;
+    //     placeholders['--Licence--'] = doctorData.licenseNumber;
+    //     placeholders['--disc--'] = doctorData.disclaimer;
+    // }
+
     if (doctorData) {
-        placeholders['--drname--'] = '';
-        placeholders['--department--'] =
-            `<div style="font-weight:700;font-size:9pt;line-height:1;margin:0;padding:0;mso-line-height-rule:exactly;">
+    placeholders['--drname--'] = ''; // keep this plain to avoid breaking signature region
+
+    // placeholders['--department--'] =
+    //     `<span style="white-space: normal; word-wrap: break-word; font-size: 9pt; line-height: 0.5; font-weight: 700;">
+    //         ${doctorData.fullName}<br/>${doctorData.department}<br/>${doctorData.licenseNumber}<br/>${doctorData.disclaimer}
+    //     </span>`;
+
+
+    placeholders['--department--'] =
+  `<div style="font-weight:700;font-size:9pt;line-height:1;margin:0;padding:0;mso-line-height-rule:exactly;">
     <span style="display:block;margin:0;padding:0;">${doctorData.fullName}</span><br/>
     <span style="display:block;margin:0;padding:0;">${doctorData.department}</span><br/>
     <span style="display:block;margin:0;padding:0;">${doctorData.licenseNumber}</span><br/>
     <span style="display:block;margin:0;padding:0;">${doctorData.disclaimer}</span><br/>
   </div>`.replace(/\n\s*/g, '');
-        placeholders['--Licence--'] = '';
-        placeholders['--disc--'] = '';
-    }
+
+    placeholders['--Licence--'] = '';
+    placeholders['--disc--'] = '';
+}
 
     const images = {};
-
+    
+    // ✅ Only add header/footer images if they exist
     if (labBranding && hasHeaderFooter) {
         if (labBranding.showHeader !== false && labBranding.headerImage?.url) {
             images['HeaderPlaceholder'] = {
@@ -175,29 +193,11 @@ const canDownloadReport = (report) => {
     );
 };
 
-// ============================================================
-// ✅ SHARED HELPER: Check doctor signature
-// ============================================================
-const checkDoctorSignature = async (report, res) => {
-    if (!report.doctorId) {
-        res.status(403).json({ success: false, message: 'No doctor assigned to this report.' });
-        return false;
-    }
-    const doctorProfile = await Doctor.findOne({ userAccount: report.doctorId._id });
-    if (!doctorProfile?.signature) {
-        res.status(403).json({
-            success: false,
-            message: 'Doctor signature is missing. Report cannot be downloaded until the doctor adds a signature.'
-        });
-        return false;
-    }
-    return true;
-};
-
 class ReportDownloadController {
 
     // ============================================================
-    // ✅ Get all report IDs for a study
+    // ✅ NEW: Get all report IDs for a study
+    // Frontend calls this first, then downloads each reportId individually
     // ============================================================
     static async getStudyReportIds(req, res) {
         try {
@@ -220,6 +220,7 @@ class ReportDownloadController {
                 data: {
                     studyId,
                     totalReports: reports.length,
+                    // ✅ Return list of report IDs — frontend downloads each one
                     reports: reports.map((r, i) => ({
                         reportId: r._id,
                         reportNumber: i + 1,
@@ -236,7 +237,73 @@ class ReportDownloadController {
     }
 
     // ============================================================
-    // ✅ Download single report as PDF
+    // ✅ FIXED: Download single report as DOCX (by reportId only)
+    // ============================================================
+    static async downloadReportAsDOCX(req, res) {
+        console.log('📥 [Download DOCX] Starting...');
+
+        try {
+            const { reportId } = req.params;
+            console.log(req.body)
+
+            if (!mongoose.Types.ObjectId.isValid(reportId)) {
+                return res.status(400).json({ success: false, message: 'Invalid reportId' });
+            }
+
+            const report = await Report.findById(reportId)
+                .populate('patient', 'fullName patientId age gender')
+                .populate({
+                    path: 'dicomStudy',
+                    select: 'accessionNumber modality studyDate referringPhysician sourceLab _id bharatPacsId workflowStatus',
+                    populate: { path: 'sourceLab', model: 'Lab' }
+                })
+                .populate('doctorId', 'fullName email');
+
+            if (!report) {
+                return res.status(404).json({ success: false, message: 'Report not found' });
+            }
+
+            if (!canDownloadReport(report)) {
+                console.warn(`⚠️ [Download DOCX] Blocked — reportStatus='${report.reportStatus}', studyWorkflowStatus='${report.dicomStudy?.workflowStatus || 'unknown'}'. ReportId: ${reportId}`);
+                return res.status(403).json({
+                    success: false,
+                    message: `Report is not downloadable yet. reportStatus='${report.reportStatus}', studyWorkflowStatus='${report.dicomStudy?.workflowStatus || 'unknown'}'.`
+                });
+            }
+
+            const payload = await buildDocxPayload(report, 'docx');
+
+            const docxResponse = await axios.post(DOCX_SERVICE_URL, payload, {
+                responseType: 'arraybuffer',
+                timeout: 60000,
+                httpsAgent
+            });
+
+            const fileName = `${report.reportId || `Report_${report._id}`}_${new Date().toISOString().split('T')[0]}.docx`;
+
+            const downloaderRoles = req.user?.accountRoles?.length > 0 ? req.user.accountRoles : [req.user?.role];
+if (downloaderRoles.includes('lab_staff')) {
+    updateWorkflowStatus({
+        studyId: report.dicomStudy._id,
+        status: 'final_report_downloaded',
+        note: `Report downloaded as docx by ${req.user?.fullName || 'User'}`,
+        user: req.user
+    }).catch(e => console.warn('Workflow update failed'));
+}
+
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+            res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+            res.send(Buffer.from(docxResponse.data));
+            console.log(`✅ [Download DOCX] Sent verified report: ${fileName}`);
+
+        } catch (error) {
+            console.error('❌ [Download DOCX] Error:', error.message);
+            res.status(500).json({ success: false, message: 'Failed to download DOCX', error: error.message });
+        }
+    }
+
+    // ============================================================
+    // ✅ Download single report as PDF — VERIFIED ONLY
     // ============================================================
     static async downloadReportAsPDF(req, res) {
         console.log('📥 [Download PDF] Starting...');
@@ -266,10 +333,6 @@ class ReportDownloadController {
                 });
             }
 
-            // ✅ Block if doctor signature is missing
-            const signatureValid = await checkDoctorSignature(report, res);
-            if (!signatureValid) return;
-
             const payload = await buildDocxPayload(report, 'pdf');
             const pdfResponse = await axios.post(DOCX_SERVICE_URL, payload, {
                 responseType: 'arraybuffer', timeout: 60000, httpsAgent
@@ -287,7 +350,7 @@ class ReportDownloadController {
             });
             await report.save();
 
-            // ✅ Update DicomStudy printHistory + lastDownload
+            // ✅ NEW: Update DicomStudy printHistory + lastDownload
             if (report.dicomStudy?._id) {
                 await DicomStudy.findByIdAndUpdate(report.dicomStudy._id, {
                     $push: {
@@ -312,8 +375,9 @@ class ReportDownloadController {
                         }
                     }
                 });
+                            const downloaderRoles = req.user?.accountRoles?.length > 0 ? req.user.accountRoles : [req.user?.role];
 
-                const downloaderRoles = req.user?.accountRoles?.length > 0 ? req.user.accountRoles : [req.user?.role];
+
                 if (downloaderRoles.includes('lab_staff')) {
                     updateWorkflowStatus({
                         studyId: report.dicomStudy._id,
@@ -366,16 +430,12 @@ class ReportDownloadController {
                 });
             }
 
-            // ✅ Block if doctor signature is missing
-            const signatureValid = await checkDoctorSignature(report, res);
-            if (!signatureValid) return;
-
             const payload = await buildDocxPayload(report, 'docx');
             const docxResponse = await axios.post(DOCX_SERVICE_URL, payload, {
                 responseType: 'arraybuffer', timeout: 60000, httpsAgent
             });
 
-            // ✅ Update DicomStudy printHistory + lastDownload
+            // ✅ NEW: Update DicomStudy printHistory + lastDownload
             if (report.dicomStudy?._id) {
                 await DicomStudy.findByIdAndUpdate(report.dicomStudy._id, {
                     $push: {
@@ -400,13 +460,13 @@ class ReportDownloadController {
                         }
                     }
                 });
+            const downloaderRoles = req.user?.accountRoles?.length > 0 ? req.user.accountRoles : [req.user?.role];
 
-                const downloaderRoles = req.user?.accountRoles?.length > 0 ? req.user.accountRoles : [req.user?.role];
                 if (downloaderRoles.includes('lab_staff')) {
                     updateWorkflowStatus({
                         studyId: report.dicomStudy._id,
                         status: 'final_report_downloaded',
-                        note: `Report downloaded as DOCX by ${req.user?.fullName || 'User'}`,
+                        note: `Report downloaded as PDF by ${req.user?.fullName || 'User'}`,
                         user: req.user
                     }).catch(e => console.warn('Workflow update failed'));
                 }
@@ -425,7 +485,7 @@ class ReportDownloadController {
     }
 
     // ============================================================
-    // ✅ Print report as PDF
+    // ✅ Print — VERIFIED ONLY
     // ============================================================
     static async printReportAsPDF(req, res) {
         console.log('🖨️ [Print] Starting...');
@@ -453,10 +513,6 @@ class ReportDownloadController {
                 });
             }
 
-            // ✅ Block if doctor signature is missing
-            const signatureValid = await checkDoctorSignature(report, res);
-            if (!signatureValid) return;
-
             const payload = await buildDocxPayload(report, 'pdf');
             const pdfResponse = await axios.post(DOCX_SERVICE_URL, payload, {
                 responseType: 'arraybuffer', timeout: 60000, httpsAgent
@@ -475,7 +531,7 @@ class ReportDownloadController {
             });
             await report.save();
 
-            // ✅ Update DicomStudy printHistory + lastDownload
+            // ✅ NEW: Update DicomStudy printHistory + lastDownload
             if (report.dicomStudy?._id) {
                 await DicomStudy.findByIdAndUpdate(report.dicomStudy._id, {
                     $push: {
@@ -517,7 +573,7 @@ class ReportDownloadController {
     }
 
     // ============================================================
-    // ✅ Track print click
+    // ✅ UNCHANGED: Track print click
     // ============================================================
     static async trackPrintClick(req, res) {
         // ...existing code...

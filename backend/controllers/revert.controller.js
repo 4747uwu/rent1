@@ -29,9 +29,9 @@ export const revertStudyToRadiologist = async (req, res) => {
         console.log('🔄 [Revert] Resolved userRoles:', userRoles);
 
         const canRevert = userRoles.some(r =>
-            ['admin', 'assignor', 'super_admin'].includes(r)
+            ['admin', 'assignor', 'super_admin', 'lab_staff'].includes(r)
         );
-
+        //
         if (!canRevert) {
             console.warn(`⛔ [Revert] Access denied for user ${user.fullName} | roles: ${userRoles.join(', ')}`);
             return res.status(403).json({
@@ -87,32 +87,32 @@ export const revertStudyToRadiologist = async (req, res) => {
             const now = new Date();
 
             const revertRecord = {
-                revertedAt:     now,
-                revertedBy:     user._id,
+                revertedAt: now,
+                revertedBy: user._id,
                 revertedByName: user.fullName,
                 revertedByRole: userRoles.join(', '),
                 previousStatus: study.workflowStatus,
-                reason:         revertReason.trim(),
-                notes:          verificationNotes.trim(),
-                resolved:       false,
-                revertType:     'admin_revert_after_download',
+                reason: revertReason.trim(),
+                notes: verificationNotes.trim(),
+                resolved: false,
+                revertType: 'admin_revert_after_download',
             };
 
             const updateData = {
-                workflowStatus:  'report_rejected',
+                workflowStatus: 'report_rejected',
                 currentCategory: 'REVERTED',
-                reprintNeeded:   true,
+                reprintNeeded: true,
 
-                'revertInfo.isReverted':    true,
+                'revertInfo.isReverted': true,
                 'revertInfo.currentRevert': revertRecord,
                 $inc: { 'revertInfo.revertCount': 1 },
                 $push: {
                     'revertInfo.revertHistory': revertRecord,
                     statusHistory: {
-                        status:    'report_rejected',
+                        status: 'report_rejected',
                         changedAt: now,
                         changedBy: user._id,
-                        note:      `Report reverted by admin ${user.fullName} after download — Reason: ${revertReason.trim()}`
+                        note: `Report reverted by admin ${user.fullName} after download — Reason: ${revertReason.trim()}`
                     }
                 }
             };
@@ -125,36 +125,36 @@ export const revertStudyToRadiologist = async (req, res) => {
                 dicomStudy: studyId,
                 reportStatus: { $in: ['verified', 'finalized'] }
             })
-            .sort({ createdAt: -1 })
-            .session(session);
+                .sort({ createdAt: -1 })
+                .session(session);
 
             if (report) {
                 if (!report.verificationInfo) report.verificationInfo = {};
-                report.verificationInfo.rejectionReason     = revertReason.trim();
-                report.verificationInfo.verificationNotes   = verificationNotes.trim();
-                report.verificationInfo.verificationStatus  = 'rejected';
+                report.verificationInfo.rejectionReason = revertReason.trim();
+                report.verificationInfo.verificationNotes = verificationNotes.trim();
+                report.verificationInfo.verificationStatus = 'rejected';
                 report.reportStatus = 'rejected';
 
                 if (!report.verificationInfo.verificationHistory) {
                     report.verificationInfo.verificationHistory = [];
                 }
                 report.verificationInfo.verificationHistory.push({
-                    action:      'reverted_to_radiologist', // ✅ FIXED: was 'admin_reverted_after_download'
+                    action: 'reverted_to_radiologist', // ✅ FIXED: was 'admin_reverted_after_download'
                     performedBy: user._id,
                     performedAt: now,
-                    notes:       `Admin revert after download — ${revertReason.trim()}`
+                    notes: `Admin revert after download — ${revertReason.trim()}`
                 });
 
                 await report.save({ session });
                 console.log(`✅ [Revert] Report model updated: ${report._id}`);
             } else {
                 console.warn(`⚠️ [Revert] No verified/finalized report found for study: ${studyId} — trying any report`);
-                
+
                 // ✅ FALLBACK: Try finding any report for this study
                 const anyReport = await Report.findOne({ dicomStudy: studyId })
                     .sort({ createdAt: -1 })
                     .session(session);
-                    
+
                 if (anyReport) {
                     anyReport.reportStatus = 'rejected';
                     await anyReport.save({ session });
@@ -171,13 +171,13 @@ export const revertStudyToRadiologist = async (req, res) => {
                 message: 'Study reverted to radiologist successfully',
                 data: {
                     studyId,
-                    workflowStatus:  'report_rejected',
+                    workflowStatus: 'report_rejected',
                     currentCategory: 'REVERTED',
-                    reprintNeeded:   true,
-                    revertedBy:      user.fullName,
-                    revertedAt:      now,
-                    reason:          revertReason.trim(),
-                    nextStep:        'Radiologist must re-finalize — will go to reprint path'
+                    reprintNeeded: true,
+                    revertedBy: user.fullName,
+                    revertedAt: now,
+                    reason: revertReason.trim(),
+                    nextStep: 'Radiologist must re-finalize — will go to reprint path'
                 }
             });
 

@@ -272,20 +272,7 @@ const VerifierDashboard = () => {
     fetchStudies(searchFilters, 1, pagination.recordsPerPage);
   }, [currentView]); // ✅ Only depend on currentView, NOT fetchStudies
 
-  // Auto-refresh every 5 minutes
-  useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      console.log('🔄 Auto-refreshing verifier dashboard data...');
-      fetchStudies(searchFilters, pagination.currentPage, pagination.recordsPerPage);
-      fetchAnalytics(searchFilters);
-    }, 5 * 60 * 1000);
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [fetchStudies, fetchAnalytics, searchFilters, pagination.currentPage, pagination.recordsPerPage]);
 
   // ✅ HANDLE PAGE CHANGE (lines 285-289)
   const handlePageChange = useCallback((newPage) => {

@@ -1,5 +1,7 @@
 import express from 'express';
 import multer from 'multer';
+import os from 'os';
+import path from 'path';
 import User from '../models/userModel.js';
 import {
   getValues,
@@ -203,7 +205,14 @@ router.put('/manage-users/:userId', protect, async (req, res) => {
 
 
 const manualUpload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, os.tmpdir());
+    },
+    filename: (req, file, cb) => {
+      cb(null, `manual_upload_${Date.now()}_${file.originalname}`);
+    }
+  }),
   limits: {
     fileSize: 5 * 1024 * 1024 * 1024 // 5GB per file
   },

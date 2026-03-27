@@ -1464,8 +1464,12 @@ const StudyRow = ({
             <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-medium whitespace-normal break-words leading-tight ${getStatusColor(study.workflowStatus)}`}>
               {study.caseStatusCategory || formatWorkflowStatus(study.workflowStatus)}
             </span>
-            <span className="text-[9px] sm:text-[10px] text-slate-600 whitespace-normal break-words leading-tight">
-              {study.workflowStatus ? formatWorkflowStatus(study.workflowStatus) : '-'}
+            <span className="text-[11px] text-slate-600 whitespace-normal break-words leading-tight">
+              {study.workflowStatus
+                ? study.workflowStatus === 'report_completed'
+                  ? 'Final'
+                  : formatWorkflowStatus(study.workflowStatus)
+                : '-'}
             </span>
 
             {/* ✅ Show when this status happened from statusHistory */}
@@ -1660,11 +1664,11 @@ const StudyRow = ({
                   </button>
                 )}
 
-                {study.workflowStatus === 'final_report_downloaded' && (
+                {['report_completed', 'final_report_downloaded'].includes(study.workflowStatus) && (
                   <button
                     onClick={() => onShowRevertModal?.(study)}
                     className="p-1 hover:bg-rose-50 rounded transition-all hover:scale-110"
-                    title="Revert to Radiologist (report was downloaded)"
+                    title="Revert to Radiologist"
                   >
                     <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
                   </button>
