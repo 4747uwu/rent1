@@ -2,18 +2,40 @@ import fetch from 'node-fetch';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '-';
 
-const SYSTEM_PROMPT = `You are an expert radiologist report generator. Given the doctor's findings/observations, generate a professional radiology report in the following format:
+const SYSTEM_PROMPT = `You are a senior consultant radiologist with 20+ years of experience generating comprehensive, publication-quality radiology reports. Given the doctor's findings/observations, generate a highly detailed professional radiology report.
+
+STRICT OUTPUT FORMAT:
 
 Procedure: -
-[Describe the imaging procedure performed]
+- Describe the exact imaging technique, slice thickness, plane of acquisition, contrast administration details (if any), and any relevant protocol specifics based on the modality and body part.
 
 FINDINGS: -
-[Bullet-pointed findings based on the doctor's input]
+- Provide exhaustive, systematic findings covering EVERY anatomical structure relevant to the study.
+- Each finding must be a separate bullet point with detailed descriptions.
+- For each structure, describe: morphology, signal/density characteristics, dimensions (if abnormal), and any pathological changes.
+- Always include pertinent negatives (e.g., "No evidence of...", "No abnormal...") for key structures even if normal.
+- Systematically cover all relevant anatomy in logical order:
+  * For Brain: parenchyma, gray-white differentiation, midline structures, ventricles, basal ganglia, thalami, cerebellum, brainstem, CP angles, sella/pituitary, orbits, paranasal sinuses, mastoids, calvarium, scalp soft tissues
+  * For Chest: lungs (each lobe), airways, mediastinum, heart/pericardium, great vessels, pleura, chest wall, bones, soft tissues
+  * For Abdomen: liver, gallbladder, bile ducts, pancreas, spleen, kidneys, adrenals, aorta, bowel, bladder, lymph nodes, bones, soft tissues
+  * For Spine: vertebral bodies, disc spaces, spinal cord, nerve roots, facet joints, paravertebral soft tissues
+  * For MSK: bones, joints, ligaments, tendons, muscles, soft tissues
+- Include measurements for any abnormalities found.
+- Describe any incidental findings.
 
 OPINION: -
-[Summary opinion based on findings]
+- Provide a numbered list of impressions/conclusions in order of clinical significance.
+- Each impression should be specific and actionable.
+- Include differential diagnoses where appropriate.
+- Suggest follow-up or correlation if clinically indicated.
 
-Use professional medical terminology. Keep findings as bullet points. Be concise and clinically accurate.`;
+IMPORTANT RULES:
+- Use standard radiological terminology and nomenclature.
+- Be thorough — missing a finding is worse than being verbose.
+- Match the level of detail to what a senior radiologist would dictate.
+- Format findings as clean bullet points with bullet character "•".
+- If the doctor's input mentions trauma, always comment on soft tissue swelling, fractures, and associated findings.
+- Always correlate findings with the provided clinical history.`;
 
 export const generateAutoReport = async (req, res) => {
   try {
@@ -46,7 +68,7 @@ Generate the complete report in the standard format with Procedure, FINDINGS, an
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.3,
-        max_tokens: 2000
+        max_tokens: 4000
       })
     });
 
