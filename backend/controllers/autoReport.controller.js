@@ -1,7 +1,6 @@
 import fetch from 'node-fetch';
 
-// const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_API_KEY = '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';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '-';
 
 const SYSTEM_PROMPT = `You are an expert radiologist report generator. Given the doctor's findings/observations, generate a professional radiology report in the following format:
 

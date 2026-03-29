@@ -57,6 +57,7 @@ jobs:
           WASABI_DOCUMENTS_BUCKET=medicaldocuments
           WASABI_REPORTS_BUCKET=diacomreports
           WASABI_BACKUPS_BUCKET=medical-backups
+          OPENAI_API_KEY=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
           ENVEOF
 
           mkdir -p /tmp/node/restore

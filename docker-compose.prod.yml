@@ -38,6 +38,7 @@ services:
       - FRONTEND_URL=http://206.189.139.34:5003
       - ORTHANC_STORAGE_PATH=/mnt/volume_blr1_03/orthanc/dicom
       - SHARED_TEMP_DIR=/tmp/node/restore
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
       - /mnt/volume_blr1_03/orthanc/dicom:/mnt/volume_blr1_03/orthanc/dicom:ro
       - /tmp/node/restore:/tmp/node/restore:rw
