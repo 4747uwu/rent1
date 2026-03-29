@@ -67,8 +67,43 @@ const OnlineReportingSystemWithOHIF = () => {
   const editorRef = useRef(null);
   const [showTemplateSearch, setShowTemplateSearch] = useState(false);
 
+  // ✅ AUTO REPORT STATE
+  const [showAutoReport, setShowAutoReport] = useState(false);
+  const [autoReportFindings, setAutoReportFindings] = useState('');
+  const [generatingReport, setGeneratingReport] = useState(false);
+
   const handleInsertFromSearch = (html) => {
     editorRef.current?.insertHTML(html);
+  };
+
+  // ✅ AUTO REPORT HANDLER
+  const handleGenerateAutoReport = async () => {
+    if (!autoReportFindings.trim()) {
+      toast.error('Please enter findings before generating');
+      return;
+    }
+    setGeneratingReport(true);
+    try {
+      const response = await api.post('/admin/auto-report/generate', {
+        findings: autoReportFindings,
+        modality: studyData?.modality || '',
+        bodyPart: studyData?.bodyPartExamined || studyData?.studyDescription || '',
+        clinicalHistory: reportData?.clinicalHistory || ''
+      });
+      if (response.data.success) {
+        setReportContent(response.data.data.htmlReport);
+        setIsReportOpen(true);
+        setShowAutoReport(false);
+        setAutoReportFindings('');
+        toast.success('Report generated successfully!');
+      } else {
+        toast.error(response.data.message || 'Failed to generate report');
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to generate report');
+    } finally {
+      setGeneratingReport(false);
+    }
   };
 
   const handleOpenSaveAsTemplate = () => {
@@ -925,6 +960,11 @@ const OnlineReportingSystemWithOHIF = () => {
                         <Save className="w-2.5 h-2.5" /><span className="hidden xl:inline">Template</span>
                       </button>
 
+                      {/* Auto Report */}
+                      <button onClick={() => setShowAutoReport(true)} className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors" title="AI Auto Report">
+                        <FileText className="w-2.5 h-2.5" /><span className="hidden xl:inline">Auto Report</span>
+                      </button>
+
                       <div className="h-4 w-px bg-gray-200"></div>
 
                       {/* Auto-save: just icon — spinner or tick */}
@@ -1213,10 +1253,70 @@ const OnlineReportingSystemWithOHIF = () => {
         )
       }
 
+      {/* ✅ AUTO REPORT DIALOG */}
+      {showAutoReport && (
+        <>
+          <div className="fixed inset-0 z-[300] bg-black/50" onClick={() => setShowAutoReport(false)} />
+          <div className="fixed z-[310] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl border border-gray-200 w-[560px] max-h-[80vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3 bg-purple-50 border-b border-purple-100 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-purple-600" />
+                <span className="text-sm font-bold text-purple-900">AI Auto Report</span>
+              </div>
+              <button onClick={() => setShowAutoReport(false)} className="p-1 hover:bg-gray-100 rounded">
+                <XCircle className="w-4 h-4 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Study Info */}
+            <div className="px-5 py-2 bg-gray-50 border-b border-gray-100 text-[11px] text-gray-500 flex gap-4">
+              <span>Modality: <strong>{studyData?.modality || 'N/A'}</strong></span>
+              <span>Patient: <strong>{patientData?.fullName || 'N/A'}</strong></span>
+            </div>
+
+            {/* Body */}
+            <div className="px-5 py-4 flex-1 overflow-y-auto space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Findings / Observations <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  autoFocus
+                  value={autoReportFindings}
+                  onChange={(e) => setAutoReportFindings(e.target.value)}
+                  placeholder="Enter your findings here... e.g., Brain parenchyma appears normal. No definite cerebral parenchymal lesion/hemorrhage is seen..."
+                  rows={12}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 resize-y"
+                />
+                <p className="mt-1 text-[10px] text-gray-400">
+                  Write your observations and the AI will generate a formatted report with Procedure, Findings, and Opinion sections.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end gap-2 px-5 py-3 border-t border-gray-100 rounded-b-xl bg-gray-50">
+              <button
+                onClick={() => setShowAutoReport(false)}
+                className="px-4 py-1.5 text-xs font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleGenerateAutoReport}
+                disabled={generatingReport || !autoReportFindings.trim()}
+                className="px-4 py-1.5 text-xs font-bold bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+              >
+                <FileText className="w-3 h-3" />
+                {generatingReport ? 'Generating...' : 'Generate Report'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
     </>
-
-
-
   );
 
 };

@@ -79,6 +79,7 @@ import { updateStudyDetails, getStudyActionLogs, lockStudyForReporting } from '.
 import { toggleStudyLock } from '../controllers/download.controller.js';
 import systemOverviewController from '../controllers/systemOverview.controller.js';
 import { uploadOrgLogo, getOrgLogo, deleteOrgLogo, getQueryCallNumber, updateQueryCallNumber } from '../controllers/orgLogo.controller.js';
+import { generateAutoReport } from '../controllers/autoReport.controller.js';
 
 // import { getOrganisation}
 
@@ -290,5 +291,7 @@ router.delete('/org-logo', protect, deleteOrgLogo);
 router.get('/org-settings/query-number', protect, getQueryCallNumber);
 router.put('/org-settings/query-number', protect, updateQueryCallNumber);
 
+// ✅ AUTO REPORT GENERATION ROUTE
+router.post('/auto-report/generate', protect, generateAutoReport);
 
 export default router;

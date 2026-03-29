@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Shield, Users, ChevronRight, IndianRupee, Clock3 } from 'lucide-react';
+import { X, UserPlus, Building, Shield, Users, ChevronRight, DollarSign, Clock3 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 const SettingsModal = ({ isOpen, onClose, onNavigate, theme = 'default' }) => {
@@ -8,8 +8,9 @@ const SettingsModal = ({ isOpen, onClose, onNavigate, theme = 'default' }) => {
     const isAdmin = role === 'admin';
     const isGroupId = role === 'group_id';
 
-    const canCreateUser = ['admin', 'group_id'].includes(role);
+    const canCreateDoctor = ['admin', 'group_id'].includes(role);
     const canCreateLab = ['admin'].includes(role);
+    const canCreateUser = ['admin', 'group_id'].includes(role);
     const canManageUsers = isAdmin || isGroupId;
 
     const settingsOptions = [];
@@ -21,21 +22,26 @@ const SettingsModal = ({ isOpen, onClose, onNavigate, theme = 'default' }) => {
             icon: Shield,
             onClick: () => { onNavigate('/admin/user-management'); onClose(); }
         });
-
-        settingsOptions.push({
-            id: 'create-lab',
-            label: 'Add Hospital',
-            description: 'Add a new hospital',
-            icon: Users,
-            onClick: () => { onNavigate('/admin/create-lab'); onClose(); }
-        })
     }
-
+    if (canCreateDoctor) {
+        settingsOptions.push({
+            id: 'create-doctor', label: 'Create Doctor',
+            description: 'Add a new doctor account',
+            icon: UserPlus,
+            onClick: () => { onNavigate('/admin/create-doctor'); onClose(); }
+        });
+    }
     if (canCreateLab) {
+        settingsOptions.push({
+            id: 'create-lab', label: 'Create Lab / Center',
+            description: 'Register a new laboratory',
+            icon: Building,
+            onClick: () => { onNavigate('/admin/create-lab'); onClose(); }
+        });
         settingsOptions.push({
             id: 'billing-modules', label: 'Billing Modules',
             description: 'Manage billing service items & pricing',
-            icon: IndianRupee,
+            icon: DollarSign,
             onClick: () => { onNavigate('/admin/billing-modules'); onClose(); }
         });
         settingsOptions.push({
@@ -52,8 +58,6 @@ const SettingsModal = ({ isOpen, onClose, onNavigate, theme = 'default' }) => {
             icon: Users,
             onClick: () => { onNavigate('/admin/create-user'); onClose(); }
         });
-
-
     }
 
     if (settingsOptions.length === 0 || !isOpen) return null;

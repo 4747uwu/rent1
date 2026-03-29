@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
-import { 
-    Search as SearchIcon, 
-    X, 
+import {
+    Search as SearchIcon,
+    X,
     RefreshCw,
     ChevronDown,
     Filter,
@@ -15,9 +15,9 @@ import MultiSelect from '../MultiSelect';
 import SettingsModal from '../SettingsModal';
 import api from '../../../services/api';
 
-const Search = ({ 
-    onSearch, 
-    onFilterChange, 
+const Search = ({
+    onSearch,
+    onFilterChange,
     loading = false,
     totalStudies = 0,
     currentCategory = 'all',
@@ -28,24 +28,24 @@ const Search = ({
 }) => {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
-    
+
     // ✅ normalize role to avoid case/format mismatches (GROUP_ID vs group_id)
     const role = (currentUser?.role || '').toString().toLowerCase();
 
     // ✅ NEW: Settings modal state
     const [showSettingsModal, setShowSettingsModal] = useState(false);
-    
+
     // ✅ NEW: Auto-refresh state
     const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(() => {
         const saved = localStorage.getItem('autoRefreshEnabled');
         return saved !== null ? JSON.parse(saved) : true;
     });
-    
+
     const REFRESH_INTERVAL_SECONDS = 30;
-    
+
     const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
     const [timeUntilRefresh, setTimeUntilRefresh] = useState(REFRESH_INTERVAL_SECONDS);
-    
+
     // State management
     const [searchTerm, setSearchTerm] = useState('');
     const [filters, setFilters] = useState({
@@ -72,10 +72,10 @@ const Search = ({
     useEffect(() => {
         if (initialFilters && Object.keys(initialFilters).length > 0) {
             console.log('🔄 [Search] Syncing with initial filters:', initialFilters);
-            
+
             const filtersToSync = { ...initialFilters };
             delete filtersToSync.search;
-            
+
             setFilters(prevFilters => ({
                 ...prevFilters,
                 ...filtersToSync
@@ -93,7 +93,7 @@ const Search = ({
         const interval = setInterval(() => {
             const elapsed = Math.floor((Date.now() - lastRefreshTime) / 1000);
             const remaining = REFRESH_INTERVAL_SECONDS - elapsed;
-            
+
             if (remaining <= 0) {
                 console.log('🔄 [Search] Auto-refresh triggered');
                 setLastRefreshTime(Date.now());
@@ -173,15 +173,15 @@ const Search = ({
     // Handle search input change with debouncing
     const handleSearchChange = useCallback((value) => {
         setSearchTerm(value);
-        
+
         if (searchTimeout) {
             clearTimeout(searchTimeout);
         }
-        
+
         if (value === '' || value.trim() === '') {
             const searchParams = { ...filters };
             delete searchParams.search;
-            
+
             Object.keys(searchParams).forEach(key => {
                 const val = searchParams[key];
                 if (val === '' || val === 'all' || val === undefined) {
@@ -191,45 +191,45 @@ const Search = ({
                     delete searchParams[key];
                 }
             });
-            
+
             console.log('🗑️ [Search] CLEARING SEARCH TERM:', searchParams);
             onSearch?.(searchParams);
             onFilterChange?.(searchParams);
             return;
         }
-        
+
         const newTimeout = setTimeout(() => {
             handleSearch(value);
         }, 300);
-        
+
         setSearchTimeout(newTimeout);
     }, [filters, onSearch, onFilterChange]);
 
     // Execute search
     const handleSearch = useCallback((term = searchTerm) => {
         const searchParams = { ...filters };
-        
+
         if (term && term.trim()) {
             searchParams.search = term.trim();
         }
-        
+
         if (filters.modalities && filters.modalities.length > 0) {
             searchParams.modalities = filters.modalities;
         }
-        
+
         // ✅ ADD THIS: Handle priorities multi-select
         if (filters.priorities && filters.priorities.length > 0) {
             searchParams.priorities = filters.priorities;
         }
-        
+
         if (filters.radiologists && filters.radiologists.length > 0) {
             searchParams.radiologists = filters.radiologists;
         }
-        
+
         if (filters.labs && filters.labs.length > 0) {
             searchParams.labs = filters.labs;
         }
-        
+
         Object.keys(searchParams).forEach(key => {
             const value = searchParams[key];
             if (value === '' || value === 'all' || value === undefined) {
@@ -239,7 +239,7 @@ const Search = ({
                 delete searchParams[key];
             }
         });
-        
+
         console.log('🔍 [Search] Executing search with params:', searchParams);
         onSearch?.(searchParams);
     }, [searchTerm, filters, onSearch]);
@@ -252,32 +252,32 @@ const Search = ({
         if (key === 'dateFilter' && value === 'custom') {
             setShowAdvanced(true);
         }
-        
+
         const searchParams = { ...newFilters };
-        
+
         if (searchTerm && searchTerm.trim()) {
             searchParams.search = searchTerm.trim();
         } else {
             delete searchParams.search;
         }
-        
+
         if (newFilters.modalities && newFilters.modalities.length > 0) {
             searchParams.modalities = newFilters.modalities;
         }
-        
+
         // ✅ ADD THIS: Handle priorities multi-select
         if (newFilters.priorities && newFilters.priorities.length > 0) {
             searchParams.priorities = newFilters.priorities;
         }
-        
+
         if (newFilters.radiologists && newFilters.radiologists.length > 0) {
             searchParams.radiologists = newFilters.radiologists;
         }
-        
+
         if (newFilters.labs && newFilters.labs.length > 0) {
             searchParams.labs = newFilters.labs;
         }
-        
+
         Object.keys(searchParams).forEach(key => {
             const value = searchParams[key];
             if (value === '' || value === 'all' || value === undefined) {
@@ -287,7 +287,7 @@ const Search = ({
                 delete searchParams[key];
             }
         });
-        
+
         console.log('🔍 [Search] Filter changed:', { key, value, params: searchParams });
         onSearch?.(searchParams);
         onFilterChange?.(searchParams);
@@ -296,7 +296,7 @@ const Search = ({
     // Clear all filters
     const clearAllFilters = useCallback(() => {
         console.log('🗑️ [Search] CLEARING ALL FILTERS');
-        
+
         setSearchTerm('');
         const defaultFilters = {
             modality: 'all',
@@ -314,10 +314,10 @@ const Search = ({
             labs: []
         };
         setFilters(defaultFilters);
-        
+
         const cleanFilters = { ...defaultFilters };
         delete cleanFilters.search;
-        
+
         onSearch?.(cleanFilters);
         onFilterChange?.(cleanFilters);
     }, [onSearch, onFilterChange]);
@@ -354,12 +354,12 @@ const Search = ({
         { value: 'OT', label: 'Other' }
     ];
 
-       const priorityOptions = [
+    const priorityOptions = [
         { value: 'EMERGENCY', label: '🚨 Emergency' },
         { value: 'PRIORITY', label: '⭐ Priority' },
-        { value: 'MLC',      label: '⚖️ MLC' },
-        { value: 'NORMAL',   label: '🟢 Normal' },
-        { value: 'STAT',     label: '⏱️ STAT' },
+        { value: 'MLC', label: '⚖️ MLC' },
+        { value: 'NORMAL', label: '🟢 Normal' },
+        { value: 'STAT', label: '⏱️ STAT' },
     ];
 
     const hasActiveFilters = searchTerm || Object.values(filters).some(v => v !== 'all' && v !== 'today' && v !== 'createdAt' && v !== '' && v !== 50);
@@ -400,7 +400,7 @@ const Search = ({
         <div className={`bg-white border-b ${themeColors.border} px-3 py-1.5`}>
             {/* MAIN SEARCH ROW */}
             <div className="flex flex-wrap items-center gap-1.5">
-                
+
                 {/* SEARCH INPUT */}
                 <div className="relative w-full sm:w-36 md:w-40 lg:w-44 xl:w-48 flex-shrink-0 order-1">
                     <SearchIcon className={`absolute left-2 top-1/2 transform -translate-y-1/2 text-${themeColors.textSecondary}`} size={13} />
@@ -412,7 +412,7 @@ const Search = ({
                         className={`w-full pl-7 pr-6 py-1 text-xs border border-${themeColors.border} rounded ${themeColors.focus} transition-colors`}
                     />
                     {searchTerm && (
-                        <button 
+                        <button
                             onClick={() => handleSearchChange('')}
                             className={`absolute right-2 top-1/2 transform -translate-y-1/2 text-${themeColors.textSecondary} hover:text-${themeColors.text} p-0.5`}
                         >
@@ -475,36 +475,35 @@ const Search = ({
                 {/* TIME FILTERS */}
                 <div className="hidden md:flex items-center gap-0.5 order-3">
                     {['Today', 'Yesterday', '7 Days'].map((period) => {
-                        const isActive = 
+                        const isActive =
                             (period === 'Today' && filters.dateFilter === 'today') ||
                             (period === 'Yesterday' && filters.dateFilter === 'yesterday') ||
                             (period === '7 Days' && filters.dateFilter === 'last7days')
-                        
-                        const value = 
+
+                        const value =
                             period === 'Today' ? 'today' :
-                            period === 'Yesterday' ? 'yesterday' :
-                            period === '7 Days' ? 'last7days' :
-                            'last30days';
+                                period === 'Yesterday' ? 'yesterday' :
+                                    period === '7 Days' ? 'last7days' :
+                                        'last30days';
 
                         return (
                             <button
                                 key={period}
                                 onClick={() => handleFilterChange('dateFilter', value)}
-                                className={`px-1.5 py-0.5 text-[11px] font-medium rounded transition-colors ${
-                                    isActive
-                                        ? isGreenTheme 
-                                            ? 'bg-teal-600 text-white hover:bg-teal-700' 
+                                className={`px-1.5 py-0.5 text-[11px] font-medium rounded transition-colors ${isActive
+                                        ? isGreenTheme
+                                            ? 'bg-teal-600 text-white hover:bg-teal-700'
                                             : 'bg-gray-900 text-white hover:bg-gray-800'
                                         : isGreenTheme
                                             ? 'text-teal-600 hover:bg-teal-50 border border-teal-300'
                                             : 'text-gray-500 hover:bg-gray-100 border border-gray-200'
-                                }`}
+                                    }`}
                             >
                                 {period}
                             </button>
                         );
                     })}
-                    
+
                     <div className="relative">
                         <select
                             value={filters.dateFilter || 'today'}
@@ -536,7 +535,7 @@ const Search = ({
                     </select>
                 </div>
 
-                
+
 
                 {/* ASSIGNOR ANALYTICS */}
                 {isAssignor && analytics && (
@@ -560,15 +559,14 @@ const Search = ({
                 <div className={`flex items-center gap-1 pl-1.5 border-l border-${themeColors.border} order-6`}>
                     <button
                         onClick={handleToggleAutoRefresh}
-                        className={`flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-medium rounded border transition-colors ${
-                            autoRefreshEnabled
+                        className={`flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-medium rounded border transition-colors ${autoRefreshEnabled
                                 ? isGreenTheme
                                     ? 'bg-teal-600 text-white border-teal-600 hover:bg-teal-700'
                                     : 'bg-gray-900 text-white border-gray-900 hover:bg-gray-800'
                                 : isGreenTheme
                                     ? 'bg-white text-teal-700 border-teal-300 hover:bg-teal-50'
                                     : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
-                        }`}
+                            }`}
                         title={autoRefreshEnabled ? 'Auto-refresh enabled' : 'Auto-refresh disabled'}
                     >
                         {autoRefreshEnabled ? <Play size={11} /> : <Pause size={11} />}
@@ -584,15 +582,14 @@ const Search = ({
                 <div className="flex items-center gap-0.5 order-7">
                     <button
                         onClick={() => setShowAdvanced(!showAdvanced)}
-                        className={`px-1.5 py-1 text-[11px] font-medium rounded border transition-colors flex items-center gap-1 ${
-                            showAdvanced 
-                                ? isGreenTheme 
-                                    ? `bg-teal-600 text-white border-teal-600` 
+                        className={`px-1.5 py-1 text-[11px] font-medium rounded border transition-colors flex items-center gap-1 ${showAdvanced
+                                ? isGreenTheme
+                                    ? `bg-teal-600 text-white border-teal-600`
                                     : 'bg-gray-900 text-white border-gray-900'
                                 : isGreenTheme
                                     ? `bg-white text-${themeColors.text} border-${themeColors.border} hover:bg-${themeColors.primaryLight}`
                                     : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                        }`}
+                            }`}
                     >
                         <Filter size={11} />
                         <span className="hidden sm:inline">Filters</span>
@@ -611,13 +608,11 @@ const Search = ({
                     <button
                         onClick={handleRefreshClick}
                         disabled={loading}
-                        className={`flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded border transition-all disabled:opacity-50 ${
-                            loading ? 'cursor-wait' : 'cursor-pointer'
-                        } ${
-                            isGreenTheme
+                        className={`flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded border transition-all disabled:opacity-50 ${loading ? 'cursor-wait' : 'cursor-pointer'
+                            } ${isGreenTheme
                                 ? 'bg-teal-600 text-white border-teal-600 hover:bg-teal-700'
                                 : 'bg-gray-900 text-white border-gray-900 hover:bg-gray-800'
-                        }`}
+                            }`}
                         title="Manual refresh"
                     >
                         <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
@@ -702,7 +697,7 @@ const Search = ({
                 onNavigate={navigate}
                 theme={theme}
             />
-  
+
         </div>
     );
 };
