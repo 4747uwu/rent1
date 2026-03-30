@@ -94,6 +94,26 @@ const DicomStudySchema = new mongoose.Schema({
         default: false,
         // ❌ REMOVED: index: { background: true }
     },
+
+    // ── DUPLICATE STUDY TRACKING ──────────────────────────────────────────
+    isDuplicateStudy: {
+        type: Boolean,
+        default: false,
+    },
+    duplicatedFrom: {
+        studyId: { type: mongoose.Schema.Types.ObjectId, ref: 'DicomStudy' },
+        bharatPacsId: String,
+        duplicatedAt: Date,
+        duplicatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        duplicatedByName: String,
+    },
+    duplicatedTo: [{
+        studyId: { type: mongoose.Schema.Types.ObjectId, ref: 'DicomStudy' },
+        bharatPacsId: String,
+        duplicatedAt: Date,
+        duplicatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        duplicatedByName: String,
+    }],
     
     organization: {
         type: mongoose.Schema.Types.ObjectId,

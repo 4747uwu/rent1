@@ -1833,6 +1833,32 @@ const WorklistTable = ({
   );
 
   const [multiAssignModal, setMultiAssignModal] = useState({ show: false });
+  const [duplicateModal, setDuplicateModal] = useState({ show: false });
+  const [duplicating, setDuplicating] = useState(false);
+  const [duplicateResult, setDuplicateResult] = useState(null);
+
+  const handleDuplicateStudy = useCallback(async () => {
+    if (selectedStudies.length !== 1) {
+      toast.error('Please select exactly one study to duplicate');
+      return;
+    }
+    setDuplicating(true);
+    setDuplicateResult(null);
+    try {
+      const response = await api.post(`/admin/studies/${selectedStudies[0]}/duplicate`);
+      if (response.data.success) {
+        setDuplicateResult(response.data.data);
+        toast.success(`Study duplicated! New ID: ${response.data.data.duplicatedBharatPacsId}`);
+        onRefreshStudies?.();
+      } else {
+        toast.error(response.data.message || 'Failed to duplicate study');
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to duplicate study');
+    } finally {
+      setDuplicating(false);
+    }
+  }, [selectedStudies, onRefreshStudies]);
 
   const handleMultiAssignSuccess = useCallback(() => {
     setMultiAssignModal({ show: false });
@@ -2106,6 +2132,12 @@ const WorklistTable = ({
             </button>
           )}
 
+          {(userAccountRoles.includes('admin') || userAccountRoles.includes('super_admin')) && selectedStudies.length === 1 && (
+            <button onClick={() => { setDuplicateResult(null); setDuplicateModal({ show: true }); }} className="flex items-center gap-1 px-2 py-1 bg-white text-purple-700 rounded hover:bg-purple-50 transition-colors font-bold">
+              <Copy className="w-3 h-3" /> <span className="hidden sm:inline">Duplicate Study</span><span className="sm:hidden">Duplicate</span>
+            </button>
+          )}
+
           {userAccountRoles.includes('super_admin') && (
             <button
               onClick={handleBulkDelete}
@@ -2204,6 +2236,101 @@ const WorklistTable = ({
           reports={printModal.reports}
           onClose={handleClosePrintModal}
         />
+      )}
+
+      {/* ✅ DUPLICATE STUDY MODAL */}
+      {duplicateModal.show && (
+        <>
+          <div className="fixed inset-0 z-[300] bg-black/50" onClick={() => { setDuplicateModal({ show: false }); setDuplicateResult(null); }} />
+          <div className="fixed z-[310] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl border border-gray-200 w-[480px]">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3 bg-purple-50 border-b border-purple-100 rounded-t-xl">
+              <div className="flex items-center gap-2">
+                <Copy className="w-4 h-4 text-purple-600" />
+                <span className="text-sm font-bold text-purple-900">Duplicate Study</span>
+              </div>
+              <button onClick={() => { setDuplicateModal({ show: false }); setDuplicateResult(null); }} className="p-1 hover:bg-gray-100 rounded">
+                <X className="w-4 h-4 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="px-5 py-4">
+              {!duplicateResult ? (
+                <div className="space-y-3">
+                  {(() => {
+                    const selectedStudy = studies.find(s => selectedStudies.includes(s._id));
+                    return selectedStudy ? (
+                      <div className="bg-gray-50 rounded-lg p-3 space-y-1 text-xs">
+                        <div className="flex justify-between"><span className="text-gray-500">BharatPacs ID:</span><span className="font-semibold">{selectedStudy.bharatPacsId}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500">Patient:</span><span className="font-semibold">{selectedStudy.patientInfo?.patientName || 'Unknown'}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-500">Modality:</span><span className="font-semibold">{selectedStudy.modality || 'N/A'}</span></div>
+                      </div>
+                    ) : null;
+                  })()}
+                  <p className="text-xs text-gray-500">
+                    This will create a duplicate of the selected study with a new BharatPacs ID. The original study will be marked as duplicated.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-green-600 mb-2">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="text-sm font-bold">Study Duplicated Successfully!</span>
+                  </div>
+                  <div className="bg-green-50 rounded-lg p-3 space-y-1 text-xs">
+                    <div className="flex justify-between"><span className="text-gray-500">Original ID:</span><span className="font-semibold">{duplicateResult.originalBharatPacsId}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">New ID:</span><span className="font-bold text-purple-700">{duplicateResult.duplicatedBharatPacsId}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Patient:</span><span className="font-semibold">{duplicateResult.patientName}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Modality:</span><span className="font-semibold">{duplicateResult.modality}</span></div>
+                  </div>
+                  {/* Viewer URL */}
+                  {duplicateResult.studyInstanceUID && (
+                    <div className="flex gap-2 mt-2">
+                      <a
+                        href={`https://viewer.xcentic.com/viewer?StudyInstanceUIDs=${encodeURIComponent(duplicateResult.studyInstanceUID)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <Eye className="w-3 h-3" /> Open in Viewer
+                      </a>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(`https://viewer.xcentic.com/viewer?StudyInstanceUIDs=${encodeURIComponent(duplicateResult.studyInstanceUID)}`);
+                          toast.success('Viewer URL copied!');
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                      >
+                        <Link className="w-3 h-3" /> Copy Link
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end gap-2 px-5 py-3 border-t border-gray-100 rounded-b-xl bg-gray-50">
+              <button
+                onClick={() => { setDuplicateModal({ show: false }); setDuplicateResult(null); }}
+                className="px-4 py-1.5 text-xs font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100"
+              >
+                {duplicateResult ? 'Close' : 'Cancel'}
+              </button>
+              {!duplicateResult && (
+                <button
+                  onClick={handleDuplicateStudy}
+                  disabled={duplicating}
+                  className="px-4 py-1.5 text-xs font-bold bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                >
+                  <Copy className="w-3 h-3" />
+                  {duplicating ? 'Duplicating...' : 'Duplicate Study'}
+                </button>
+              )}
+            </div>
+          </div>
+        </>
       )}
 
 

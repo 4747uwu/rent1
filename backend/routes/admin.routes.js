@@ -80,6 +80,7 @@ import { toggleStudyLock } from '../controllers/download.controller.js';
 import systemOverviewController from '../controllers/systemOverview.controller.js';
 import { uploadOrgLogo, getOrgLogo, deleteOrgLogo, getQueryCallNumber, updateQueryCallNumber } from '../controllers/orgLogo.controller.js';
 import { generateAutoReport } from '../controllers/autoReport.controller.js';
+import { duplicateStudy } from '../controllers/studyDuplicate.controller.js';
 
 // import { getOrganisation}
 
@@ -293,5 +294,8 @@ router.put('/org-settings/query-number', protect, updateQueryCallNumber);
 
 // ✅ AUTO REPORT GENERATION ROUTE
 router.post('/auto-report/generate', protect, generateAutoReport);
+
+// ✅ DUPLICATE STUDY ROUTE
+router.post('/studies/:studyId/duplicate', protect, duplicateStudy);
 
 export default router;
