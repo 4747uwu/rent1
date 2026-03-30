@@ -46,14 +46,14 @@ export const generateAutoReport = async (req, res) => {
     }
 
     const userPrompt = `Generate a radiology report based on the following:
-Modality: ${modality || 'Not specified'}
-Body Part: ${bodyPart || 'Not specified'}
-Clinical History: ${clinicalHistory || 'Not provided'}
+      Modality: ${modality || 'Not specified'}
+      Body Part: ${bodyPart || 'Not specified'}
+      Clinical History: ${clinicalHistory || 'Not provided'}
 
-Doctor's Findings/Observations:
-${findings}
+      Doctor's Findings/Observations:
+      ${findings}
 
-Generate the complete report in the standard format with Procedure, FINDINGS, and OPINION sections.`;
+      Generate the complete report in the standard format with Procedure, FINDINGS, and OPINION sections.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

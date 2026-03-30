@@ -73,7 +73,7 @@ export const duplicateStudy = async (req, res) => {
         const duplicateData = {
             ...studyFields,
             // Reset workflow
-            workflowStatus: 'uploaded',
+            workflowStatus: 'new_study_received',
             currentCategory: 'CREATED',
             ReportAvailable: false,
             assignments: [],
@@ -96,8 +96,8 @@ export const duplicateStudy = async (req, res) => {
             isLocked: false,
             // Fresh action log
             actionLog: [{
-                actionType: 'study_duplicated',
-                actionCategory: 'study',
+                actionType: 'study_copied',
+                actionCategory: 'workflow',
                 performedBy: currentUser._id,
                 performedByName: currentUser.fullName,
                 performedByRole: currentUser.role,
@@ -121,8 +121,8 @@ export const duplicateStudy = async (req, res) => {
                 },
                 actionLog: {
                     $each: [{
-                        actionType: 'study_duplicated_source',
-                        actionCategory: 'study',
+                        actionType: 'study_copied',
+                        actionCategory: 'workflow',
                         performedBy: currentUser._id,
                         performedByName: currentUser.fullName,
                         performedByRole: currentUser.role,
