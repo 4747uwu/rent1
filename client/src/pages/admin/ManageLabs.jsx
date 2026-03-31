@@ -8,7 +8,7 @@ import LabBillingSetup from '../../components/admin/LabBillingSetup';
 import {
     Building2, Edit, X, Check, Search, ChevronDown,
     ChevronUp, Users, Settings, MapPin, Phone, Mail,
-    Shield, Package, ArrowLeft, Loader, Eye, EyeOff, Copy, DollarSign
+    Shield, Package, ArrowLeft, Loader, Eye, EyeOff, Copy, IndianRupee
 } from 'lucide-react';
 
 const ManageLabs = () => {
@@ -224,7 +224,7 @@ const ManageLabs = () => {
                                         className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg"
                                         title="Configure Billing"
                                     >
-                                        <DollarSign className="w-4 h-4" />
+                                        <IndianRupee className="w-4 h-4" />
                                     </button>
 
                                     <button
@@ -531,7 +531,7 @@ const ManageLabs = () => {
                         <div className="flex items-center justify-between p-5 border-b border-gray-200">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-emerald-100 rounded-lg">
-                                    <DollarSign className="w-5 h-5 text-emerald-600" />
+                                    <IndianRupee className="w-5 h-5 text-emerald-600" />
                                 </div>
                                 <div>
                                     <h2 className="text-lg font-bold text-gray-900">Billing Configuration</h2>

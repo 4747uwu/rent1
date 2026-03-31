@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, UserPlus, Building, Shield, Users, ChevronRight, DollarSign, Clock3 } from 'lucide-react';
+import { X, UserPlus, Building, Shield, Users, ChevronRight, IndianRupee, Clock3 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 const SettingsModal = ({ isOpen, onClose, onNavigate, theme = 'default' }) => {
@@ -41,7 +41,7 @@ const SettingsModal = ({ isOpen, onClose, onNavigate, theme = 'default' }) => {
         settingsOptions.push({
             id: 'billing-modules', label: 'Billing Modules',
             description: 'Manage billing service items & pricing',
-            icon: DollarSign,
+            icon: IndianRupee,
             onClick: () => { onNavigate('/admin/billing-modules'); onClose(); }
         });
         settingsOptions.push({
