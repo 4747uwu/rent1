@@ -514,7 +514,7 @@ const Navbar = ({
                     </div>
                     {is64 ? (
                       <a
-                        href="https://drive.google.com/file/d/1clvfKahVbuf2Vpttb4RNFDupvJQq76AS/view?usp=sharing"
+                        href="https://drive.google.com/file/d/1RwitqnEGlqvCFSxIIlvTKd-hgxmA3WQ9/view?usp=sharing"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-xs font-bold uppercase hover:bg-black transition-colors shadow-sm"

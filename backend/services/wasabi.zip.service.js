@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { 
-    HeadBucketCommand, 
-    CreateBucketCommand, 
-    PutObjectCommand, 
+import {
+    HeadBucketCommand,
+    CreateBucketCommand,
+    PutObjectCommand,
     ListObjectsV2Command,
     DeleteObjectCommand,
     PutBucketCorsCommand,
@@ -12,7 +12,7 @@ import { Upload } from '@aws-sdk/lib-storage';
 import { r2Client, r2Config, getR2PublicUrl, getCDNOptimizedUrl } from '../config/cloudflare-r2.js';
 import DicomStudy from '../models/dicomStudyModel.js';
 
-const ORTHANC_BASE_URL =  'http://orthanc-server:8042';
+const ORTHANC_BASE_URL = 'http://orthanc-serverrent:8042';
 const ORTHANC_USERNAME = process.env.ORTHANC_USERNAME || 'alice';
 const ORTHANC_PASSWORD = process.env.ORTHANC_PASSWORD || 'alicePassword';
 const orthancAuth = 'Basic ' + Buffer.from(ORTHANC_USERNAME + ':' + ORTHANC_PASSWORD).toString('base64');
@@ -26,7 +26,7 @@ class CloudflareR2ZipService {
         this.isProcessing = false;
         this.concurrency = 5;
         this.zipBucket = r2Config.zipBucket; // 'studyzip'
-        
+
         console.log(`📦 R2 ZIP Service initialized for bucket: ${this.zipBucket}`);
         console.log(`🌐 Public URL: ${r2Config.publicUrlPattern}`);
     }
@@ -44,14 +44,14 @@ class CloudflareR2ZipService {
             result: null,
             error: null
         };
-        
+
         this.zipJobs.set(jobId, job);
         console.log(`📦 R2 ZIP Creation Job ${jobId} queued for study: ${studyData.orthancStudyId}`);
-        
+
         if (!this.isProcessing) {
             this.startZipProcessing();
         }
-        
+
         return job;
     }
 
@@ -59,9 +59,9 @@ class CloudflareR2ZipService {
     async startZipProcessing() {
         if (this.isProcessing) return;
         this.isProcessing = true;
-        
+
         console.log('🚀 Cloudflare R2 ZIP Creation Queue processor started');
-        
+
         while (this.getWaitingZipJobs().length > 0 || this.processing.size > 0) {
             while (this.processing.size < this.concurrency && this.getWaitingZipJobs().length > 0) {
                 const waitingJobs = this.getWaitingZipJobs();
@@ -72,7 +72,7 @@ class CloudflareR2ZipService {
             }
             await new Promise(resolve => setTimeout(resolve, 500));
         }
-        
+
         this.isProcessing = false;
         console.log('⏹️ Cloudflare R2 ZIP Creation Queue processor stopped');
     }
@@ -81,14 +81,14 @@ class CloudflareR2ZipService {
     async processZipJob(job) {
         this.processing.add(job.id);
         job.status = 'active';
-        
+
         console.log(`🚀 Processing R2 ZIP Job ${job.id} for study: ${job.data.orthancStudyId}`);
-        
+
         try {
             job.result = await this.createAndUploadStudyZipToR2(job);
             job.status = 'completed';
             console.log(`✅ R2 ZIP Job ${job.id} completed successfully`);
-            
+
         } catch (error) {
             job.error = error.message;
             job.status = 'failed';
@@ -102,10 +102,10 @@ class CloudflareR2ZipService {
     async createAndUploadStudyZipToR2(job) {
         const { orthancStudyId, studyDatabaseId, studyInstanceUID } = job.data;
         const startTime = Date.now();
-        
+
         try {
             console.log(`[R2 ZIP] 📦 Creating ZIP for study: ${orthancStudyId}`);
-            
+
             // Update study status to processing
             await DicomStudy.findByIdAndUpdate(studyDatabaseId, {
                 'preProcessedDownload.zipStatus': 'processing',
@@ -113,37 +113,37 @@ class CloudflareR2ZipService {
                 'preProcessedDownload.zipMetadata.createdBy': 'cloudflare-r2-service',
                 'preProcessedDownload.zipMetadata.storageProvider': 'cloudflare-r2'
             });
-            
+
             job.progress = 20;
-            
+
             // Get study metadata for filename
             const metadataResponse = await axios.get(`${ORTHANC_BASE_URL}/studies/${orthancStudyId}`, {
                 headers: { 'Authorization': orthancAuth },
                 timeout: 50000
             });
-            
+
             const studyMetadata = metadataResponse.data;
             const patientName = (studyMetadata.PatientMainDicomTags?.PatientName || 'Unknown').replace(/[^a-zA-Z0-9]/g, '_');
             const patientId = (studyMetadata.PatientMainDicomTags?.PatientID || 'Unknown').replace(/[^a-zA-Z0-9]/g, '_');
             const studyDate = studyMetadata.MainDicomTags?.StudyDate || '';
-            
+
             // Create ZIP filename with timestamp
             const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
             const zipFileName = `Study_${patientName}_${patientId}_${studyDate}_${orthancStudyId}_${timestamp}.zip`;
-            
+
             console.log(`[R2 ZIP] 📂 Creating ZIP file: ${zipFileName}`);
-            
+
             job.progress = 40;
-            
+
             // Get study archive from Orthanc
             const archiveResponse = await axios.get(`${ORTHANC_BASE_URL}/studies/${orthancStudyId}/archive`, {
                 headers: { 'Authorization': orthancAuth },
                 responseType: 'stream',
                 timeout: 1000000 // 10 minutes for large studies
             });
-            
+
             job.progress = 60;
-            
+
             // Upload directly to Cloudflare R2
             const r2Result = await this.uploadZipToR2(archiveResponse.data, zipFileName, {
                 studyInstanceUID,
@@ -151,21 +151,21 @@ class CloudflareR2ZipService {
                 patientId,
                 patientName
             });
-            
+
             job.progress = 90;
-            
+
             const processingTime = Date.now() - startTime;
             const zipSizeMB = Math.round((r2Result.size || 0) / 1024 / 1024 * 100) / 100;
-            
+
             // Generate CDN-optimized URLs
             const cdnUrl = await getCDNOptimizedUrl(r2Result.key, {
                 filename: zipFileName,
                 contentType: 'application/zip',
                 cacheControl: true
             });
-            
+
             const publicUrl = getR2PublicUrl(r2Result.key, r2Config.features.enableCustomDomain);
-            
+
             // Update study with R2 ZIP URL
             const updateData = {
                 'preProcessedDownload.zipUrl': cdnUrl, // Use CDN URL as primary
@@ -191,15 +191,15 @@ class CloudflareR2ZipService {
                     customDomain: r2Config.features.enableCustomDomain
                 }
             };
-            
+
             await DicomStudy.findByIdAndUpdate(studyDatabaseId, updateData);
-            
+
             job.progress = 100;
-            
+
             console.log(`[R2 ZIP] ✅ ZIP created and uploaded: ${zipSizeMB}MB in ${processingTime}ms`);
             console.log(`[R2 ZIP] 🌐 CDN URL: ${cdnUrl}`);
             console.log(`[R2 ZIP] 📡 Public URL: ${publicUrl}`);
-            
+
             return {
                 success: true,
                 zipUrl: cdnUrl,
@@ -212,17 +212,17 @@ class CloudflareR2ZipService {
                 cdnEnabled: true,
                 storageProvider: 'cloudflare-r2'
             };
-            
+
         } catch (error) {
             console.error(`[R2 ZIP] ❌ Failed to create ZIP:`, error);
-            
+
             // Update study with failed status
             await DicomStudy.findByIdAndUpdate(studyDatabaseId, {
                 'preProcessedDownload.zipStatus': 'failed',
                 'preProcessedDownload.zipMetadata.error': error.message,
                 'preProcessedDownload.zipMetadata.storageProvider': 'cloudflare-r2'
             });
-            
+
             throw error;
         }
     }
@@ -231,9 +231,9 @@ class CloudflareR2ZipService {
     async uploadZipToR2(zipStream, fileName, metadata) {
         const year = new Date().getFullYear();
         const key = `studies/${year}/${fileName}`;
-        
+
         console.log(`[R2] 📤 Uploading to bucket: ${this.zipBucket}, key: ${key}`);
-        
+
         try {
             const upload = new Upload({
                 client: this.r2,
@@ -242,11 +242,11 @@ class CloudflareR2ZipService {
                     Key: key,
                     Body: zipStream,
                     ContentType: 'application/zip',
-                    
+
                     // ✅ R2-optimized headers
                     ContentDisposition: `attachment; filename="${fileName}"`,
                     CacheControl: `public, max-age=${r2Config.cdnSettings.cacheMaxAge}, s-maxage=${r2Config.cdnSettings.edgeCacheMaxAge}`,
-                    
+
                     // R2 metadata
                     Metadata: {
                         'study-instance-uid': metadata.studyInstanceUID || '',
@@ -259,10 +259,10 @@ class CloudflareR2ZipService {
                         'cdn-enabled': 'true',
                         'bucket-name': this.zipBucket
                     },
-                    
+
                     StorageClass: 'STANDARD'
                 },
-                
+
                 // Configure multipart upload for R2
                 partSize: 10 * 1024 * 1024, // 10MB per part
                 leavePartsOnError: false,
@@ -278,7 +278,7 @@ class CloudflareR2ZipService {
             });
 
             const result = await upload.done();
-            
+
             // ✅ FIXED: Generate correct R2 URLs
             const publicUrl = getR2PublicUrl(key);
             const cdnUrl = getCDNOptimizedUrl(key, {
@@ -286,11 +286,11 @@ class CloudflareR2ZipService {
                 contentType: 'application/zip',
                 r2Optimize: true
             });
-            
+
             console.log(`[R2] ✅ Upload completed`);
             console.log(`[R2] 📡 Public URL: ${publicUrl}`);
             console.log(`[R2] 🚀 CDN URL: ${cdnUrl}`);
-            
+
             return {
                 url: cdnUrl,        // Primary CDN URL
                 publicUrl: publicUrl, // Direct R2 URL
@@ -299,7 +299,7 @@ class CloudflareR2ZipService {
                 etag: result.ETag,
                 size: 0 // Will be updated if needed
             };
-            
+
         } catch (error) {
             console.error(`[R2] ❌ Upload failed:`, error);
             throw new Error(`Cloudflare R2 upload failed: ${error.message}`);
@@ -342,7 +342,7 @@ class CloudflareR2ZipService {
                     ]
                 }
             };
-            
+
             await this.r2.send(new PutBucketCorsCommand(corsParams));
             console.log(`✅ R2 bucket CORS configured`);
         } catch (error) {
@@ -365,12 +365,12 @@ class CloudflareR2ZipService {
                     }
                 ]
             };
-            
+
             const policyParams = {
                 Bucket: this.zipBucket,
                 Policy: JSON.stringify(policyDocument)
             };
-            
+
             await this.r2.send(new PutBucketPolicyCommand(policyParams));
             console.log(`✅ R2 bucket public access configured`);
         } catch (error) {
@@ -382,7 +382,7 @@ class CloudflareR2ZipService {
     async getR2StorageStats() {
         try {
             console.log('📊 Getting R2 storage statistics...');
-            
+
             const listParams = {
                 Bucket: this.zipBucket,
                 Prefix: 'studies/',
@@ -390,7 +390,7 @@ class CloudflareR2ZipService {
             };
 
             const result = await this.r2.send(new ListObjectsV2Command(listParams));
-            
+
             const files = result.Contents || [];
             const totalSize = files.reduce((sum, file) => sum + (file.Size || 0), 0);
             const fileCount = files.length;
@@ -403,14 +403,14 @@ class CloudflareR2ZipService {
                     const year = pathParts[1];
                     const month = new Date(file.LastModified).getMonth() + 1;
                     const yearMonth = `${year}-${month.toString().padStart(2, '0')}`;
-                    
+
                     if (!groupedStats[yearMonth]) {
                         groupedStats[yearMonth] = {
                             fileCount: 0,
                             totalSize: 0
                         };
                     }
-                    
+
                     groupedStats[yearMonth].fileCount++;
                     groupedStats[yearMonth].totalSize += file.Size || 0;
                 }
@@ -452,7 +452,7 @@ class CloudflareR2ZipService {
     async cleanupExpiredZips() {
         try {
             console.log('🧹 Starting R2 ZIP cleanup process...');
-            
+
             // Find expired studies in database
             const expiredStudies = await DicomStudy.find({
                 'preProcessedDownload.zipExpiresAt': { $lt: new Date() },
@@ -467,16 +467,16 @@ class CloudflareR2ZipService {
             for (const study of expiredStudies) {
                 try {
                     const zipInfo = study.preProcessedDownload;
-                    
+
                     // Use stored key or extract from URL
                     let key = zipInfo.zipKey || zipInfo.zipMetadata?.r2Key;
-                    
+
                     if (!key && zipInfo.zipUrl) {
                         // Extract key from R2 URL
                         const url = new URL(zipInfo.zipUrl);
                         key = url.pathname.substring(1); // Remove leading slash
                     }
-                    
+
                     if (!key) {
                         // Fallback: construct key from filename
                         const year = new Date(zipInfo.zipCreatedAt).getFullYear();
@@ -511,7 +511,7 @@ class CloudflareR2ZipService {
             }
 
             console.log(`✅ R2 ZIP cleanup completed: ${cleanedCount} cleaned, ${failedCount} failed`);
-            
+
             return {
                 success: true,
                 cleanedCount,
