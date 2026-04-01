@@ -7,7 +7,7 @@ export const r2Config = {
     endpoint: 'https://b39c632fcc14248dfcf837983059a2cd.r2.cloudflarestorage.com',
     accessKeyId: '84a50df7100eea000b6ddd0c2ddce67a',
     secretAccessKey: '1a925bae4d85529b3c8e68460b29d03de672a4d9fbba2a7fd430af0edc4f2a91',
-    zipBucket: 'studyzip',
+    zipBucket: 'redivue',
     
     // ✅ FIXED: Your actual public URL
     publicUrlPattern: 'https://pub-6f09f78e289e4cbab0a82e99a603f535.r2.dev',
