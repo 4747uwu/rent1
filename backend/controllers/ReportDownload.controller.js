@@ -63,7 +63,7 @@ const buildDocxPayload = async (report, outputFormat = 'pdf') => {
                     department: doctorProfile.department || 'Radiology',
                     licenseNumber: doctorProfile.licenseNumber || 'N/A',
                     signature: doctorProfile.signature || '',
-                    disclaimer: 'Electronically signed. This is a digitally generated report.'
+                    disclaimer: ''
                 };
             }
         } catch (e) { console.warn('⚠️ Failed to fetch doctor data'); }
