@@ -2,15 +2,40 @@
 
 /* ============================================
    FIREFOX / WINDOWS 7 COMPATIBILITY FIXES
+   Forces fallback values for CSS custom properties
+   that Firefox 115 on Win7 fails to resolve.
    ============================================ */
 
-/* Fix 1: transition-all on <tr> causes invisible rows in Firefox */
-tr {
-  transition-property: color, background-color, border-color !important;
-  transition-duration: 200ms !important;
+/* Fix 1: transition-all causes invisible elements in Firefox Win7.
+   Override globally — limit to safe properties only. */
+@layer base {
+  *, *::before, *::after {
+    --tw-bg-opacity: 1 !important;
+    --tw-text-opacity: 1 !important;
+    --tw-border-opacity: 1 !important;
+    --tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --tw-ring-shadow: 0 0 #0000;
+    --tw-ring-color: rgba(59,130,246,0.5);
+    --tw-ring-offset-shadow: 0 0 #0000;
+  }
+
+  tr, button, a, input, select, textarea, div, span, td, th, label, p, h1, h2, h3, h4, h5, h6 {
+    transition-property: color, background-color, border-color, opacity, box-shadow !important;
+  }
+
+  /* Fix 2: table layout conflict in Firefox */
+  table {
+    table-layout: auto !important;
+  }
+
+  /* Fix 3: opacity classes resolve to transparent in Firefox */
+  tr.opacity-90 {
+    opacity: 1 !important;
+  }
 }
 
-/* Fix 2: flex-1 scroll containers collapse in Firefox Win7 */
+/* Fix 4: flex-1 scroll containers collapse in Firefox Win7.
+   Must be outside @layer to beat specificity. */
 .flex-col > .flex-1.overflow-y-auto,
 .flex-col > .flex-1.overflow-x-auto,
 .flex-col > [class*="overflow-"][class*="flex-1"] {
@@ -19,12 +44,29 @@ tr {
   flex: 1 1 0% !important;
 }
 
-/* Fix 3: opacity modifiers using CSS variables */
-tr.opacity-90 {
-  opacity: 1 !important;
-}
+/* Fix 5: Force visibility on common Tailwind color utilities
+   that use oklch() or CSS variables Firefox can't resolve. */
+@supports not (color: oklch(0.5 0.1 180)) {
+  [class*="bg-gray"],  [class*="bg-slate"],
+  [class*="bg-white"], [class*="bg-green"],
+  [class*="bg-blue"],  [class*="bg-red"],
+  [class*="bg-purple"],[class*="bg-amber"],
+  [class*="bg-sky"],   [class*="bg-rose"] {
+    --tw-bg-opacity: 1 !important;
+  }
 
-/* Fix 4: table layout conflict */
-table {
-  table-layout: auto !important;
+  [class*="text-gray"],  [class*="text-slate"],
+  [class*="text-white"], [class*="text-green"],
+  [class*="text-blue"],  [class*="text-red"],
+  [class*="text-purple"],[class*="text-amber"],
+  [class*="text-sky"],   [class*="text-rose"],
+  [class*="text-black"] {
+    --tw-text-opacity: 1 !important;
+  }
+
+  [class*="border-gray"],  [class*="border-slate"],
+  [class*="border-green"], [class*="border-blue"],
+  [class*="border-red"],   [class*="border-purple"] {
+    --tw-border-opacity: 1 !important;
+  }
 }
