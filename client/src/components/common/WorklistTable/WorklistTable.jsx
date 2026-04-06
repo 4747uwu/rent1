@@ -2155,8 +2155,8 @@ const WorklistTable = ({
       )}
 
       {/* ✅ COMPACT & RESPONSIVE: Kept overflow-x-auto so massive tables just horizontal scroll smoothly */}
-      <div className="overflow-x-auto overflow-y-auto w-full" style={{ flex: '1 1 0%', height: 0, minHeight: '500px' }}>
-        <table className="border-collapse" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', width: '100%', minWidth: 'max-content' }}>
+      <div style={{ flex: '1 1 0%', height: 0, minHeight: '500px', overflowX: 'auto', overflowY: 'auto', width: '100%', WebkitOverflowScrolling: 'touch' }}>
+        <table className="border-collapse" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', width: 'max-content', minWidth: '2400px' }}>
           <thead className="sticky top-0 z-10 bg-white">
             <tr className={`text-[10px] sm:text-xs font-semibold ${headerColor?.gradient ? `bg-gradient-to-r ${headerColor.gradient}` : 'bg-gray-50'} ${headerColor?.textColor || 'text-gray-600'} border-b-2 border-gray-200`}>
               {/* Note: I'm leaving the ResizableTableHeader widths intact as they rely on your hooks/constants */}
