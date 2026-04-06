@@ -30,7 +30,7 @@ const ResizableTableHeader = ({ columnId, label, width, onResize, minWidth = 50,
   return (
     <th
       className="px-2 py-1.5 text-center border-r border-gray-200 relative group text-[10px] uppercase tracking-wider font-medium whitespace-nowrap"
-      style={{ width: `${width}px`, minWidth: `${minWidth}px`, maxWidth: `${maxWidth}px`, color: 'inherit' }}
+      style={{ width: `${width}px`, minWidth: `${minWidth}px`, maxWidth: `${maxWidth}px`, color: '#374151', backgroundColor: '#f9fafb' }}
     >
       {children || label}
       
