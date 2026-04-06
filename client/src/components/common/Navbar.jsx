@@ -512,21 +512,18 @@ const Navbar = ({
                         <div className="text-sm font-bold text-gray-900">{is64 ? '64-bit' : '32-bit'}</div>
                       </div>
                     </div>
-                    {is64 ? (
-                      <a
-                        href="https://drive.google.com/file/d/1qyouXK58IFWAjVfSKyWqfvLXxmDr-JYK/view?usp=sharing"
-                        rel="noopener noreferrer"
-                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-xs font-bold uppercase hover:bg-black transition-colors shadow-sm"
-                      >
-                        <Download className="h-4 w-4" />
-                        Download for 64-bit
-                      </a>
-                    ) : (
-                      <div className="w-full text-center px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
-                        <div className="text-xs font-bold text-amber-700 uppercase">32-bit EXE Coming Soon</div>
-                        <div className="text-[10px] text-amber-600 mt-1">The 32-bit version is currently under development.</div>
-                      </div>
-                    )}
+                    <a
+                      href={is64
+                        ? "https://drive.google.com/file/d/1qyouXK58IFWAjVfSKyWqfvLXxmDr-JYK/view?usp=sharing"
+                        : "https://drive.google.com/file/d/1u6hRjEDsMa-hg01BiEXJ6OIo6s9_iXxX/view?usp=sharing"
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-xs font-bold uppercase hover:bg-black transition-colors shadow-sm"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download for {is64 ? '64-bit' : '32-bit'}
+                    </a>
                   </div>
                 );
               })()}
