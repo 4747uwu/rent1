@@ -2158,7 +2158,7 @@ const WorklistTable = ({
       <div style={{ flex: '1 1 0%', height: 0, minHeight: '500px', overflowX: 'auto', overflowY: 'auto', width: '100%', WebkitOverflowScrolling: 'touch' }}>
         <table className="border-collapse" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', width: 'max-content', minWidth: '2400px' }}>
           <thead className="sticky top-0 z-10 bg-white">
-            <tr className={`text-[10px] sm:text-xs font-semibold border-b-2 border-gray-200 ${headerColor?.gradient ? `bg-gradient-to-r ${headerColor.gradient} ${headerColor.textColor || 'text-white'}` : 'bg-gray-50 text-gray-700'}`} style={!headerColor?.gradient ? { color: '#374151', backgroundColor: '#f9fafb' } : {}}>
+            <tr className="text-[10px] sm:text-xs font-semibold border-b-2 border-gray-200" style={headerColor?.css ? { backgroundImage: headerColor.css, color: '#ffffff' } : { backgroundColor: '#f9fafb', color: '#374151' }}>
               {/* Note: I'm leaving the ResizableTableHeader widths intact as they rely on your hooks/constants */}
               <ResizableTableHeader columnId="selection" label="" width={getColumnWidth('selection')} onResize={handleColumnResize} minWidth={UNIFIED_WORKLIST_COLUMNS.SELECTION.minWidth} maxWidth={UNIFIED_WORKLIST_COLUMNS.SELECTION.maxWidth}>
                 <input type="checkbox" checked={studies.length > 0 && selectedStudies.length === studies.length} onChange={(e) => onSelectAll?.(e.target.checked)} className="w-3.5 h-3.5 rounded border-white/30" />
