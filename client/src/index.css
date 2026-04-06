@@ -71,7 +71,17 @@ tr {
     transition-duration: 200ms !important;
 }
 
-/* Fix 10: Make scrollbar always visible — Firefox hides thin scrollbars */
+/* Fix 10: Prevent white text on white background in table headers */
+thead tr th {
+    color: inherit;
+}
+
+thead tr:not([class*="bg-gradient"]) {
+    background-color: #f9fafb;
+    color: #374151;
+}
+
+/* Fix 11: Make scrollbar always visible — Firefox hides thin scrollbars */
 [style*="overflowX: auto"],
 .overflow-x-auto {
     overflow-x: scroll !important;
