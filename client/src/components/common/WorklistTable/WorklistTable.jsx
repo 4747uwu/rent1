@@ -728,14 +728,14 @@ const StudyRow = ({
 
   const rowClasses = `${isEmergencyCase ? 'border-l-4 border-l-red-600' :
     isPriorityCase ? 'border-l-4 border-l-purple-500' :
-      isStatCase ? 'opacity-90' :
+      isStatCase ? '' :
         isSelected ? 'bg-gray-100 border-l-2 border-l-gray-900' :
           isAssigned ? 'bg-gray-50' :
-            index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'
+            index % 2 === 0 ? 'bg-white' : 'bg-slate-50'
     } ${isRejected && !isEmergencyCase ? 'border-l-4 border-l-rose-600' : ''} ${isEmergencyCase ? 'hover:bg-red-50' :
       isPriorityCase ? 'hover:bg-purple-50' :
         'hover:bg-gray-100'
-    } transition-all duration-200 border-b border-slate-100`;
+    } transition-colors duration-200 border-b border-slate-100`;
 
   const handleAssignInputFocus = (e) => {
     if (isLocked) {
@@ -2155,8 +2155,8 @@ const WorklistTable = ({
       )}
 
       {/* ✅ COMPACT & RESPONSIVE: Kept overflow-x-auto so massive tables just horizontal scroll smoothly */}
-      <div className="flex-1 overflow-x-auto overflow-y-auto w-full">
-        <table className="border-collapse" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', tableLayout: 'fixed', width: '100%', minWidth: 'max-content' }}>
+      <div className="overflow-x-auto overflow-y-auto w-full" style={{ flex: '1 1 0%', height: 0, minHeight: '500px' }}>
+        <table className="border-collapse" style={{ fontFamily: 'system-ui, -apple-system, sans-serif', width: '100%', minWidth: 'max-content' }}>
           <thead className="sticky top-0 z-10 bg-white">
             <tr className={`text-[10px] sm:text-xs font-semibold ${headerColor?.gradient ? `bg-gradient-to-r ${headerColor.gradient}` : 'bg-gray-50'} ${headerColor?.textColor || 'text-gray-600'} border-b-2 border-gray-200`}>
               {/* Note: I'm leaving the ResizableTableHeader widths intact as they rely on your hooks/constants */}

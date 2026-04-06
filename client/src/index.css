@@ -1,1 +1,30 @@
 @import "tailwindcss";
+
+/* ============================================
+   FIREFOX / WINDOWS 7 COMPATIBILITY FIXES
+   ============================================ */
+
+/* Fix 1: transition-all on <tr> causes invisible rows in Firefox */
+tr {
+  transition-property: color, background-color, border-color !important;
+  transition-duration: 200ms !important;
+}
+
+/* Fix 2: flex-1 scroll containers collapse in Firefox Win7 */
+.flex-col > .flex-1.overflow-y-auto,
+.flex-col > .flex-1.overflow-x-auto,
+.flex-col > [class*="overflow-"][class*="flex-1"] {
+  height: 0 !important;
+  min-height: 500px !important;
+  flex: 1 1 0% !important;
+}
+
+/* Fix 3: opacity modifiers using CSS variables */
+tr.opacity-90 {
+  opacity: 1 !important;
+}
+
+/* Fix 4: table layout conflict */
+table {
+  table-layout: auto !important;
+}
