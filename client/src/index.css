@@ -105,3 +105,28 @@ thead tr:not([class*="bg-gradient"]) {
     background: #94a3b8;
     border-radius: 4px;
 }
+
+
+/* ============================================
+   NUCLEAR HEADER FIX — must be at BOTTOM
+   of file to load after all Tailwind styles
+   ============================================ */
+thead tr th {
+    color: #374151 !important;
+    background-color: #f9fafb !important;
+}
+
+thead tr {
+    color: #374151 !important;
+    background-color: #f9fafb !important;
+}
+
+thead tr[class*="bg-gradient"] {
+    background-color: transparent !important;
+    color: white !important;
+}
+
+thead tr[class*="bg-gradient"] th {
+    background-color: transparent !important;
+    color: white !important;
+}
