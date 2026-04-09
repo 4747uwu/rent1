@@ -324,7 +324,9 @@ class ReportDownloadController {
                 }
             }
 
-            const fileName = `${report.reportId || `Report_${report._id}`}_${new Date().toISOString().split('T')[0]}.pdf`;
+            const patientName = (report.patientInfo?.fullName || report.patient?.fullName || 'unknown_patient')
+                .toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+            const fileName = `${patientName}_${new Date().toISOString().split('T')[0]}.pdf`;
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
             res.send(Buffer.from(pdfResponse.data));
@@ -412,7 +414,9 @@ class ReportDownloadController {
                 }
             }
 
-            const fileName = `${report.reportId || `Report_${report._id}`}_${new Date().toISOString().split('T')[0]}.docx`;
+            const patientName = (report.patientInfo?.fullName || report.patient?.fullName || 'unknown_patient')
+                .toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+            const fileName = `${patientName}_${new Date().toISOString().split('T')[0]}.docx`;
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
             res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
             res.send(Buffer.from(docxResponse.data));
@@ -502,7 +506,9 @@ class ReportDownloadController {
                 });
             }
 
-            const fileName = `${report.reportId || `Report_${report._id}`}_Print.pdf`;
+            const patientName = (report.patientInfo?.fullName || report.patient?.fullName || 'unknown_patient')
+                .toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+            const fileName = `${patientName}_Print.pdf`;
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
             res.setHeader('Content-Length', pdfBuffer.length);
