@@ -2225,7 +2225,6 @@ const UnifiedWorklistTable = ({
                 'verifierWorklistColumnConfig',
                 'labWorklistColumnConfig',
                 'assignerWorklistColumnConfig',
-                'adminWorklistColumnConfig',
             ];
             staleKeys.forEach(key => localStorage.removeItem(key));
             console.log('🧹 Cleared stale localStorage column caches — DB columns take over');

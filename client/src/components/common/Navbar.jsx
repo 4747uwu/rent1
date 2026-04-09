@@ -272,7 +272,7 @@ const Navbar = ({
               {canCreateManualStudy && (
                 <button
                   onClick={handleOpenManualStudy}
-                  className="hidden md:flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium text-gray-600 hover:bg-gray-100 transition-colors border border-gray-200"
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium text-gray-600 hover:bg-gray-100 transition-colors border border-gray-200"
                   title="Create Manual Study"
                 >
                   <Plus className="h-3 w-3" />

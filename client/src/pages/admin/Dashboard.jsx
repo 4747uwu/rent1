@@ -161,7 +161,7 @@ const Dashboard = ({ isSuperAdminView = false }) => {
 
   const [columnConfig, setColumnConfig] = useState(() => {
     try {
-      const saved = localStorage.getItem('adminWorklistColumnConfig');
+      const saved = localStorage.getItem('adminColumn');
       if (saved) {
         const parsedConfig = JSON.parse(saved);
         return { ...getDefaultColumnConfig(), ...parsedConfig };
@@ -174,7 +174,7 @@ const Dashboard = ({ isSuperAdminView = false }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('adminWorklistColumnConfig', JSON.stringify(columnConfig));
+      localStorage.setItem('adminColumn', JSON.stringify(columnConfig));
     } catch (error) {
       console.warn('Error saving admin column config:', error);
     }
