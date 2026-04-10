@@ -546,13 +546,19 @@ const Dashboard = ({ isSuperAdminView = false }) => {
 
   const additionalActions = [
     {
+      label: 'Create Study',
+      icon: Plus,
+      onClick: handleOpenManualStudy,
+      variant: 'primary',
+      tooltip: 'Create Manual Study'
+    },
+    {
       label: 'Templates',
       icon: FileText,
       onClick: () => navigate('/admin/templates'),
-      variant: 'primary',
+      variant: 'secondary',
       tooltip: 'Manage organization templates'
     },
-
     {
       label: 'Branding',
       icon: Palette,

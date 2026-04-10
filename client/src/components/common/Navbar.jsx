@@ -209,7 +209,7 @@ const Navbar = ({
   const canAccessProfileModal = ['doctor_account', 'radiologist'].includes(currentUser?.role);
 
   // ✅ CHECK IF USER CAN CREATE MANUAL STUDIES
-  const canCreateManualStudy = ['admin', 'lab_staff'].includes(currentUser?.role);
+  const canCreateManualStudy = ['admin', 'lab_staff', 'super_admin'].includes(currentUser?.role);
 
   // ✅ ADD: Settings access check (same logic as Search.jsx)
   const role = (currentUser?.role || '').toString().toLowerCase();
@@ -419,6 +419,19 @@ const Navbar = ({
                   {title ? `${title}` : 'Menu'} {subtitle ? `- ${subtitle}` : ''}
                 </p>
               </div>
+
+              {canCreateManualStudy && (
+                <button
+                  onClick={() => {
+                    handleOpenManualStudy();
+                    setShowMobileMenu(false);
+                  }}
+                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded text-xs font-medium bg-black text-white transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Create Study</span>
+                </button>
+              )}
 
               {additionalActions.map((action, index) => (
                 <button
