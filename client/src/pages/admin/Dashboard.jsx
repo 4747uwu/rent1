@@ -544,6 +544,10 @@ const Dashboard = ({ isSuperAdminView = false }) => {
     });
   }, []);
 
+  const handleOpenManualStudy = () => {
+    setShowManualStudyModal(true);
+  };
+
   const additionalActions = [
     {
       label: 'Create Study',
@@ -583,10 +587,6 @@ const Dashboard = ({ isSuperAdminView = false }) => {
     { key: 'urgent', label: 'Urgent', count: categoryValues.urgent },
     { key: 'reprint_need', label: 'Reprint', count: categoryValues.reprint_need }
   ];
-
-  const handleOpenManualStudy = () => {
-    setShowManualStudyModal(true);
-  };
 
   const handleCloseManualStudy = () => {
     setShowManualStudyModal(false);
