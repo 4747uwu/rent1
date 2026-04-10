@@ -5,7 +5,8 @@ import Search from '../../components/common/Search/Search';
 import UnifiedWorklistTable from '../../components/common/WorklistTable/UnifiedWorklistTable.jsx';
 import ColumnConfigurator from '../../components/common/WorklistTable/ColumnConfigurator';
 import api from '../../services/api';
-import { Building, Palette, Receipt } from 'lucide-react';
+import { Building, Palette, Plus, Receipt } from 'lucide-react';
+import ManualStudyCreator from '../../components/admin/ManualStudyCreator';
 import toast from 'react-hot-toast';
 import { formatStudiesForWorklist } from '../../utils/studyFormatter';
 import { useNavigate } from 'react-router-dom';
@@ -52,6 +53,7 @@ const LabDashboard = () => {
   const [error, setError] = useState(null);
   const [searchFilters, setSearchFilters] = useState({});
   const [currentView, setCurrentView] = useState('all');
+  const [showManualStudyModal, setShowManualStudyModal] = useState(false);
   const [selectedStudies, setSelectedStudies] = useState([]);
 
   // ✅ CATEGORY VALUES - removed inprogress
@@ -339,7 +341,22 @@ const LabDashboard = () => {
     );
   }
 
+  const handleOpenManualStudy = () => setShowManualStudyModal(true);
+  const handleCloseManualStudy = () => setShowManualStudyModal(false);
+  const handleManualStudySuccess = (data) => {
+    toast.success('Study created successfully!');
+    setShowManualStudyModal(false);
+    loadStudies();
+  };
+
   const additionalActions = [
+    {
+      label: 'Create Study',
+      icon: Plus,
+      onClick: handleOpenManualStudy,
+      variant: 'primary',
+      tooltip: 'Create Manual Study'
+    },
     {
       label: 'Billing',
       // icon: Receipt,
@@ -458,6 +475,12 @@ const LabDashboard = () => {
           </div>
         </div>
       </div>
+
+      <ManualStudyCreator
+        isOpen={showManualStudyModal}
+        onClose={handleCloseManualStudy}
+        onSuccess={handleManualStudySuccess}
+      />
     </div>
   );
 };
