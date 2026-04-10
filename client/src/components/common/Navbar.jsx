@@ -269,17 +269,6 @@ const Navbar = ({
                 </button>
               )} */}
 
-              {canCreateManualStudy && (
-                <button
-                  onClick={handleOpenManualStudy}
-                  className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium text-gray-600 hover:bg-gray-100 transition-colors border border-gray-200"
-                  title="Create Manual Study"
-                >
-                  <Plus className="h-3 w-3" />
-                  <span>Create Study</span>
-                </button>
-              )}
-
               {hasSettingsAccess && (
                 <button
                   onClick={() => setShowSettingsModal(true)}
@@ -419,19 +408,6 @@ const Navbar = ({
                   {title ? `${title}` : 'Menu'} {subtitle ? `- ${subtitle}` : ''}
                 </p>
               </div>
-
-              {canCreateManualStudy && (
-                <button
-                  onClick={() => {
-                    handleOpenManualStudy();
-                    setShowMobileMenu(false);
-                  }}
-                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded text-xs font-medium bg-black text-white transition-colors"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  <span>Create Study</span>
-                </button>
-              )}
 
               {additionalActions.map((action, index) => (
                 <button
