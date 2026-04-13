@@ -746,8 +746,8 @@ const StudyRow = ({
     setAssignInputValue('');
     if (assignInputRef.current) {
       const rect = assignInputRef.current.getBoundingClientRect();
-      const modalHeight = 380;
-      const modalWidth = 450;
+      const modalHeight = 280;
+      const modalWidth = 350;
       const viewportHeight = window.innerHeight;
       const viewportWidth = window.innerWidth;
       const spaceBelow = viewportHeight - rect.bottom;
