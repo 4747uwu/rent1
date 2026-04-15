@@ -63,6 +63,178 @@ const EDITOR_DEFAULTS = {
   lineSpacing: '1.4',
 };
 
+// ── Bullet-character hierarchy for multi-level list detection ────────────────
+// Level 0 = top-level (•, ●, ·)
+// Level 1 = sub-level (○, ◦)
+// Level 2 = sub-sub-level (▪, ▫, ■, □)
+// Content pasted from Word uses different chars at each indent depth;
+// we use that to rebuild nesting when margin/indent info has been stripped.
+const BULLET_LEVELS = {
+  '·': 0, '•': 0, '●': 0, '\u2022': 0,
+  '◦': 1, '○': 1, '\u25CB': 1, '\u25E6': 1,
+  '▪': 2, '▫': 2, '■': 2, '□': 2,
+  '\u25A0': 2, '\u25A1': 2, '\u25AA': 2, '\u25AB': 2,
+  '\u25CF': 0, '\u25CE': 0,
+  '▸': 0, '▹': 0, '►': 0,
+  // Word's "Wingdings bullet" paragraphs often come through as § (section
+  // sign) or Ø after font conversion — treat them as sub-level bullets.
+  // The logs showed § being used for OPINION sub-bullets in medical reports.
+  '§': 1, '\u00A7': 1,
+  'Ø': 1, '\u00D8': 1,
+};
+const BULLET_CHARS = Object.keys(BULLET_LEVELS).join('');
+const BULLET_LEAD_RE = new RegExp(`^[\\s\\u00a0]*([${BULLET_CHARS}])[\\s\\u00a0\\t]*`);
+const BULLET_TEST_RE = new RegExp(`^[${BULLET_CHARS}]`);
+
+// ── Convert Word/Office "fake bullets" into real <ul><li> lists ──────────────
+// Top-level helper (not inside component) so it can run on initial editor
+// content as well as on content sync — fixes the "only works after HTML
+// toggle" timing bug where TipTap's init fired onUpdate before the sync
+// effect could apply the conversion.
+const convertFakeBullets = (html) => {
+  if (!html) return html;
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  // Step 1: Split <br>-separated bullet lines inside <p>/<div> into siblings
+  const splitBrSeparatedBullets = (container) => {
+    const blocks = Array.from(container.querySelectorAll('p, div'));
+    blocks.forEach((block) => {
+      const brs = block.querySelectorAll(':scope > br');
+      if (brs.length === 0) return;
+      const text = (block.textContent || '').replace(/\u00a0/g, ' ').trimStart();
+      if (!BULLET_TEST_RE.test(text)) {
+        const segments = block.innerHTML.split(/<br\s*\/?>/i);
+        const anyBullet = segments.some((seg) => {
+          const tmp = doc.createElement('div');
+          tmp.innerHTML = seg;
+          const t = (tmp.textContent || '').replace(/\u00a0/g, ' ').trimStart();
+          return BULLET_TEST_RE.test(t);
+        });
+        if (!anyBullet) return;
+      }
+      const segments = block.innerHTML.split(/<br\s*\/?>/i);
+      const tag = block.tagName.toLowerCase();
+      const newBlocks = segments
+        .map((seg) => seg.trim())
+        .filter((seg) => seg.length > 0)
+        .map((seg) => {
+          const el = doc.createElement(tag);
+          el.innerHTML = seg;
+          return el;
+        });
+      if (newBlocks.length > 0) {
+        newBlocks.forEach((nb) => block.parentNode.insertBefore(nb, block));
+        block.remove();
+      }
+    });
+  };
+
+  // Get the first bullet character + its level for a block, or null if not a bullet
+  const getBulletInfo = (el) => {
+    if (!el) return null;
+    if (el.tagName !== 'P' && el.tagName !== 'DIV') return null;
+    const text = (el.textContent || '').replace(/\u00a0/g, ' ').trimStart();
+    if (!text) return null;
+    const ch = text[0];
+    if (!(ch in BULLET_LEVELS)) return null;
+    return { char: ch, level: BULLET_LEVELS[ch] };
+  };
+
+  // Strip leading bullet from first non-whitespace text node and build <li>
+  const blockToLi = (el) => {
+    const li = doc.createElement('li');
+    const walker = doc.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let node = walker.nextNode();
+    while (node) {
+      const val = node.nodeValue || '';
+      if (/\S/.test(val)) {
+        node.nodeValue = val.replace(BULLET_LEAD_RE, '');
+        break;
+      }
+      node = walker.nextNode();
+    }
+    while (el.firstChild) li.appendChild(el.firstChild);
+    return li;
+  };
+
+  // Walk container children; group consecutive bullet blocks into nested <ul>
+  // based on their level (using a stack of open <ul> elements).
+  const processContainer = (container) => {
+    const children = Array.from(container.children);
+    let i = 0;
+    while (i < children.length) {
+      const el = children[i];
+      const info = getBulletInfo(el);
+      if (info) {
+        // Start a bullet run. Use a stack keyed by level.
+        const rootUl = doc.createElement('ul');
+        container.insertBefore(rootUl, el);
+        // Stack entries: { level, ul, lastLi }
+        const stack = [{ level: info.level, ul: rootUl, lastLi: null }];
+
+        while (i < children.length) {
+          const cur = children[i];
+          const curInfo = getBulletInfo(cur);
+          if (!curInfo) break;
+
+          const li = blockToLi(cur);
+
+          // Pop deeper levels off the stack until the top is <= curInfo.level
+          while (stack.length > 1 && stack[stack.length - 1].level > curInfo.level) {
+            stack.pop();
+          }
+
+          const top = stack[stack.length - 1];
+          if (curInfo.level === top.level) {
+            // Same level: append to current ul
+            top.ul.appendChild(li);
+            top.lastLi = li;
+          } else if (curInfo.level > top.level) {
+            // Deeper level: create nested ul inside the last li of the parent
+            const parentLi = top.lastLi || (() => {
+              // No previous li at this level; create an empty wrapper li
+              const wrapper = doc.createElement('li');
+              top.ul.appendChild(wrapper);
+              top.lastLi = wrapper;
+              return wrapper;
+            })();
+            const nestedUl = doc.createElement('ul');
+            parentLi.appendChild(nestedUl);
+            nestedUl.appendChild(li);
+            stack.push({ level: curInfo.level, ul: nestedUl, lastLi: li });
+          } else {
+            // Shallower than anything on stack (shouldn't happen after pop loop)
+            top.ul.appendChild(li);
+            top.lastLi = li;
+          }
+
+          cur.remove();
+          i++;
+        }
+      } else {
+        if (el && ['DIV', 'TD', 'TH', 'BLOCKQUOTE', 'SECTION', 'ARTICLE'].includes(el.tagName)) {
+          processContainer(el);
+        }
+        i++;
+      }
+    }
+  };
+
+  splitBrSeparatedBullets(doc.body);
+  processContainer(doc.body);
+  return doc.body.innerHTML;
+};
+
+// ── Strip background colors and run bullet conversion in one pass ─────────────
+// EXPORTED so parent components (e.g. Templates.jsx) can pre-process content
+// before passing it to ReportEditor, guaranteeing the conversion happens
+// regardless of TipTap's internal init timing.
+export const preprocessContent = (html) => {
+  if (!html) return html;
+  const noBg = html.replace(/\s*(background(?:-color)?)\s*:\s*[^;"]+(;?)/gi, '');
+  return convertFakeBullets(noBg);
+};
+
 // ── Main component ───────────────────────────────────────────────────────────
 const ReportEditor = React.forwardRef(({ content, onChange, containerWidth = 100, isOpen = true }, ref) => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -83,6 +255,11 @@ const ReportEditor = React.forwardRef(({ content, onChange, containerWidth = 100
   const [showLineSpacingMenu, setShowLineSpacingMenu] = useState(false);
 
   const isInternalUpdate = useRef(false);
+  // Tracks whether we've pushed the processed initial content into the editor.
+  // Needed because TipTap's useEditor initializes the editor asynchronously
+  // via an internal effect — by the time `editor` is non-null, the content
+  // option may have already been applied without our bullet conversion.
+  const hasInitializedContent = useRef(false);
 
   // ── TipTap editor ──────────────────────────────────────────────────────────
   const editor = useEditor({
@@ -100,7 +277,7 @@ const ReportEditor = React.forwardRef(({ content, onChange, containerWidth = 100
       TableRow, TableCell, TableHeader,
       Subscript, Superscript,
     ],
-    content: content || '',
+    content: preprocessContent(content || ''),
     editorProps: {
       attributes: {
         class: 'report-editor ms-word-page',
@@ -129,7 +306,10 @@ const ReportEditor = React.forwardRef(({ content, onChange, containerWidth = 100
             if (kept) el.setAttribute('style', kept); else el.removeAttribute('style');
           }
         });
-        return body.innerHTML;
+        // ✅ Convert Word/Office fake bullets to real <ul><li> on paste —
+        // so pasted content enters the editor pre-converted, before
+        // onUpdate fires and blocks later sync attempts.
+        return preprocessContent(body.innerHTML);
       },
     },
     onUpdate({ editor }) {
@@ -147,9 +327,42 @@ const ReportEditor = React.forwardRef(({ content, onChange, containerWidth = 100
 
   // ── Sync content from parent ───────────────────────────────────────────────
   useEffect(() => {
-    if (!editor || isInternalUpdate.current) { isInternalUpdate.current = false; return; }
-    const cleaned = (content || '').replace(/\s*(background(?:-color)?)\s*:\s*[^;"]+(;?)/gi, '');
-    if (cleaned !== editor.getHTML()) editor.commands.setContent(cleaned, false);
+    if (!editor) return;
+    const cleaned = preprocessContent(content || '');
+    const currentEditorHtml = editor.getHTML();
+
+    // If the cleaned version has bullet lists that the current editor HTML
+    // is missing, the content needs converting — force apply regardless of
+    // the internal-update flag. This catches the case where pasted content
+    // fired onUpdate (setting isInternalUpdate) before we could preprocess.
+    const cleanedHasUl = cleaned.includes('<ul');
+    const editorHasUl = currentEditorHtml.includes('<ul');
+    const needsBulletFix = cleanedHasUl && !editorHasUl;
+
+    if (needsBulletFix) {
+      isInternalUpdate.current = false;
+      editor.commands.setContent(cleaned, false);
+      return;
+    }
+
+    // First sync after editor is ready — force apply
+    if (!hasInitializedContent.current) {
+      hasInitializedContent.current = true;
+      isInternalUpdate.current = false;
+      if (cleaned !== currentEditorHtml) {
+        editor.commands.setContent(cleaned, false);
+      }
+      return;
+    }
+
+    // Normal flow: skip our own updates to prevent loops
+    if (isInternalUpdate.current) {
+      isInternalUpdate.current = false;
+      return;
+    }
+    if (cleaned !== currentEditorHtml) {
+      editor.commands.setContent(cleaned, false);
+    }
   }, [content, editor]);
 
   // ── Sync padding on margin change ──────────────────────────────────────────
