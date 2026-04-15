@@ -13,7 +13,7 @@ const unlink = promisify(fs.unlink);
 const mkdir = promisify(fs.mkdir);
 
 // ✅ Configuration
-const BACKUP_ORTHANC_URL =  'http://orthanc-server:8042';
+const BACKUP_ORTHANC_URL =  'http://orthanc-serverrent:8042';
 const BACKUP_ORTHANC_USERNAME = process.env.BACKUP_ORTHANC_USERNAME || 'orthanc';
 const BACKUP_ORTHANC_PASSWORD = process.env.BACKUP_ORTHANC_PASSWORD || 'orthanc';
 const backupOrthancAuth = 'Basic ' + Buffer.from(BACKUP_ORTHANC_USERNAME + ':' + BACKUP_ORTHANC_PASSWORD).toString('base64');

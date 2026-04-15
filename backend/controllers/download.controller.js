@@ -2,7 +2,7 @@ import DicomStudy from '../models/dicomStudyModel.js';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 
-const ORTHANC_BASE_URL = 'http://206.189.133.52:8042';
+const ORTHANC_BASE_URL = 'http://159.89.165.112:8043';
 const ORTHANC_USERNAME = process.env.ORTHANC_USERNAME || 'alice';
 const ORTHANC_PASSWORD = process.env.ORTHANC_PASSWORD || 'alicePassword';
 const orthancAuth = 'Basic ' + Buffer.from(ORTHANC_USERNAME + ':' + ORTHANC_PASSWORD).toString('base64');
@@ -25,11 +25,67 @@ export const getCloudflareZipUrl = async (req, res) => {
             });
         }
 
-        if (study.preProcessedDownload?.zipStatus !== 'completed' || !study.preProcessedDownload?.zipUrl) {
+        const ppd = study.preProcessedDownload;
+
+        if (ppd?.zipStatus !== 'completed' && !ppd?.zipKey) {
             return res.status(404).json({
                 success: false,
                 message: 'ZIP file not available. Please create it first.',
-                zipStatus: study.preProcessedDownload?.zipStatus || 'not_created'
+                zipStatus: ppd?.zipStatus || 'not_created'
+            });
+        }
+
+        let zipUrl = ppd?.zipUrl;
+        let zipExpiresAt = ppd?.zipExpiresAt;
+
+        // ✅ Auto-refresh expired presigned URL using stored zipKey.
+        // Presigned URLs have a hard 7-day max (from cloudflare-r2.js).
+        // The DB's zipExpiresAt may be wrong (old studies stored 90 days).
+        // So we check zipCreatedAt as the authoritative source of truth:
+        //   if the ZIP was created > 6 days ago, the URL is definitely dead.
+        const now = new Date();
+        const sixDaysMs = 6 * 24 * 60 * 60 * 1000;
+        const createdTooLongAgo = ppd?.zipCreatedAt && (now - new Date(ppd.zipCreatedAt)) > sixDaysMs;
+        const isExpired = !zipUrl
+            || (zipExpiresAt && new Date(zipExpiresAt) <= now)
+            || createdTooLongAgo;
+
+        if (isExpired && ppd?.zipKey) {
+            console.log(`🔄 ZIP URL expired for study ${studyId}, regenerating from key: ${ppd.zipKey}`);
+            try {
+                const { getPresignedUrl } = await import('../config/cloudflare-r2.js');
+                zipUrl = await getPresignedUrl(ppd.zipKey);
+                zipExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+                // Persist refreshed URL + reset creation time so the 6-day
+                // check measures from this refresh, not the original upload
+                await DicomStudy.updateOne(
+                    { _id: studyId },
+                    {
+                        $set: {
+                            'preProcessedDownload.zipUrl': zipUrl,
+                            'preProcessedDownload.zipExpiresAt': zipExpiresAt,
+                            'preProcessedDownload.zipCreatedAt': new Date(),
+                            'preProcessedDownload.zipStatus': 'completed'
+                        }
+                    }
+                );
+                console.log(`✅ Refreshed presigned URL for study ${studyId}`);
+            } catch (refreshError) {
+                console.error(`❌ Failed to refresh URL for study ${studyId}:`, refreshError.message);
+                return res.status(410).json({
+                    success: false,
+                    message: 'ZIP file has expired and could not be refreshed',
+                    error: refreshError.message
+                });
+            }
+        }
+
+        if (!zipUrl) {
+            return res.status(404).json({
+                success: false,
+                message: 'ZIP URL not available',
+                zipStatus: ppd?.zipStatus || 'unknown'
             });
         }
 
@@ -44,10 +100,10 @@ export const getCloudflareZipUrl = async (req, res) => {
         res.json({
             success: true,
             data: {
-                zipUrl: study.preProcessedDownload.zipUrl,
-                zipSizeMB: study.preProcessedDownload.zipSizeMB,
-                createdAt: study.preProcessedDownload.zipCreatedAt,
-                expiresAt: study.preProcessedDownload.zipExpiresAt
+                zipUrl,
+                zipSizeMB: ppd?.zipSizeMB,
+                createdAt: ppd?.zipCreatedAt,
+                expiresAt: zipExpiresAt
             }
         });
 
@@ -417,6 +473,10 @@ export const toggleStudyLock = async (req, res) => {
             updateData['studyLock.lockedByName'] = null;
             updateData['studyLock.lockedAt'] = null;
             updateData['studyLock.lockReason'] = null;
+
+            // ✅ When admin unlocks, reset status to assigned_to_doctor + PENDING
+            updateData['workflowStatus'] = 'assigned_to_doctor';
+            updateData['currentCategory'] = 'PENDING';
         }
 
         // ✅ UPDATE DIRECTLY (BYPASS VALIDATION)

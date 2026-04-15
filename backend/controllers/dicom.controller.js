@@ -364,6 +364,46 @@ export const saveExtractedDicomData = async (req, res) => {
     }
 };
 
+export const refreshStudyDownloadUrl = async (req, res) => {
+    try {
+        const { studyId } = req.params;
+
+        const study = await DicomStudy.findById(studyId).select('preProcessedDownload');
+        if (!study) {
+            return res.status(404).json({ success: false, message: 'Study not found' });
+        }
+
+        const zipKey = study.preProcessedDownload?.zipKey;
+        if (!zipKey) {
+            return res.status(404).json({ success: false, message: 'No ZIP key found for this study — ZIP was never created' });
+        }
+
+        // Dynamically import to avoid circular deps
+        const { getPresignedUrl } = await import('../config/cloudflare-r2.js');
+
+        const newUrl = await getPresignedUrl(zipKey); // 7-day default
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+        // Persist the refreshed URL so subsequent requests don't regenerate
+        study.preProcessedDownload.zipUrl = newUrl;
+        study.preProcessedDownload.zipExpiresAt = expiresAt;
+        study.preProcessedDownload.zipStatus = 'completed';
+        await study.save();
+
+        console.log(`🔄 Refreshed presigned URL for study ${studyId}, key: ${zipKey}`);
+
+        return res.json({
+            success: true,
+            zipUrl: newUrl,
+            zipExpiresAt: expiresAt,
+            zipKey
+        });
+    } catch (error) {
+        console.error('❌ Error refreshing download URL:', error);
+        return res.status(500).json({ success: false, message: 'Failed to refresh download URL', error: error.message });
+    }
+};
+
 // Helper function to parse DICOM date format (YYYYMMDD) to Date object
 function parseDate(dicomDate) {
     if (!dicomDate || dicomDate.length < 8) return null;

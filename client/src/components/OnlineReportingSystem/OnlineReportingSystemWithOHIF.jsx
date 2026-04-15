@@ -4,11 +4,13 @@ import api from '../../services/api';
 import toast, { Toaster } from 'react-hot-toast';
 import ReportEditor from './ReportEditorWithOhif';
 import DoctorTemplateDropdown from './DoctorTemplateDropdown';
-import AllTemplateDropdown from './AllTemplateDropdown';
+import OrgTemplateDropdown from './OrgTemplateDropdown';
+import GlobalTemplateDropdown from './GlobalTemplateDropdown';
 import sessionManager from '../../services/sessionManager';
 import TemplateSearchPanel from './TemplateSearchPanel.jsx';
 // also add BookOpen to the lucide-react import line:
-import { CheckCircle, XCircle, Edit, Camera, FileText, ChevronRight, ChevronLeft, Plus, Layers, Trash2, BookOpen, Save } from 'lucide-react';
+import { CheckCircle, XCircle, Edit, Camera, FileText, ChevronRight, ChevronLeft, Plus, Layers, Trash2, BookOpen, Save, Pencil, Upload } from 'lucide-react';
+import mammoth from 'mammoth';
 import useWebSocket from '../../hooks/useWebSocket';
 import { useAuth } from '../../hooks/useAuth'; // ✅ ADD this import at top
 import { StudyDocumentsManager } from '../StudyDocuments/StudyDocumentsManager';
@@ -49,13 +51,9 @@ const OnlineReportingSystemWithOHIF = () => {
   const [rejecting, setRejecting] = useState(false);
   const [leftPanelWidth, setLeftPanelWidth] = useState(50);
 
-  // ── Billing (verifier mode only) ──────────────────────────────
-  const [billingOptions, setBillingOptions] = useState(null); // { labConfig, billingItems, currentBilling }
-  const [selectedBillingItemId, setSelectedBillingItemId] = useState('');
-  const [billingLoading, setBillingLoading] = useState(false);
-
   // ✅ MULTI-REPORT STATE — replaces single reportContent
-  const [reports, setReports] = useState([{ id: 1, content: '', capturedImages: [], template: null }]);
+  const [reports, setReports] = useState([{ id: 1, name: '', content: '', capturedImages: [], template: null }]);
+  const [editingReportName, setEditingReportName] = useState(null); // index being edited
   const [activeReportIndex, setActiveReportIndex] = useState(0);
   const [showReportDropdown, setShowReportDropdown] = useState(false);
   const reportDropdownRef = useRef(null);
@@ -67,43 +65,8 @@ const OnlineReportingSystemWithOHIF = () => {
   const editorRef = useRef(null);
   const [showTemplateSearch, setShowTemplateSearch] = useState(false);
 
-  // ✅ AUTO REPORT STATE
-  const [showAutoReport, setShowAutoReport] = useState(false);
-  const [autoReportFindings, setAutoReportFindings] = useState('');
-  const [generatingReport, setGeneratingReport] = useState(false);
-
   const handleInsertFromSearch = (html) => {
     editorRef.current?.insertHTML(html);
-  };
-
-  // ✅ AUTO REPORT HANDLER
-  const handleGenerateAutoReport = async () => {
-    if (!autoReportFindings.trim()) {
-      toast.error('Please enter findings before generating');
-      return;
-    }
-    setGeneratingReport(true);
-    try {
-      const response = await api.post('/admin/auto-report/generate', {
-        findings: autoReportFindings,
-        modality: studyData?.modality || '',
-        bodyPart: studyData?.bodyPartExamined || studyData?.studyDescription || '',
-        clinicalHistory: reportData?.clinicalHistory || ''
-      });
-      if (response.data.success) {
-        setReportContent(response.data.data.htmlReport);
-        setIsReportOpen(true);
-        setShowAutoReport(false);
-        setAutoReportFindings('');
-        toast.success('Report generated successfully!');
-      } else {
-        toast.error(response.data.message || 'Failed to generate report');
-      }
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Failed to generate report');
-    } finally {
-      setGeneratingReport(false);
-    }
   };
 
   const handleOpenSaveAsTemplate = () => {
@@ -169,8 +132,13 @@ const OnlineReportingSystemWithOHIF = () => {
 
 
   // ✅ Add new report
+  // ✅ Rename report
+  const handleRenameReport = (index, newName) => {
+    setReports(prev => prev.map((r, i) => i === index ? { ...r, name: newName } : r));
+  };
+
   const handleAddReport = () => {
-    const newReport = { id: Date.now(), content: '', capturedImages: [], template: null };
+    const newReport = { id: Date.now(), name: '', content: '', capturedImages: [], template: null };
     setReports(prev => [...prev, newReport]);
     setActiveReportIndex(reports.length);
     setIsReportOpen(true);
@@ -179,12 +147,25 @@ const OnlineReportingSystemWithOHIF = () => {
   };
 
   // ✅ Remove report
-  const handleRemoveReport = (index) => {
+  const handleRemoveReport = async (index) => {
     if (reports.length === 1) { toast.error('Must have at least one report'); return; }
+
+    const reportToRemove = reports[index];
+
+    // If report exists in backend, delete it there too
+    if (reportToRemove.existingReportId) {
+      try {
+        await api.delete(`/reports/reports/${reportToRemove.existingReportId}`);
+      } catch (err) {
+        console.error('Failed to delete report from backend:', err);
+        toast.error('Failed to delete report');
+        return;
+      }
+    }
+
     setReports(prev => prev.filter((_, i) => i !== index));
     setActiveReportIndex(Math.max(0, index === activeReportIndex ? index - 1 : activeReportIndex > index ? activeReportIndex - 1 : activeReportIndex));
     setShowReportDropdown(false);
-    // toast.success(`Report ${index + 1} removed`);
   };
 
   // ✅ Switch report
@@ -231,29 +212,6 @@ const OnlineReportingSystemWithOHIF = () => {
     searchParams.get('action') === 'verify' ||
     hasRole('verifier');
 
-  // Fetch billing options for verifier — runs whenever studyId is available in verifier mode
-  useEffect(() => {
-    if (!isVerifierMode || !studyId) return;
-    setBillingLoading(true);
-    api.get(`/billing/study/${studyId}/options`)
-      .then(res => {
-        if (res.data.success) {
-          setBillingOptions(res.data.data);
-          // Pre-select if already billed
-          const existing = res.data.data.currentBilling;
-          if (existing?.isBilled && existing?.billingModule) {
-            // Find matching billingItem _id from labConfig
-            const match = res.data.data.labConfig?.billingItems?.find(
-              i => i.module?._id === existing.billingModule || i.module === existing.billingModule
-            );
-            if (match) setSelectedBillingItemId(match._id);
-          }
-        }
-      })
-      .catch(() => {/* no billing config for this study's lab — silently skip */})
-      .finally(() => setBillingLoading(false));
-  }, [isVerifierMode, studyId]);
-
   const widthOptions = [
     { value: 30, label: '30% / 70%' },
     { value: 40, label: '40% / 60%' },
@@ -299,7 +257,7 @@ const OnlineReportingSystemWithOHIF = () => {
       setPatientData(null);
       setSelectedTemplate(null);
       setReportData({});
-      setReports([{ id: 1, content: '', capturedImages: [], template: null }]);
+      setReports([{ id: 1, name: '', content: '', capturedImages: [], template: null }]);
       setActiveReportIndex(0);
       setSaving(false);
       setFinalizing(false);
@@ -350,8 +308,8 @@ const OnlineReportingSystemWithOHIF = () => {
 
         if (studyInstanceUID) {
           const OHIF_VIEWERS = {
-            viewer1: 'https://viewer.xcentic.com/viewer',
-            viewer2: 'https://viewer2.xcentic.com/viewer',
+            viewer1: 'https://viewer.bharatpacs.com/viewer',
+            viewer2: 'https://viewer2.bharatpacs.com/viewer',
           };
 
           const viewerPref = urlParams.get('viewer') || localStorage.getItem('preferredOhifViewer') || 'viewer1';
@@ -452,7 +410,7 @@ const OnlineReportingSystemWithOHIF = () => {
   const handleAttachOhifImage = () => {
     const iframe = document.getElementById('ohif-viewer-iframe');
     if (iframe?.contentWindow) { iframe.contentWindow.postMessage({ action: 'ATTACH_REPORT_SIGNAL' }, '*'); }
-    else toast.error('❌ OHIF Viewer not ready');
+    else console.warn('OHIF Viewer not ready');
   };
 
   useEffect(() => {
@@ -538,6 +496,63 @@ const OnlineReportingSystemWithOHIF = () => {
     '--Content--': content
   });
 
+  // ── Word file upload → extract HTML → load into editor ─────────────────────
+  const wordUploadRef = useRef(null);
+
+  const handleWordUpload = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = [
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+    ];
+    const isDocx = validTypes.includes(file.type) || file.name.endsWith('.docx') || file.name.endsWith('.doc');
+    if (!isDocx) {
+      toast.error('Please upload a .docx or .doc file');
+      e.target.value = '';
+      return;
+    }
+
+    const toastId = toast.loading('Extracting Word document...');
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.convertToHtml(
+        { arrayBuffer },
+        {
+          styleMap: [
+            "p[style-name='Heading 1'] => h1",
+            "p[style-name='Heading 2'] => h2",
+            "p[style-name='Heading 3'] => h3",
+          ],
+        }
+      );
+
+      if (result.value) {
+        // Update the active report with the extracted HTML
+        setReports(prev => prev.map((r, i) =>
+          i === activeReportIndex ? { ...r, content: result.value } : r
+        ));
+        toast.success(`Imported "${file.name}" successfully`, { id: toastId });
+
+        if (result.messages?.length > 0) {
+          const warnings = result.messages.filter(m => m.type === 'warning');
+          if (warnings.length > 0) {
+            console.warn('[Word Import] Warnings:', warnings.map(m => m.message));
+          }
+        }
+      } else {
+        toast.error('No content found in the document', { id: toastId });
+      }
+    } catch (error) {
+      console.error('[Word Import] Failed:', error);
+      toast.error(`Failed to extract Word content: ${error.message}`, { id: toastId });
+    } finally {
+      e.target.value = ''; // Reset input so same file can be re-uploaded
+    }
+  }, [activeReportIndex]);
+
   const handleSaveDraft = async () => {
     if (!reportContent.trim()) { toast.error('Cannot save an empty draft.'); return; }
     setSaving(true);
@@ -603,8 +618,6 @@ const OnlineReportingSystemWithOHIF = () => {
       if (emptyReports.length > 0) { toast.error(`Reports ${emptyReports.map((_, i) => reports.findIndex(r => r === emptyReports[i]) + 1).join(', ')} are empty`); return; }
     }
 
-    if (!window.confirm(`Finalize ${isMulti ? reports.length + ' reports' : 'this report'} as ${exportFormat.toUpperCase()}?`)) return;
-
     // ✅ FIX: Stop auto-save BEFORE setting finalizing state
     if (autoSaveIntervalRef.current) {
       clearInterval(autoSaveIntervalRef.current);
@@ -630,16 +643,24 @@ const OnlineReportingSystemWithOHIF = () => {
           }))
         });
         if (response.data.success) {
-          toast.success(`${reports.length} reports finalized!`, { icon: '🎉' });
+          // reports finalized
           setTimeout(() => handleBackToWorklist(), 3000);
         } else throw new Error(response.data.message);
       } else {
         // ✅ SINGLE endpoint
+        // ✅ FIX: Send existingReportId so backend updates the draft instead of
+        // creating a new record (which caused draft filenames to persist and
+        // reports to appear duplicated/missing).
+        const existingId = reports[activeReportIndex]?.existingReportId
+          || reportData.existingReport?.id
+          || null;
+
         const response = await api.post(`/reports/studies/${studyId}/store-finalized`, {
           templateName: `${currentUser.email.split('@')[0]}_final_${Date.now()}.${exportFormat}`,
           placeholders: buildPlaceholders(reportContent),
           htmlContent: reportContent,
           format: exportFormat,
+          existingReportId: existingId,
           templateId: selectedTemplate?._id,
           templateInfo: selectedTemplate
             ? { templateId: selectedTemplate._id, templateName: selectedTemplate.title, templateCategory: selectedTemplate.category, templateTitle: selectedTemplate.title }
@@ -647,7 +668,7 @@ const OnlineReportingSystemWithOHIF = () => {
           capturedImages: capturedImages.map(img => ({ ...img, capturedBy: currentUser._id }))
         });
         if (response.data.success) {
-          toast.success(`Report finalized as ${exportFormat.toUpperCase()}! Closing...`, { icon: '🎉' });
+          // report finalized
           setTimeout(() => window.close(), 2500); // ✅ close tab
         } else throw new Error(response.data.message);
       }
@@ -680,16 +701,12 @@ const OnlineReportingSystemWithOHIF = () => {
           i === activeReportIndex ? { ...r, existingReportId: response.data.data.reportId } : r
         ));
       }
-      toast.success('Changes saved');
+      // toast.success('Changes saved'); // ✅ Removed noisy toast
     } catch (error) { toast.error(`Failed to update: ${error.message}`); } finally { setSaving(false); }
   };
 
   const handleVerifyReport = async () => {
     if (!reportContent.trim()) { toast.error('Report content is required for verification.'); return; }
-    if (billingOptions?.labConfig?.billingItems?.length > 0 && !selectedBillingItemId) {
-      toast.error('Please select a billing item before verifying.');
-      return;
-    }
     if (!window.confirm('Verify this report?')) return;
     setVerifying(true);
     try {
@@ -703,20 +720,9 @@ const OnlineReportingSystemWithOHIF = () => {
           maintainFinalizedStatus: true,
         });
       }
-      // Set billing if a billing item was selected
-      if (selectedBillingItemId && billingOptions?.labConfig?._id) {
-        try {
-          await api.put(`/billing/study/${studyId}`, {
-            billingItemId: selectedBillingItemId,
-            labConfigId: billingOptions.labConfig._id,
-          });
-        } catch (billingErr) {
-          console.warn('[Verify] Billing update failed:', billingErr?.response?.data?.message);
-        }
-      }
       const response = await api.post(`/verifier/studies/${studyId}/verify`, { approved: true, verificationNotes: 'Verified via OHIF', corrections: [], verificationTimeMinutes: 0 });
       if (response.data.success) {
-        toast.success('Report verified! Closing tab...', { icon: '✅' });
+        // report verified
         setTimeout(() => window.close(), 2500); // ✅ close tab instead of navigate
       } else throw new Error(response.data.message);
     } catch (error) { toast.error(`Failed to verify: ${error.message}`); } finally { setVerifying(false); }
@@ -730,7 +736,7 @@ const OnlineReportingSystemWithOHIF = () => {
     try {
       const response = await api.post(`/verifier/studies/${studyId}/verify`, { approved: false, verificationNotes: reason, rejectionReason: reason, corrections: [], verificationTimeMinutes: 0 });
       if (response.data.success) {
-        toast.success('Report Reverted! Closing tab...', { icon: '❌' });
+        // report reverted
         setTimeout(() => window.close(), 2500); // ✅ close tab instead of navigate
       } else throw new Error(response.data.message);
     } catch (error) { toast.error(`Failed to Revert: ${error.message}`); } finally { setRejecting(false); }
@@ -745,7 +751,15 @@ const OnlineReportingSystemWithOHIF = () => {
 
 
   // ✅ ADD: Auto-save handler — must be defined BEFORE the useEffect that uses it
+  // ✅ FIX: Check isFinalizedRef at the START of the async function, not just
+  // at the interval level. This catches in-flight auto-saves that were
+  // scheduled before finalize but execute after it.
   const handleAutoSave = useCallback(async () => {
+    if (isFinalizedRef.current) {
+      console.log('⏹️ [AutoSave] Blocked — report already finalized');
+      return;
+    }
+
     const currentContent = reports[activeReportIndex]?.content || '';
     const textContent = currentContent.replace(/<[^>]*>/g, '').trim();
 
@@ -861,31 +875,6 @@ const OnlineReportingSystemWithOHIF = () => {
     <>
       <div className="h-screen w-full bg-gray-50 flex flex-col overflow-hidden border-b-4 border-blue-600">
 
-        {/* ✅ Single Toaster - bottom-left */}
-        <Toaster
-          position="bottom-left"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              fontSize: '12px',
-              maxWidth: '320px',
-              padding: '8px 12px',
-              borderRadius: '6px'
-            },
-            success: {
-              duration: 2500,
-              style: { background: '#10b981', color: '#fff' }
-            },
-            error: {
-              duration: 3000,
-              style: { background: '#ef4444', color: '#fff' }
-            },
-            loading: {
-              style: { background: '#3b82f6', color: '#fff' }
-            }
-          }}
-        />
-
         {/* ── Navbar ── */}
         <div className="flex-shrink-0 bg-white border-b border-gray-200 shadow-sm z-50">
           <div className="px-3 py-1 flex items-center justify-between gap-2">
@@ -926,9 +915,10 @@ const OnlineReportingSystemWithOHIF = () => {
                 <>
                   {!isVerifierMode ? (
                     <>
-                      {/* Templates */}
+                      {/* Templates: Mine | Organisation | Global */}
                       <DoctorTemplateDropdown onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate?.templateScope === 'doctor_specific' ? selectedTemplate : null} />
-                      <AllTemplateDropdown onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate} />
+                      <OrgTemplateDropdown onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate?.templateScope === 'global' ? selectedTemplate : null} />
+                      <GlobalTemplateDropdown onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate?.templateScope === 'super_global' ? selectedTemplate : null} />
 
                       <div className="h-4 w-px bg-gray-200"></div>
 
@@ -960,11 +950,6 @@ const OnlineReportingSystemWithOHIF = () => {
                         <Save className="w-2.5 h-2.5" /><span className="hidden xl:inline">Template</span>
                       </button>
 
-                      {/* Auto Report */}
-                      <button onClick={() => setShowAutoReport(true)} className="flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors" title="AI Auto Report">
-                        <FileText className="w-2.5 h-2.5" /><span className="hidden xl:inline">Auto Report</span>
-                      </button>
-
                       <div className="h-4 w-px bg-gray-200"></div>
 
                       {/* Auto-save: just icon — spinner or tick */}
@@ -975,14 +960,21 @@ const OnlineReportingSystemWithOHIF = () => {
                         {autoSaveStatus === 'idle' && <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />}
                       </div>
 
+                      {/* Word Upload */}
+                      <input ref={wordUploadRef} type="file" accept=".docx,.doc" onChange={handleWordUpload} className="hidden" />
+                      <button onClick={() => wordUploadRef.current?.click()} className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100 transition-colors" title="Import Word document (.docx)">
+                        <Upload className="w-2.5 h-2.5" />
+                        <span>Word</span>
+                      </button>
+
                       {/* Save */}
                       <button onClick={handleSaveDraft} disabled={saving || !reportContent.trim()} className="px-2 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-700 border border-gray-200 rounded hover:bg-gray-200 disabled:opacity-30 transition-colors">
                         {saving ? <div className="animate-spin rounded-full h-2.5 w-2.5 border border-gray-400 border-t-transparent" /> : 'Save'}
                       </button>
 
                       {/* Finalize */}
-                      <button onClick={handleFinalizeReport} disabled={finalizing || !reportContent.trim()} className="flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-semibold bg-green-600 text-white rounded hover:bg-green-500 shadow-sm shadow-green-600/20 disabled:opacity-40 transition-all whitespace-nowrap">
-                        {finalizing ? <div className="animate-spin rounded-full h-2.5 w-2.5 border border-white border-t-transparent" /> : <><CheckCircle className="w-2.5 h-2.5" /><span>Final{reports.length > 1 ? ` (${reports.length})` : ''}</span></>}
+                      <button onClick={handleFinalizeReport} disabled={finalizing || saving || autoSaveStatus === 'saving' || !reportContent.trim()} className="flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-semibold bg-green-600 text-white rounded hover:bg-green-500 shadow-sm shadow-green-600/20 disabled:opacity-40 transition-all whitespace-nowrap" title={saving || autoSaveStatus === 'saving' ? 'Wait for save to complete...' : ''}>
+                        {finalizing ? <div className="animate-spin rounded-full h-2.5 w-2.5 border border-white border-t-transparent" /> : <><CheckCircle className="w-2.5 h-2.5" /><span>{saving || autoSaveStatus === 'saving' ? 'Saving...' : `Final${reports.length > 1 ? ` (${reports.length})` : ''}`}</span></>}
                       </button>
                     </>
                   ) : (
@@ -990,30 +982,21 @@ const OnlineReportingSystemWithOHIF = () => {
                     <>
                       <span className="text-[9px] font-bold text-purple-600 uppercase tracking-wider">Verifier</span>
 
-                      {/* Billing Dropdown */}
-                      {billingLoading ? (
-                        <div className="animate-spin rounded-full h-2.5 w-2.5 border border-purple-400 border-t-transparent" title="Loading billing options…" />
-                      ) : billingOptions?.labConfig?.billingItems?.length > 0 ? (
-                        <select
-                          value={selectedBillingItemId}
-                          onChange={e => setSelectedBillingItemId(e.target.value)}
-                          className={`px-1.5 py-0.5 text-[10px] border rounded cursor-pointer focus:outline-none max-w-[160px] ${
-                            selectedBillingItemId
-                              ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
-                              : 'border-orange-300 bg-orange-50 text-orange-700'
-                          }`}
-                          title="Select billing item for this study"
-                        >
-                          <option value="">— Select Billing —</option>
-                          {billingOptions.labConfig.billingItems.map(item => (
-                            <option key={item._id} value={item._id}>
-                              {item.moduleName} · {item.currency || 'INR'} {item.price}
-                            </option>
-                          ))}
-                        </select>
-                      ) : billingOptions !== null && !billingOptions?.labConfig ? (
-                        <span className="text-[9px] text-gray-400 italic">No billing config</span>
-                      ) : null}
+                      {/* ✅ Templates for verifier to use when adding new reports */}
+                      <DoctorTemplateDropdown onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate?.templateScope === 'doctor_specific' ? selectedTemplate : null} />
+                      <OrgTemplateDropdown onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate?.templateScope === 'global' ? selectedTemplate : null} />
+                      <GlobalTemplateDropdown onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate?.templateScope === 'super_global' ? selectedTemplate : null} />
+
+                      <div className="h-4 w-px bg-gray-200"></div>
+
+                      {/* ✅ Capture viewport for verifier */}
+                      <button onClick={handleAttachOhifImage} className="relative flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors" title="Capture viewport">
+                        <Camera className="w-2.5 h-2.5" />
+                        <span>Capture</span>
+                        {capturedImages.length > 0 && (
+                          <span className="absolute -top-1 -right-1 min-w-[14px] h-3.5 px-0.5 text-[8px] font-bold text-white bg-emerald-500 rounded-full flex items-center justify-center border border-white">{capturedImages.length}</span>
+                        )}
+                      </button>
 
                       <select value={leftPanelWidth} onChange={(e) => setLeftPanelWidth(parseInt(e.target.value))} className="px-1 py-0.5 text-[10px] bg-white text-gray-700 border border-gray-200 rounded cursor-pointer focus:outline-none">
                         {widthOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -1023,14 +1006,7 @@ const OnlineReportingSystemWithOHIF = () => {
                         {saving ? <div className="animate-spin rounded-full h-2.5 w-2.5 border border-gray-400 border-t-transparent" /> : 'Save'}
                       </button>
                       <button onClick={handleRejectReport} disabled={rejecting} className="px-2 py-0.5 text-[10px] font-semibold bg-red-600 text-white rounded hover:bg-red-500 disabled:opacity-50 transition-colors">{rejecting ? 'Reverting…' : 'Revert'}</button>
-                      <button
-                        onClick={handleVerifyReport}
-                        disabled={verifying || !reportContent.trim() || (billingOptions?.labConfig?.billingItems?.length > 0 && !selectedBillingItemId)}
-                        className="px-2 py-0.5 text-[10px] font-semibold bg-green-600 text-white rounded hover:bg-green-500 disabled:opacity-50 transition-colors"
-                        title={billingOptions?.labConfig?.billingItems?.length > 0 && !selectedBillingItemId ? 'Select a billing item to enable Verify' : 'Verify report'}
-                      >
-                        {verifying ? 'Verifying…' : 'Verify'}
-                      </button>
+                      <button onClick={handleVerifyReport} disabled={verifying || !reportContent.trim()} className="px-2 py-0.5 text-[10px] font-semibold bg-green-600 text-white rounded hover:bg-green-500 disabled:opacity-50 transition-colors">{verifying ? 'Verifying…' : 'Verify'}</button>
                     </>
                   )}
 
@@ -1065,14 +1041,37 @@ const OnlineReportingSystemWithOHIF = () => {
                         <div className="max-h-48 overflow-y-auto">
                           {reports.map((report, index) => (
                             <div key={report.id} className={`flex items-center justify-between px-3 py-1.5 cursor-pointer transition-colors border-b border-gray-50 last:border-b-0 ${index === activeReportIndex ? 'bg-blue-50' : 'hover:bg-gray-50'}`} onClick={() => handleSwitchReport(index)}>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
                                 <span className={`w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center flex-shrink-0 ${index === activeReportIndex ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>{index + 1}</span>
-                                <div>
-                                  <div className={`text-[10px] font-medium ${index === activeReportIndex ? 'text-blue-700' : 'text-gray-700'}`}>
-                                    Report {index + 1}
-                                    {report.reportStatus && (<span className={`ml-1 text-[8px] px-1 rounded ${report.reportStatus === 'finalized' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{report.reportStatus}</span>)}
-                                  </div>
-                                  <div className="text-[8px] text-gray-400">{report.content.trim() ? `${report.content.replace(/<[^>]*>/g, '').substring(0, 25)}…` : 'Empty'}{report.capturedImages.length > 0 && ` · ${report.capturedImages.length} img`}</div>
+                                <div className="min-w-0 flex-1">
+                                  {editingReportName === index ? (
+                                    <input
+                                      autoFocus
+                                      type="text"
+                                      value={report.name || ''}
+                                      placeholder={`Report ${index + 1}`}
+                                      onClick={(e) => e.stopPropagation()}
+                                      onChange={(e) => handleRenameReport(index, e.target.value)}
+                                      onBlur={() => setEditingReportName(null)}
+                                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === 'Escape') setEditingReportName(null); }}
+                                      className="w-full px-1 py-0.5 text-[10px] font-medium border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white"
+                                    />
+                                  ) : (
+                                    <div className="flex items-center gap-1 group/name">
+                                      <div className={`text-[10px] font-medium truncate ${index === activeReportIndex ? 'text-blue-700' : 'text-gray-700'}`}>
+                                        {report.name || `Report ${index + 1}`}
+                                        {report.reportStatus && (<span className={`ml-1 text-[8px] px-1 rounded ${report.reportStatus === 'finalized' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{report.reportStatus}</span>)}
+                                      </div>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); setEditingReportName(index); }}
+                                        className="p-0.5 rounded opacity-0 group-hover/name:opacity-100 hover:bg-blue-100 text-gray-400 hover:text-blue-600 transition-all flex-shrink-0"
+                                        title="Rename report"
+                                      >
+                                        <Pencil className="w-2.5 h-2.5" />
+                                      </button>
+                                    </div>
+                                  )}
+                                  <div className="text-[8px] text-gray-400 truncate">{report.content.trim() ? `${report.content.replace(/<[^>]*>/g, '').substring(0, 25)}…` : 'Empty'}{report.capturedImages.length > 0 && ` · ${report.capturedImages.length} img`}</div>
                                 </div>
                               </div>
                               <div className="flex items-center gap-1">
@@ -1253,70 +1252,10 @@ const OnlineReportingSystemWithOHIF = () => {
         )
       }
 
-      {/* ✅ AUTO REPORT DIALOG */}
-      {showAutoReport && (
-        <>
-          <div className="fixed inset-0 z-[300] bg-black/50" onClick={() => setShowAutoReport(false)} />
-          <div className="fixed z-[310] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl border border-gray-200 w-[560px] max-h-[80vh] flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 bg-purple-50 border-b border-purple-100 rounded-t-xl">
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-purple-600" />
-                <span className="text-sm font-bold text-purple-900">AI Auto Report</span>
-              </div>
-              <button onClick={() => setShowAutoReport(false)} className="p-1 hover:bg-gray-100 rounded">
-                <XCircle className="w-4 h-4 text-gray-400" />
-              </button>
-            </div>
-
-            {/* Study Info */}
-            <div className="px-5 py-2 bg-gray-50 border-b border-gray-100 text-[11px] text-gray-500 flex gap-4">
-              <span>Modality: <strong>{studyData?.modality || 'N/A'}</strong></span>
-              <span>Patient: <strong>{patientData?.fullName || 'N/A'}</strong></span>
-            </div>
-
-            {/* Body */}
-            <div className="px-5 py-4 flex-1 overflow-y-auto space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Findings / Observations <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  autoFocus
-                  value={autoReportFindings}
-                  onChange={(e) => setAutoReportFindings(e.target.value)}
-                  placeholder="Enter your findings here... e.g., Brain parenchyma appears normal. No definite cerebral parenchymal lesion/hemorrhage is seen..."
-                  rows={12}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 resize-y"
-                />
-                <p className="mt-1 text-[10px] text-gray-400">
-                  Write your observations and the AI will generate a formatted report with Procedure, Findings, and Opinion sections.
-                </p>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="flex justify-end gap-2 px-5 py-3 border-t border-gray-100 rounded-b-xl bg-gray-50">
-              <button
-                onClick={() => setShowAutoReport(false)}
-                className="px-4 py-1.5 text-xs font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleGenerateAutoReport}
-                disabled={generatingReport || !autoReportFindings.trim()}
-                className="px-4 py-1.5 text-xs font-bold bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-              >
-                <FileText className="w-3 h-3" />
-                {generatingReport ? 'Generating...' : 'Generate Report'}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-
     </>
+
+
+
   );
 
 };

@@ -8,9 +8,9 @@ import { updateWorkflowStatus } from '../utils/workflowStatusManager.js';
 export const storeDraftReport = async (req, res) => {
     try {
         const { studyId } = req.params;
-        const {
-            templateName,
-            placeholders,
+        const { 
+            templateName, 
+            placeholders, 
             htmlContent,
             templateId,
             templateInfo,
@@ -19,9 +19,9 @@ export const storeDraftReport = async (req, res) => {
         } = req.body;
 
         console.log(req.body)
-
+        
         const currentUser = req.user;
-
+        
         console.log('📝 [Draft Store] Starting draft report storage:', {
             studyId,
             userId: currentUser._id,
@@ -63,17 +63,36 @@ export const storeDraftReport = async (req, res) => {
                 });
             }
 
-            // ✅ FIX: Reject draft save if study already completed/verified
-            const LOCKED_STATUSES = ['report_completed', 'verification_pending', 'final_report_downloaded'];
+            // ✅ FIX: Reject draft save if study already completed/verified.
+            // Also check if the specific report being saved is already finalized
+            // (catches the race where finalize completed between the auto-save
+            // request being sent and arriving at the server).
+            const LOCKED_STATUSES = ['report_completed', 'verification_pending', 'final_report_downloaded', 'report_verified'];
             const isAutoSave = req.body.isAutoSave === true;
-            if (isAutoSave && LOCKED_STATUSES.includes(study.workflowStatus)) {
-                await session.abortTransaction();
-                console.log(`⚠️ [Draft Store] Auto-save rejected — study status is locked: ${study.workflowStatus}`);
-                return res.status(200).json({
-                    success: false,
-                    message: `Auto-save skipped — study already in ${study.workflowStatus} state`,
-                    skipped: true
-                });
+            if (isAutoSave) {
+                if (LOCKED_STATUSES.includes(study.workflowStatus)) {
+                    await session.abortTransaction();
+                    console.log(`⚠️ [Draft Store] Auto-save rejected — study status is locked: ${study.workflowStatus}`);
+                    return res.status(200).json({
+                        success: false,
+                        message: `Auto-save skipped — study already in ${study.workflowStatus} state`,
+                        skipped: true
+                    });
+                }
+                // Also check if the target report is already finalized
+                const existingReportId = req.body.existingReportId;
+                if (existingReportId && mongoose.Types.ObjectId.isValid(existingReportId)) {
+                    const targetReport = await Report.findById(existingReportId).session(session);
+                    if (targetReport && targetReport.reportStatus === 'finalized') {
+                        await session.abortTransaction();
+                        console.log(`⚠️ [Draft Store] Auto-save rejected — report ${existingReportId} already finalized`);
+                        return res.status(200).json({
+                            success: false,
+                            message: 'Auto-save skipped — report already finalized',
+                            skipped: true
+                        });
+                    }
+                }
             }
 
             if (!study.organizationIdentifier) {
@@ -100,12 +119,12 @@ export const storeDraftReport = async (req, res) => {
             // 1. Use existingReportId if provided (auto-save/manual save after first save)
             // 2. Find by studyId + doctorId (first save)
             let existingReport = null;
-
+            
             if (existingReportId && mongoose.Types.ObjectId.isValid(existingReportId)) {
                 existingReport = await Report.findById(existingReportId).session(session);
                 console.log('🔍 [Draft Store] Using existingReportId:', existingReportId, '→ found:', !!existingReport);
             }
-
+            
             if (!existingReport) {
                 // ✅ Find ONE existing draft for this study+doctor (not multiple)
                 existingReport = await Report.findOne({
@@ -127,14 +146,12 @@ export const storeDraftReport = async (req, res) => {
                 clinicalHistory: study.clinicalHistory?.clinicalHistory || study.patient?.clinicalHistory || 'N/A'
             };
 
-            const referringPhysicianData = study.referringPhysician ||
-                study.referringPhysicianName ||
-                'N/A';
-            const referringPhysicianName = typeof referringPhysicianData === 'string'
-                ? referringPhysicianData
-                : typeof referringPhysicianData === 'object' && referringPhysicianData?.name
-                    ? referringPhysicianData.name
-                    : 'N/A';
+            const referringPhysicianName = (
+                (typeof study.referringPhysician === 'object' && study.referringPhysician?.name?.trim()) ||
+                (typeof study.referringPhysician === 'string' && study.referringPhysician.trim()) ||
+                study.referringPhysicianName?.trim() ||
+                'N/A'
+            );
 
             // ✅ FILENAME: Use doctor name (not admin)
             const patientNameForFilename = (study.patientInfo?.patientName || study.patient?.fullName || 'unknown_patient')
@@ -152,7 +169,7 @@ export const storeDraftReport = async (req, res) => {
                 orthancStudyID: study.orthancStudyID,
                 accessionNumber: study.accessionNumber,
                 // ✅ FIXED: If admin, createdBy should be the doctor, not the admin
-                createdBy: currentUser.role === 'admin' || currentUser.role === 'super_admin'
+                createdBy: currentUser.role === 'admin' || currentUser.role === 'super_admin' 
                     ? doctorId  // Use doctor's ID
                     : currentUser._id,  // Use current user's ID
                 doctorId: doctorId,            // ✅ Use assigned doctor ID
@@ -273,23 +290,23 @@ export const storeDraftReport = async (req, res) => {
 const determineDoctorForReport = async (currentUser, study, session) => {
     let doctorId = currentUser._id;
     let doctorName = currentUser.fullName;
-
+    
     // ✅ If admin/super_admin, use assigned doctor instead
     if (currentUser.role === 'admin' || currentUser.role === 'super_admin') {
         console.log('👨‍💼 [Report] Admin creating report, using assigned doctor instead');
-
+        
         if (study.assignment && study.assignment.length > 0) {
             const latestAssignment = study.assignment[study.assignment.length - 1];
-
+            
             if (latestAssignment.assignedTo) {
                 doctorId = latestAssignment.assignedTo;
-
+                
                 // Fetch assigned doctor's name
                 try {
                     const assignedDoctor = await User.findById(latestAssignment.assignedTo)
                         .select('fullName')
                         .session(session);
-
+                    
                     if (assignedDoctor) {
                         doctorName = assignedDoctor.fullName;
                         console.log('✅ [Report] Using assigned doctor:', {
@@ -307,7 +324,7 @@ const determineDoctorForReport = async (currentUser, study, session) => {
             console.warn('⚠️ Admin creating report but no assigned doctor found');
         }
     }
-
+    
     return { doctorId, doctorName };
 };
 
@@ -315,7 +332,7 @@ const determineDoctorForReport = async (currentUser, study, session) => {
 export const storeFinalizedReport = async (req, res) => {
     try {
         const { studyId } = req.params;
-        const { templateName, placeholders, htmlContent, templateId, templateInfo, format = 'docx', capturedImages = [] } = req.body;
+        const { templateName, placeholders, htmlContent, templateId, templateInfo, format = 'docx', capturedImages = [], existingReportId } = req.body;
 
         const currentUser = req.user;
 
@@ -376,10 +393,21 @@ export const storeFinalizedReport = async (req, res) => {
                 console.log('🖨️ [Finalize Store] Study was previously downloaded — setting reprintNeeded = true');
             }
 
-            let existingReport = await Report.findOne({
-                dicomStudy: studyId,
-                doctorId: doctorId
-            }).sort({ createdAt: -1 }).session(session);
+            // ✅ FIX: Use existingReportId from frontend if available (points to
+            // the exact draft that was auto-saved). Without this, the generic
+            // query below might find the wrong draft or a stale record, causing
+            // reports to "disappear" or retain draft filenames after finalize.
+            let existingReport = null;
+            if (existingReportId && mongoose.Types.ObjectId.isValid(existingReportId)) {
+                existingReport = await Report.findById(existingReportId).session(session);
+                console.log(`✅ [Finalize Store] Using existingReportId=${existingReportId} → found=${!!existingReport}`);
+            }
+            if (!existingReport) {
+                existingReport = await Report.findOne({
+                    dicomStudy: studyId,
+                    doctorId: doctorId
+                }).sort({ createdAt: -1 }).session(session);
+            }
 
             const now = new Date();
 
@@ -388,26 +416,26 @@ export const storeFinalizedReport = async (req, res) => {
                 patientName: study.patientInfo?.patientName || study.patient?.fullName || 'Unknown Patient',
                 age: study.patientInfo?.age || study.patient?.age || 'N/A',
                 gender: study.patient?.gender ||
-                    study.patientInfo?.gender ||
-                    placeholders?.['--agegender--']?.split(' / ')[1] || 'N/A',
+                       study.patientInfo?.gender ||
+                       placeholders?.['--agegender--']?.split(' / ')[1] || 'N/A',
                 dateOfBirth: study.patient?.dateOfBirth,
                 clinicalHistory: study.clinicalHistory?.clinicalHistory ||
-                    study.patient?.clinicalHistory || 'N/A'
+                               study.patient?.clinicalHistory || 'N/A'
             };
 
-            const referringPhysicianData = study.referringPhysician ||
-                study.referringPhysicianName ||
-                'N/A';
-            const referringPhysicianName = typeof referringPhysicianData === 'string'
-                ? referringPhysicianData
-                : typeof referringPhysicianData === 'object' && referringPhysicianData?.name
-                    ? referringPhysicianData.name
-                    : 'N/A';
+            const referringPhysicianName = (
+                (typeof study.referringPhysician === 'object' && study.referringPhysician?.name?.trim()) ||
+                (typeof study.referringPhysician === 'string' && study.referringPhysician.trim()) ||
+                study.referringPhysicianName?.trim() ||
+                'N/A'
+            );
 
-            // ✅ FILENAME: Use doctor name (not admin)
+            // ✅ FIX: Use a proper finalized filename — never carry over the
+            // draft name. The old code set fileName to just the patient name
+            // without extension or status, so the draft filename persisted.
             const patientNameForFilename = (study.patientInfo?.patientName || study.patient?.fullName || 'unknown_patient')
                 .toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-            const fileName = patientNameForFilename;
+            const fileName = `${patientNameForFilename}_final_${Date.now()}.${format || 'docx'}`;
 
             const reportData = {
                 reportId: existingReport?.reportId || `RPT_${studyId}_${Date.now()}`,
@@ -420,7 +448,7 @@ export const storeFinalizedReport = async (req, res) => {
                 orthancStudyID: study.orthancStudyID,
                 accessionNumber: study.accessionNumber,
                 // ✅ FIXED: If admin, createdBy should be the doctor, not the admin
-                createdBy: currentUser.role === 'admin' || currentUser.role === 'super_admin'
+                createdBy: currentUser.role === 'admin' || currentUser.role === 'super_admin' 
                     ? doctorId  // Use doctor's ID
                     : currentUser._id,  // Use current user's ID
                 doctorId: doctorId,            // ✅ Use assigned doctor ID
@@ -540,8 +568,8 @@ export const storeFinalizedReport = async (req, res) => {
                 message: requiresVerification
                     ? 'Report sent for verification successfully'
                     : wasPreviouslyDownloaded
-                        ? 'Report marked for reprint'
-                        : 'Report finalized successfully',
+                    ? 'Report marked for reprint'
+                    : 'Report finalized successfully',
                 data: {
                     reportId: savedReport._id,
                     documentId: savedReport.reportId,
@@ -555,8 +583,8 @@ export const storeFinalizedReport = async (req, res) => {
                     nextStep: requiresVerification
                         ? 'Report sent to verifier for approval'
                         : wasPreviouslyDownloaded
-                            ? 'Report marked for reprint — will be processed'
-                            : 'Report completed and ready for download'
+                        ? 'Report marked for reprint — will be processed'
+                        : 'Report completed and ready for download'
                 }
             });
 
@@ -583,7 +611,7 @@ export const storeFinalizedReport = async (req, res) => {
 export const storeMultipleReports = async (req, res) => {
     try {
         const { studyId } = req.params;
-        const {
+        const { 
             reports = [],  // Array of report objects
             overwrite = false
         } = req.body;
@@ -678,22 +706,20 @@ export const storeMultipleReports = async (req, res) => {
                 fullName: study.patientInfo?.patientName || study.patient?.fullName || 'Unknown Patient',
                 patientName: study.patientInfo?.patientName || study.patient?.fullName || 'Unknown Patient',
                 age: study.patientInfo?.age || study.patient?.age || 'N/A',
-                gender: study.patient?.gender ||
-                    study.patientInfo?.gender ||
-                    placeholders?.['--agegender--']?.split(' / ')[1] || 'N/A',
+                gender: study.patient?.gender || 
+                       study.patientInfo?.gender || 
+                       placeholders?.['--agegender--']?.split(' / ')[1] || 'N/A',
                 dateOfBirth: study.patient?.dateOfBirth,
-                clinicalHistory: study.clinicalHistory?.clinicalHistory ||
-                    study.patient?.clinicalHistory || 'N/A'
+                clinicalHistory: study.clinicalHistory?.clinicalHistory || 
+                               study.patient?.clinicalHistory || 'N/A'
             };
 
-            const referringPhysicianData = study.referringPhysician ||
-                study.referringPhysicianName ||
-                'N/A';
-            const referringPhysicianName = typeof referringPhysicianData === 'string'
-                ? referringPhysicianData
-                : typeof referringPhysicianData === 'object' && referringPhysicianData?.name
-                    ? referringPhysicianData.name
-                    : 'N/A';
+            const referringPhysicianName = (
+                (typeof study.referringPhysician === 'object' && study.referringPhysician?.name?.trim()) ||
+                (typeof study.referringPhysician === 'string' && study.referringPhysician.trim()) ||
+                study.referringPhysicianName?.trim() ||
+                'N/A'
+            );
 
             // ✅ FILENAME: Use doctor name (not admin)
             const patientNameForFilename = (study.patientInfo?.patientName || study.patient?.fullName || 'unknown_patient')
@@ -712,10 +738,13 @@ export const storeMultipleReports = async (req, res) => {
                     console.log(`🔍 [Multi-Report] Report ${reportNumber}: existingReportId=${reportData.existingReportId} → found=${!!existingReport}`);
                 }
 
-                const fileNameForReport = existingReport?.exportInfo?.fileName ||
-                    (reports.length > 1
-                        ? `${patientNameForFilename}_report_${reportNumber}_${Date.now()}.docx`
-                        : `${patientNameForFilename}_final_${Date.now()}.docx`);
+                // ✅ FIX: Always generate a proper finalized filename.
+                // The old code used existingReport.exportInfo.fileName which
+                // carried the draft/autosave name (e.g. _autosave_123.docx),
+                // causing finalized reports to show "draft" in their name.
+                const fileNameForReport = reports.length > 1
+                    ? `${patientNameForFilename}_report_${reportNumber}_${Date.now()}.docx`
+                    : `${patientNameForFilename}_final_${Date.now()}.docx`;
 
                 const reportFields = {
                     reportId: existingReport?.reportId || `RPT_${studyId}_${reportNumber}_${Date.now()}`,
@@ -858,8 +887,8 @@ export const storeMultipleReports = async (req, res) => {
                     totalReports: savedReports.length,
                     studyWorkflowStatus: study.workflowStatus,
                     requiresVerification: requiresVerification,
-                    nextStep: requiresVerification
-                        ? 'Reports sent to verifier for approval'
+                    nextStep: requiresVerification 
+                        ? 'Reports sent to verifier for approval' 
                         : 'Reports completed and ready for download'
                 }
             });
@@ -889,7 +918,7 @@ export const getStudyReports = async (req, res) => {
         const { studyId } = req.params;
         const currentUser = req.user;
         const needsFullContent = req.path.includes('all-reports');
-
+        
         console.log('📄 [Get Reports] Fetching reports for study:', studyId, { needsFullContent });
 
         if (!studyId || !mongoose.Types.ObjectId.isValid(studyId)) {
@@ -902,11 +931,11 @@ export const getStudyReports = async (req, res) => {
             organizationIdentifier: currentUser.organizationIdentifier
             // ❌ REMOVED: reportStatus filter — was excluding verified reports
         })
-            .populate('doctorId', 'fullName email role')
-            .populate('verifierId', 'fullName email role')
-            .populate('createdBy', 'fullName email role')
-            .sort({ createdAt: 1 }) // ✅ ASC so Report 1 is oldest, Report 2 is newest
-            .lean();
+        .populate('doctorId', 'fullName email role')
+        .populate('verifierId', 'fullName email role')
+        .populate('createdBy', 'fullName email role')
+        .sort({ createdAt: 1 }) // ✅ ASC so Report 1 is oldest, Report 2 is newest
+        .lean();
 
         console.log('📄 [Get Reports] Found reports:', reports.length);
 
@@ -998,10 +1027,10 @@ export const getAllReportsWithContent = async (req, res) => {
             organizationIdentifier: currentUser.organizationIdentifier
             // ❌ REMOVED: reportStatus filter
         })
-            .populate('doctorId', 'fullName email role')
-            .populate('createdBy', 'fullName email role')
-            .sort({ createdAt: 1 })
-            .lean();
+        .populate('doctorId', 'fullName email role')
+        .populate('createdBy', 'fullName email role')
+        .sort({ createdAt: 1 })
+        .lean();
 
         console.log('📄 [All Reports] Found:', reports.length, 'reports');
         reports.forEach((r, i) => {
@@ -1053,7 +1082,7 @@ export const downloadReport = async (req, res) => {
     try {
         const { reportId } = req.params;
         const currentUser = req.user;
-
+        
         console.log('⬇️ [Download Report] Starting download for report:', reportId);
 
         if (!reportId || !mongoose.Types.ObjectId.isValid(reportId)) {
@@ -1114,7 +1143,7 @@ export const downloadReport = async (req, res) => {
 const updateStudyReportStatus = async (study, report, session) => {
     try {
         console.log('🔄 [Helper] Updating study report status for study:', study._id);
-
+        
         // Update current report status
         study.currentReportStatus = {
             hasReports: true,
@@ -1133,12 +1162,12 @@ const updateStudyReportStatus = async (study, report, session) => {
         if (!study.reportInfo.modernReports) {
             study.reportInfo.modernReports = [];
         }
-
+        
         // ✅ FIX: Check if report already exists to avoid duplicates
         const reportExists = study.reportInfo.modernReports.some(
             r => r.reportId?.toString() === report._id.toString()
         );
-
+        
         if (!reportExists) {
             study.reportInfo.modernReports.push({
                 reportId: report._id,
@@ -1151,12 +1180,12 @@ const updateStudyReportStatus = async (study, report, session) => {
         if (!study.reports) {
             study.reports = [];
         }
-
+        
         // ✅ FIX: Check if report already exists to avoid duplicates
         const legacyReportExists = study.reports.some(
             r => r.reportId?.toString() === report._id.toString()
         );
-
+        
         if (!legacyReportExists) {
             study.reports.push({
                 reportId: report._id,
@@ -1169,7 +1198,7 @@ const updateStudyReportStatus = async (study, report, session) => {
 
         // ✅ CRITICAL FIX: Save the study with session
         await study.save({ session });
-
+        
         console.log('✅ [Helper] Study report status updated and saved:', {
             hasReports: study.currentReportStatus.hasReports,
             reportCount: study.currentReportStatus.reportCount,
@@ -1199,7 +1228,7 @@ export const getReportForEditing = async (req, res) => {
 
         // Find the report to edit
         let report;
-
+        
         if (reportId) {
             // ✅ Get specific report by ID
             console.log('📝 [Report Edit] Loading specific report:', reportId);
@@ -1207,14 +1236,14 @@ export const getReportForEditing = async (req, res) => {
                 .populate('doctorId', 'fullName email')
                 .populate('patient', 'fullName patientId')
                 .populate('dicomStudy');
-
+                
             if (!report) {
                 return res.status(404).json({
                     success: false,
                     message: 'Specific report not found'
                 });
             }
-
+            
             // Verify the report belongs to the specified study
             if (report.dicomStudy._id.toString() !== studyId) {
                 return res.status(400).json({
@@ -1229,14 +1258,14 @@ export const getReportForEditing = async (req, res) => {
                 reportStatus: { $in: ['draft', 'report_drafted', 'finalized', 'verified', 'report_verified'] },
                 organizationIdentifier: currentUser.organizationIdentifier
             })
-                .sort({
-                    // Prioritize finalized reports for verification
-                    reportStatus: 1, // 'draft' < 'finalized' alphabetically
-                    createdAt: -1
-                })
-                .populate('doctorId', 'fullName email')
-                .populate('patient', 'fullName patientId')
-                .populate('dicomStudy');
+            .sort({ 
+                // Prioritize finalized reports for verification
+                reportStatus: 1, // 'draft' < 'finalized' alphabetically
+                createdAt: -1 
+            })
+            .populate('doctorId', 'fullName email')
+            .populate('patient', 'fullName patientId')
+            .populate('dicomStudy');
         }
 
         if (!report) {
@@ -1302,6 +1331,7 @@ export const getReportForEditing = async (req, res) => {
 // ✅ DELETE REPORT
 export const deleteReport = async (req, res) => {
     try {
+        console.log('🗑️ [Delete Report] Deleting report:', req.params.reportId);
         const { reportId } = req.params;
         const user = req.user;
 
@@ -1312,15 +1342,28 @@ export const deleteReport = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Access denied' });
         }
 
-        // Remove references from DicomStudy
+        // Remove references from DicomStudy and update report count
         await DicomStudy.findByIdAndUpdate(report.dicomStudy, {
             $pull: {
                 reports: { reportId: report._id },
                 'reportInfo.modernReports': { reportId: report._id }
-            }
+            },
+            $inc: { 'currentReportStatus.reportCount': -1 }
         });
 
         await Report.findByIdAndDelete(reportId);
+
+        // Update remaining report count metadata
+        const remainingCount = await Report.countDocuments({ dicomStudy: report.dicomStudy });
+        await DicomStudy.findByIdAndUpdate(report.dicomStudy, {
+            $set: {
+                'currentReportStatus.hasReports': remainingCount > 0,
+                'currentReportStatus.reportCount': remainingCount,
+                'reportInfo.multipleReports': remainingCount > 1,
+                'reportInfo.reportCount': remainingCount
+            }
+        });
+
         res.json({ success: true, message: 'Report deleted successfully' });
     } catch (error) {
         console.error('❌ Error deleting report:', error);
