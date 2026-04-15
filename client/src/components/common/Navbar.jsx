@@ -503,8 +503,8 @@ const Navbar = ({
                     </div>
                     <a
                       href={is64
-                        ? "https://drive.google.com/file/d/1oZQEk7kbO6Ln260g5pwTMmS45LjtwGKs/view?usp=sharing"
-                        : "https://drive.google.com/file/d/1oZQEk7kbO6Ln260g5pwTMmS45LjtwGKs/view?usp=sharing"
+                        ? "https://drive.google.com/file/d/1cda0W9_X1Ty4NcVzjp6NDDTiVHOkOXT5/view?usp=sharing"
+                        : "https://drive.google.com/file/d/1cda0W9_X1Ty4NcVzjp6NDDTiVHOkOXT5/view?usp=sharing"
                       }
                       target="_blank"
                       rel="noopener noreferrer"
