@@ -112,18 +112,9 @@ thead tr:not([class*="bg-gradient"]) {
    of file to load after all Tailwind styles
    ============================================ */
 thead tr th {
-    color: #374151 !important;
-    background-color: #f9fafb !important;
-}
-
-thead tr {
-    color: #374151 !important;
-    background-color: #f9fafb !important;
-}
-
-thead tr[class*="bg-gradient"] {
+    color: var(--worklist-header-fg, #374151) !important;
     background-color: transparent !important;
-    color: white !important;
+    background-image: var(--worklist-header-bg, none) !important;
 }
 
 thead tr[class*="bg-gradient"] th {

@@ -103,7 +103,8 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
         'http://206.189.133.52:8080',
         'https://pacs.bharatpacs.com',
         'http://159.89.165.112:5003',
-        'https://radivue.xcentic.com'
+        'https://radivue.xcentic.com',
+        'https://henriette-nonincreasable-stubbily.ngrok-free.dev'
 
 
 
@@ -127,7 +128,8 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
         'http://206.189.133.52:8080',
                 'https://pacs.bharatpacs.com',
                 'http://159.89.165.112:5003',
-                'https://radivue.xcentic.com'
+                'https://radivue.xcentic.com',
+                'https://henriette-nonincreasable-stubbily.ngrok-free.dev'
 
 
       ];

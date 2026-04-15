@@ -67,7 +67,10 @@ const HeaderColorPicker = ({ isOpen, onClose, currentColor, onSelectColor }) => 
                     : 'border-gray-200 hover:border-gray-400'
                   }`}
               >
-                <div className={`h-6 rounded bg-gradient-to-r ${preset.gradient} flex items-center justify-center ${preset.textColor} text-[10px] font-semibold`}>
+                <div
+                  className="h-6 rounded flex items-center justify-center text-white text-[10px] font-semibold"
+                  style={{ backgroundImage: preset.css }}
+                >
                   {preset.name}
                 </div>
                 {currentColor.name === preset.name && (
