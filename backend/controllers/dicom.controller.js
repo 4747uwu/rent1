@@ -404,6 +404,197 @@ export const refreshStudyDownloadUrl = async (req, res) => {
     }
 };
 
+export const uploadZipFromUrl = async (req, res) => {
+  console.log('\n======================================================');
+  console.log('🚀 [ZIP URL Upload] INCOMING REQUEST INITIATED');
+  console.log('======================================================');
+  
+  try {
+    const { zipUrl, labId, organizationId, reportId, patientName, patientId, authCookie } = req.body;
+
+    console.log('📦 [ZIP URL Upload] Payload Received:', { 
+      hasZipUrl: !!zipUrl, 
+      labId, 
+      organizationId,
+      reportId,
+      patientName,
+      hasAuthCookie: !!authCookie
+    });
+
+    if (!zipUrl || !labId) {
+      console.warn('⚠️ [ZIP URL Upload] Missing required fields: zipUrl or labId');
+      return res.status(400).json({ success: false, message: 'zipUrl and labId are required' });
+    }
+
+    // --- 1. Database Validation ---
+    console.log('🔍 [ZIP URL Upload] Validating Lab and Organization...');
+    let lab = null;
+    if (labId) {
+      if (labId.match(/^[0-9a-fA-F]{24}$/)) {
+        lab = await Lab.findById(labId).populate('organization');
+      }
+      if (!lab) {
+        lab = await Lab.findOne({ identifier: String(labId).trim().toUpperCase() }).populate('organization');
+      }
+    }
+
+    if (!lab) {
+      console.warn(`❌ [ZIP URL Upload] Lab not found for ID: ${labId}`);
+      return res.status(404).json({ success: false, message: 'Lab not found' });
+    }
+
+    const organization = await Organization.findById(lab.organization);
+    if (!organization) {
+      console.warn(`❌ [ZIP URL Upload] Organization not found for Lab: ${lab.name}`);
+      return res.status(404).json({ success: false, message: 'Organization not found' });
+    }
+
+    if (organizationId && String(organization._id) !== String(organizationId)) {
+      console.warn(`❌ [ZIP URL Upload] Org mismatch. Expected: ${organization._id}, Got: ${organizationId}`);
+      return res.status(400).json({ success: false, message: 'organizationId does not match selected lab organization' });
+    }
+
+    const labLocation = buildLabLocation(lab);
+    console.log(`✅ [ZIP URL Upload] Validation Passed. Lab: [${lab.name}], Org: [${organization.name}]`);
+
+    // --- 2. Downloading the ZIP ---
+    console.log('\n🌐 [ZIP URL Upload] Starting Axios GET request to download ZIP...');
+    console.log(`🔗 [ZIP URL Upload] Target URL: ${zipUrl.substring(0, 100)}...`); 
+
+    const requestHeaders = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Connection': 'keep-alive',
+      'Upgrade-Insecure-Requests': '1'
+    };
+
+    if (authCookie) {
+      requestHeaders['Cookie'] = authCookie;
+      console.log('🍪 [ZIP URL Upload] Attached Auth Cookies from Browser!');
+    }
+
+    const httpsAgent = new https.Agent({
+      rejectUnauthorized: false 
+    });
+
+    const zipResp = await axios.get(zipUrl, {
+      responseType: 'stream', 
+      timeout: 300000, 
+      maxRedirects: 5,
+      httpsAgent: httpsAgent,
+      headers: requestHeaders
+    });
+
+    console.log(`✅ [ZIP URL Upload] Headers received! HTTP Status: ${zipResp.status}`);
+
+    // Safely consume the dynamic stream into a memory buffer
+    console.log('⏳ [ZIP URL Upload] Streaming file data into memory...');
+    let chunks = []; // Using let so we can garbage collect it
+    for await (const chunk of zipResp.data) {
+      chunks.push(chunk);
+    }
+    
+    let zipBuffer = Buffer.concat(chunks);
+    
+    // 🧹 AGGRESSIVE MEMORY CLEANUP #1
+    chunks.length = 0; 
+    chunks = null; 
+
+    const fileSizeMB = (zipBuffer.length / (1024 * 1024)).toFixed(2);
+    console.log(`📏 [ZIP URL Upload] Buffer completed. Final File Size: ${fileSizeMB} MB`);
+
+    if (zipBuffer.length < 5000) {
+      console.warn(`⚠️ [ZIP URL Upload] Warning: File is suspiciously small (${fileSizeMB} MB). Ensure the PACS router is not blocking the server IP.`);
+    }
+
+    const fileName = deriveFileNameFromUrl(zipUrl, `FREEDOM_${Date.now()}.zip`);
+
+    // --- 3. Forwarding to Python ---
+    console.log('\n🏗️ [ZIP URL Upload] Building FormData for Python pipeline...');
+    
+    let formData = new FormData();
+    let zipBlob = new Blob([zipBuffer], { type: 'application/zip' });
+    
+    formData.append('zipFile', zipBlob, fileName);
+    formData.append('organization', organization.name);
+    formData.append('labName', lab.name);
+    formData.append('labIdentifier', lab.identifier || '');
+    formData.append('labLocation', labLocation);
+
+    console.log(`🐍 [ZIP URL Upload] Pushing ${fileSizeMB} MB payload to Python Server (${PYTHON_SERVER_URL}/upload-zip-to-orthanc)...`);
+    
+    const pyResp = await axios.post(
+      `${PYTHON_SERVER_URL}/upload-zip-to-orthanc`,
+      formData,
+      {
+        headers: {
+          'Accept': 'application/json'
+        },
+        timeout: 600000, 
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity
+      }
+    );
+
+    // 🧹 AGGRESSIVE MEMORY CLEANUP #2: Destroy the massive objects the millisecond Python responds
+    zipBuffer = null;
+    zipBlob = null;
+    formData = null;
+
+    console.log(`✅ [ZIP URL Upload] Python Server responded with Status: ${pyResp.status}`);
+    
+    if (!pyResp.data?.success) {
+      console.error('❌ [ZIP URL Upload] Python pipeline reported failure:', pyResp.data?.message);
+      return res.status(500).json({
+        success: false,
+        message: pyResp.data?.message || 'Python ZIP pipeline failed'
+      });
+    }
+
+    console.log(`🎉 [ZIP URL Upload] SUCCESS! Extracted ${pyResp.data?.uploadedFiles?.length || 0} files.`);
+    console.log('======================================================\n');
+
+    return res.status(201).json({
+      success: true,
+      message: 'ZIP URL processed successfully',
+      data: {
+        sourceZipUrl: zipUrl,
+        downloadedFileName: fileName,
+        organization: organization.name,
+        labName: lab.name,
+        labIdentifier: lab.identifier || '',
+        labLocation,
+        extractedData: pyResp.data?.extractedData || null,
+        uploadedFiles: pyResp.data?.uploadedFiles?.length || 0,
+        failedFiles: pyResp.data?.failedFiles?.length || 0,
+        nodejsBackendResponse: pyResp.data?.nodejsBackendResponse || null
+      }
+    });
+
+  } catch (error) {
+    console.log('\n======================================================');
+    console.error('🔥 [ZIP URL Upload] FATAL ERROR CAUGHT:');
+    
+    if (error.response) {
+      console.error(`   Status: ${error.response.status}`);
+      console.error(`   Data:`, error.response.data);
+    } else if (error.request) {
+      console.error(`   No response received. Is the target server down?`);
+      console.error(`   Message: ${error.message}`);
+    } else {
+      console.error(`   Error Message: ${error.message}`);
+    }
+    console.log('======================================================\n');
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to process ZIP from URL',
+      error: error?.response?.data?.message || error.message
+    });
+  }
+};
+
 // Helper function to parse DICOM date format (YYYYMMDD) to Date object
 function parseDate(dicomDate) {
     if (!dicomDate || dicomDate.length < 8) return null;
