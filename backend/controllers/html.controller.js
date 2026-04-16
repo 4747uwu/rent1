@@ -322,6 +322,92 @@ class HTMLTemplateController {
     }
   }
 
+  // ✅ Get super_global templates (created by super_admin, available to all orgs)
+  static async getCrossOrgGlobalTemplates(req, res) {
+    try {
+      const { category, search, limit = 100 } = req.query;
+
+      const query = { templateScope: 'super_global', isActive: true };
+      if (category && category !== 'all') query.category = category;
+      if (search && search.trim()) {
+        query.$or = [
+          { title: { $regex: search.trim(), $options: 'i' } },
+          { 'templateMetadata.description': { $regex: search.trim(), $options: 'i' } }
+        ];
+      }
+
+      const templates = await HTMLTemplate.find(query)
+        .populate('createdBy', 'fullName email')
+        .sort({ 'templateMetadata.isDefault': -1, createdAt: -1 })
+        .limit(parseInt(limit))
+        .lean();
+
+      const grouped = templates.reduce((acc, t) => {
+        const cat = t.category || 'Other';
+        if (!acc[cat]) acc[cat] = [];
+        acc[cat].push(t);
+        return acc;
+      }, {});
+
+      res.json({ success: true, data: { templates: grouped, count: templates.length } });
+    } catch (error) {
+      console.error('Error fetching cross-org global templates:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch templates', error: error.message });
+    }
+  }
+
+  // ✅ Get organization-level global templates
+  static async getOrgGlobalTemplates(req, res) {
+    try {
+      const organizationIdentifier = req.user.organizationIdentifier || 'default';
+      const { category, search, page = 1, limit = 100 } = req.query;
+
+      let query = {
+        organizationIdentifier,
+        templateScope: 'global',
+        isActive: true
+      };
+
+      if (category && category !== 'all') query.category = category;
+      if (search && search.trim()) {
+        query.$or = [
+          { title: { $regex: search.trim(), $options: 'i' } },
+          { 'templateMetadata.description': { $regex: search.trim(), $options: 'i' } }
+        ];
+      }
+
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+      const [templates, totalCount] = await Promise.all([
+        HTMLTemplate.find(query)
+          .populate('createdBy', 'fullName email role')
+          .sort({ 'templateMetadata.isDefault': -1, createdAt: -1 })
+          .skip(skip)
+          .limit(parseInt(limit))
+          .lean(),
+        HTMLTemplate.countDocuments(query)
+      ]);
+
+      const groupedTemplates = templates.reduce((acc, t) => {
+        const cat = t.category || 'Other';
+        if (!acc[cat]) acc[cat] = [];
+        acc[cat].push(t);
+        return acc;
+      }, {});
+
+      res.json({
+        success: true,
+        data: {
+          templates: groupedTemplates,
+          count: templates.length,
+          pagination: { current: parseInt(page), total: Math.ceil(totalCount / parseInt(limit)), totalCount }
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching org global templates:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch templates', error: error.message });
+    }
+  }
+
   // ✅ NEW: Get doctor-specific templates
   static async getDoctorTemplates(req, res) {
     try {
@@ -412,13 +498,14 @@ class HTMLTemplateController {
       console.log(`🌐 [All Templates] Fetching accessible templates for: ${req.user.fullName}`);
 
       let query = {
-        organizationIdentifier,
         isActive: true,
         $or: [
-          { templateScope: 'global' },
-          { 
-            templateScope: 'doctor_specific', 
-            assignedDoctor: userId 
+          { templateScope: 'super_global' },
+          { templateScope: 'global', organizationIdentifier },
+          {
+            templateScope: 'doctor_specific',
+            organizationIdentifier,
+            assignedDoctor: userId
           }
         ]
       };
@@ -475,17 +562,20 @@ class HTMLTemplateController {
         const category = template.category || 'Other';
         if (!acc[category]) {
           acc[category] = {
+            super_global: [],
             global: [],
             personal: []
           };
         }
-        
-        if (template.templateScope === 'global') {
+
+        if (template.templateScope === 'super_global') {
+          acc[category].super_global.push(template);
+        } else if (template.templateScope === 'global') {
           acc[category].global.push(template);
         } else {
           acc[category].personal.push(template);
         }
-        
+
         return acc;
       }, {});
 
@@ -506,6 +596,7 @@ class HTMLTemplateController {
             search: search || ''
           },
           stats: {
+            superGlobalCount: templates.filter(t => t.templateScope === 'super_global').length,
             globalCount: templates.filter(t => t.templateScope === 'global').length,
             personalCount: templates.filter(t => t.templateScope === 'doctor_specific').length
           }
@@ -522,9 +613,133 @@ class HTMLTemplateController {
     }
   }
 
+  // ✅ Get all super_global templates (for super_admin management)
+  static async getSuperGlobalTemplates(req, res) {
+    try {
+      const { category, search, page = 1, limit = 50 } = req.query;
 
+      const filter = { templateScope: 'super_global', isActive: true };
+      if (category && category !== 'all') filter.category = category;
+      if (search) {
+        filter.$or = [
+          { title: { $regex: search, $options: 'i' } },
+          { 'templateMetadata.description': { $regex: search, $options: 'i' } }
+        ];
+      }
 
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+      const [templates, totalCount] = await Promise.all([
+        HTMLTemplate.find(filter)
+          .populate('createdBy', 'fullName email role')
+          .sort({ updatedAt: -1 })
+          .skip(skip)
+          .limit(parseInt(limit))
+          .lean(),
+        HTMLTemplate.countDocuments(filter)
+      ]);
 
+      res.json({
+        success: true,
+        data: {
+          templates,
+          pagination: { current: parseInt(page), pages: Math.ceil(totalCount / parseInt(limit)), total: totalCount }
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching super global templates:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch templates', error: error.message });
+    }
+  }
+
+  // ✅ Create a super_global template (super_admin only)
+  static async createSuperGlobalTemplate(req, res) {
+    try {
+      if (req.user.role !== 'super_admin') {
+        return res.status(403).json({ success: false, message: 'Only super admins can create global templates' });
+      }
+
+      const { title, category, htmlContent, templateMetadata } = req.body;
+      if (!title || !category || !htmlContent) {
+        return res.status(400).json({ success: false, message: 'Title, category, and HTML content are required' });
+      }
+
+      const existing = await HTMLTemplate.findOne({ title: title.trim(), templateScope: 'super_global', isActive: true });
+      if (existing) {
+        return res.status(400).json({ success: false, message: 'A super global template with this title already exists' });
+      }
+
+      const template = new HTMLTemplate({
+        title: title.trim(),
+        category,
+        htmlContent,
+        createdBy: req.user.id,
+        templateScope: 'super_global',
+        organizationIdentifier: 'super_global',
+        assignedDoctor: null,
+        templateMetadata: templateMetadata || {}
+      });
+
+      await template.save();
+      await template.populate('createdBy', 'fullName email');
+
+      res.status(201).json({ success: true, message: 'Super global template created', data: template });
+    } catch (error) {
+      console.error('Error creating super global template:', error);
+      res.status(500).json({ success: false, message: 'Failed to create template', error: error.message });
+    }
+  }
+
+  // ✅ Update a super_global template (super_admin only)
+  static async updateSuperGlobalTemplate(req, res) {
+    try {
+      if (req.user.role !== 'super_admin') {
+        return res.status(403).json({ success: false, message: 'Only super admins can update global templates' });
+      }
+
+      const { templateId } = req.params;
+      const { title, category, htmlContent, templateMetadata } = req.body;
+
+      const template = await HTMLTemplate.findOne({ _id: templateId, templateScope: 'super_global' });
+      if (!template) {
+        return res.status(404).json({ success: false, message: 'Template not found' });
+      }
+
+      if (title) template.title = title.trim();
+      if (category) template.category = category;
+      if (htmlContent) template.htmlContent = htmlContent;
+      if (templateMetadata) {
+        template.templateMetadata = { ...template.templateMetadata, ...templateMetadata };
+      }
+
+      await template.save();
+      res.json({ success: true, message: 'Template updated', data: template });
+    } catch (error) {
+      console.error('Error updating super global template:', error);
+      res.status(500).json({ success: false, message: 'Failed to update template', error: error.message });
+    }
+  }
+
+  // ✅ Delete a super_global template (super_admin only)
+  static async deleteSuperGlobalTemplate(req, res) {
+    try {
+      if (req.user.role !== 'super_admin') {
+        return res.status(403).json({ success: false, message: 'Only super admins can delete global templates' });
+      }
+
+      const { templateId } = req.params;
+      const template = await HTMLTemplate.findOne({ _id: templateId, templateScope: 'super_global' });
+      if (!template) {
+        return res.status(404).json({ success: false, message: 'Template not found' });
+      }
+
+      template.isActive = false;
+      await template.save();
+      res.json({ success: true, message: 'Template deleted' });
+    } catch (error) {
+      console.error('Error deleting super global template:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete template', error: error.message });
+    }
+  }
 }
 
 export default HTMLTemplateController;

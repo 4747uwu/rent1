@@ -49,8 +49,18 @@ router.delete('/:templateId',
   HTMLTemplateController.deleteTemplate
 );
 
+// Get cross-org global templates (super_global, created by super_admin)
+router.get('/doctor/global-templates',
+  HTMLTemplateController.getCrossOrgGlobalTemplates
+);
+
+// Get organization-level global templates
+router.get('/doctor/org-templates',
+  HTMLTemplateController.getOrgGlobalTemplates
+);
+
 // ✅ NEW: Get doctor-specific templates
-router.get('/doctor/my-templates', 
+router.get('/doctor/my-templates',
   HTMLTemplateController.getDoctorTemplates
 );
 

@@ -48,10 +48,10 @@ const htmlTemplateSchema = new mongoose.Schema({
     index: true
   },
   
-  // ✅ NEW: Template scope - global or doctor-specific
+  // ✅ NEW: Template scope - global, doctor-specific, or super_global (cross-org)
   templateScope: {
     type: String,
-    enum: ['global', 'doctor_specific'],
+    enum: ['global', 'doctor_specific', 'super_global'],
     required: true,
     default: 'doctor_specific',
     index: true
@@ -61,6 +61,7 @@ const htmlTemplateSchema = new mongoose.Schema({
   organizationIdentifier: {
     type: String,
     required: true,
+    default: 'global',
     index: true
   },
   
@@ -187,21 +188,22 @@ htmlTemplateSchema.virtual('accessLevel').get(function() {
 // ✅ STATIC METHOD: Find templates accessible to a doctor
 htmlTemplateSchema.statics.findAccessibleTemplates = function(doctorId, organizationIdentifier, category = null) {
   const query = {
-    organizationIdentifier,
     isActive: true,
     $or: [
-      { templateScope: 'global' },
-      { 
-        templateScope: 'doctor_specific', 
-        assignedDoctor: new mongoose.Types.ObjectId(doctorId) 
+      { templateScope: 'super_global' },
+      { templateScope: 'global', organizationIdentifier },
+      {
+        templateScope: 'doctor_specific',
+        organizationIdentifier,
+        assignedDoctor: new mongoose.Types.ObjectId(doctorId)
       }
     ]
   };
-  
+
   if (category && category !== 'all') {
     query.category = category;
   }
-  
+
   return this.find(query)
     .populate('createdBy', 'fullName email role')
     .populate('assignedDoctor', 'fullName email')
@@ -229,30 +231,34 @@ htmlTemplateSchema.methods.recordUsage = function() {
 
 // ✅ INSTANCE METHOD: Check if doctor can access this template
 htmlTemplateSchema.methods.canDoctorAccess = function(doctorId, organizationIdentifier) {
+  if (this.templateScope === 'super_global') {
+    return true;
+  }
+
   if (this.organizationIdentifier !== organizationIdentifier) {
     return false;
   }
-  
+
   if (this.templateScope === 'global') {
     return true;
   }
-  
-  if (this.templateScope === 'doctor_specific' && 
-      this.assignedDoctor && 
+
+  if (this.templateScope === 'doctor_specific' &&
+      this.assignedDoctor &&
       this.assignedDoctor.toString() === doctorId.toString()) {
     return true;
   }
-  
+
   return false;
 };
 
 // ✅ PRE-SAVE MIDDLEWARE: Set template scope based on creator role
 htmlTemplateSchema.pre('save', async function(next) {
-  if (this.isNew) {
+  if (this.isNew && this.templateScope !== 'super_global') {
     try {
       const User = mongoose.model('User');
       const creator = await User.findById(this.createdBy);
-      
+
       if (creator && creator.role === 'admin') {
         this.templateScope = 'global';
         this.assignedDoctor = null; // Global templates don't have assigned doctors
@@ -269,14 +275,14 @@ htmlTemplateSchema.pre('save', async function(next) {
 
 // ✅ PRE-SAVE MIDDLEWARE: Validate template scope consistency
 htmlTemplateSchema.pre('save', function(next) {
-  if (this.templateScope === 'global' && this.assignedDoctor) {
-    this.assignedDoctor = null; // Global templates shouldn't have assigned doctors
+  if ((this.templateScope === 'global' || this.templateScope === 'super_global') && this.assignedDoctor) {
+    this.assignedDoctor = null;
   }
-  
+
   if (this.templateScope === 'doctor_specific' && !this.assignedDoctor) {
     return next(new Error('Doctor-specific templates must have an assigned doctor'));
   }
-  
+
   next();
 });
 
