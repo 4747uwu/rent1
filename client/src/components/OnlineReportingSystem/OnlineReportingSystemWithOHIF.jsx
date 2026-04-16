@@ -308,9 +308,9 @@ const OnlineReportingSystemWithOHIF = () => {
 
         if (studyInstanceUID) {
           const OHIF_VIEWERS = {
-            viewer1: 'https://viewer.bharatpacs.com/viewer',
-            viewer2: 'https://viewer2.bharatpacs.com/viewer',
-          };
+        viewer1: 'https://viewer.xcentic.com/viewer',
+        viewer2: 'https://viewer2.xcentic.com/viewer',
+      };
 
           const viewerPref = urlParams.get('viewer') || localStorage.getItem('preferredOhifViewer') || 'viewer1';
           let studyUIDs = Array.isArray(studyInstanceUID) ? studyInstanceUID.join(',') : (typeof studyInstanceUID === 'string' && studyInstanceUID.trim()) ? studyInstanceUID.trim() : orthancStudyID;
