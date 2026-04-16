@@ -10,8 +10,8 @@ const connectDB = async () => {
         // const MONGODB_URI ='mongodb://appuser:apppassword@mongo:27017/order2?replicaSet=rs0&authSource=admin';
         // const MONGODB_URI ='mongodb://appuser:apppassword@206.189.133.52:27017/order2?authSource=admin&directConnection=true';
         // const MONGODB_URI ='mongodb+srv://pawrangerskyler_db_user:y7zV2rO5KRfPO5Hs@cluster0.ku1pxkx.mongodb.net/order2?retryWrites=true&w=majority&appName=Cluster0';
-        const MONGODB_URI = 'mongodb://admin:StrongPass123!@mongorent:27017/orderent?authSource=admin&replicaSet=rs0';
-        // const MONGODB_URI = 'mongodb://admin:StrongPass123!@159.89.165.112:27018/orderent?authSource=admin&replicaSet=rs0&directConnection=true';
+        // const MONGODB_URI = 'mongodb://admin:StrongPass123!@mongorent:27017/orderent?authSource=admin&replicaSet=rs0';
+        const MONGODB_URI = 'mongodb://admin:StrongPass123!@159.89.165.112:27018/orderent?authSource=admin&replicaSet=rs0&directConnection=true';
 
         // mongodb://appuser:apppassword@localhost:27017/order2?replicaSet=rs0&authSource=order2
 
