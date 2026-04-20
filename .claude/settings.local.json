@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/fetchStudy.js)",
+      "Bash(node -e \"console.log\\(Object.keys\\(require\\('./package.json'\\).dependencies\\).filter\\(k=>k.includes\\('aws'\\)||k.includes\\('s3'\\)||k.includes\\('axios'\\)\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(node scripts/recreateZip.js)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" -u alice:alicePassword http://159.89.165.112:8043/system)",
+      "Bash(curl -s -u alice:alicePassword \"http://159.89.165.112:8043/studies\")",
+      "Bash(curl -s -u alice:alicePassword -X POST \"http://159.89.165.112:8043/tools/find\" -H \"Content-Type: application/json\" -d \"{\\\\\"Level\\\\\":\\\\\"Study\\\\\",\\\\\"Query\\\\\":{\\\\\"StudyInstanceUID\\\\\":\\\\\"1.3.46.670589.11.10116.5.0.6272.2026042013330985098\\\\\"}}\")",
+      "Bash(node scripts/copyZipToStudy.js)",
+      "Bash(node scripts/findDuplicateStudies.js)",
+      "Bash(node scripts/dedupeStudies.js)",
+      "Bash(DRY_RUN=false node scripts/dedupeStudies.js)",
+      "Bash(node scripts/buildUniqueIndex.js)",
+      "Bash(DRY_RUN=true node scripts/regenerateAllZips.js)",
+      "Bash(node scripts/regenerateAllZips.js)",
+      "Bash(node scripts/verifyZipSizes.js)"
+    ]
+  }
+}

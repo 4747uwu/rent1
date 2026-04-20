@@ -1072,7 +1072,7 @@ DicomStudySchema.index(
 // #22 - studyInstanceUID (DICOM standard lookup)
 DicomStudySchema.index(
     { studyInstanceUID: 1 },
-    { name: 'idx_studyInstanceUID', sparse: true, background: true }
+    { name: 'idx_studyInstanceUID', unique: true, sparse: true, background: true }
 );
 
 // #23 - orthancStudyID (Orthanc integration lookup)

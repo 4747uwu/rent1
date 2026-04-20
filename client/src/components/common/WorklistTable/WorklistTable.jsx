@@ -36,7 +36,7 @@ const ShareModal = ({ study, isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const studyInstanceUID = study?.studyInstanceUID || study?.studyInstanceUIDs || study?._id || '';
-  const viewerUrl = `hhttps://viewer.xcentic.com/viewer?StudyInstanceUIDs=${encodeURIComponent(studyInstanceUID)}`;
+  const viewerUrl = `https://viewer.xcentic.com/viewer?StudyInstanceUIDs=${encodeURIComponent(studyInstanceUID)}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(viewerUrl).then(() => {
