@@ -69,18 +69,33 @@ const buildDocxPayload = async (report, outputFormat = 'pdf') => {
         } catch (e) { console.warn('⚠️ Failed to fetch doctor data'); }
     }
 
+    const patientIdValue = (
+        report.dicomStudy?.patientInfo?.patientID ||
+        report.dicomStudy?.patientId ||
+        report.patient?.patientID ||
+        report.patientInfo?.patientId ||
+        ''
+    );
+
     const placeholders = {
         '--name--': report.patientInfo?.fullName || report.patient?.fullName || '[Patient Name]',
-        '--patientid--': report.patientInfo?.patientId || report.patient?.patientId || '[Patient ID]',
+        '--patientid--': patientIdValue || '[Patient ID]',
         '--accessionno--': report.accessionNumber || report.dicomStudy?.accessionNumber || '[Accession Number]',
         '--agegender--': `${report.patientInfo?.age || report.patient?.age || '[Age]'} / ${report.patientInfo?.gender || report.patient?.gender || '[Gender]'}`,
         '--referredby--': report.studyInfo?.referringPhysician?.name || report.dicomStudy?.referringPhysician || '[Referring Physician]',
         '--reporteddate--': report.studyInfo?.studyDate
             ? new Date(report.studyInfo.studyDate).toLocaleDateString('en-GB')
             : new Date().toLocaleDateString('en-GB'),
-        '--studydate--': report.createdAt
-            ? new Date(report.createdAt).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
-            : '[Study Date]',
+        '--studydate--': (() => {
+            const reportedAt =
+                report.workflowInfo?.finalizedAt ||
+                report.verificationInfo?.verifiedAt ||
+                report.updatedAt ||
+                report.createdAt;
+            return reportedAt
+                ? new Date(reportedAt).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
+                : '[Study Date]';
+        })(),
         '--modality--': report.studyInfo?.modality || report.dicomStudy?.modality || '[Modality]',
         '--clinicalhistory--': report.patientInfo?.clinicalHistory || '[Clinical History]',
         '--Content--': htmlContent
@@ -151,10 +166,10 @@ const fetchReportsForStudy = async (studyId) => {
         dicomStudy: studyId,
         reportStatus: { $in: ['finalized', 'verified', 'approved'] }
     })
-        .populate('patient', 'fullName patientId age gender')
+        .populate('patient', 'fullName patientId patientID age gender')
         .populate({
             path: 'dicomStudy',
-            select: 'accessionNumber modality studyDate referringPhysician sourceLab _id',
+            select: 'accessionNumber modality studyDate referringPhysician patientInfo patientId sourceLab _id',
             populate: { path: 'sourceLab', model: 'Lab' }
         })
         .populate('doctorId', 'fullName email')
@@ -249,10 +264,10 @@ class ReportDownloadController {
             }
 
             const report = await Report.findById(reportId)
-                .populate('patient', 'fullName patientId age gender')
+                .populate('patient', 'fullName patientId patientID age gender')
                 .populate({
                     path: 'dicomStudy',
-                    select: 'accessionNumber modality studyDate referringPhysician sourceLab _id bharatPacsId workflowStatus',
+                    select: 'accessionNumber modality studyDate referringPhysician patientInfo patientId sourceLab _id bharatPacsId workflowStatus',
                     populate: { path: 'sourceLab', model: 'Lab' }
                 })
                 .populate('doctorId', 'fullName email');
@@ -353,10 +368,10 @@ class ReportDownloadController {
             }
 
             const report = await Report.findById(reportId)
-                .populate('patient', 'fullName patientId age gender')
+                .populate('patient', 'fullName patientId patientID age gender')
                 .populate({
                     path: 'dicomStudy',
-                    select: 'accessionNumber modality studyDate referringPhysician sourceLab _id bharatPacsId workflowStatus',
+                    select: 'accessionNumber modality studyDate referringPhysician patientInfo patientId sourceLab _id bharatPacsId workflowStatus',
                     populate: { path: 'sourceLab', model: 'Lab' }
                 })
                 .populate('doctorId', 'fullName email');
@@ -442,10 +457,10 @@ class ReportDownloadController {
             }
 
             const report = await Report.findById(reportId)
-                .populate('patient', 'fullName patientId age gender')
+                .populate('patient', 'fullName patientId patientID age gender')
                 .populate({
                     path: 'dicomStudy',
-                    select: 'accessionNumber modality studyDate referringPhysician sourceLab _id workflowStatus bharatPacsId',
+                    select: 'accessionNumber modality studyDate referringPhysician patientInfo patientId sourceLab _id workflowStatus bharatPacsId',
                     populate: { path: 'sourceLab', model: 'Lab' }
                 })
                 .populate('doctorId', 'fullName email');
