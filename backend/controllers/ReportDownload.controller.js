@@ -119,7 +119,7 @@ const buildDocxPayload = async (report, outputFormat = 'pdf') => {
                 hour12: false
             })
             : '[Study Date]',
-        '--modality--': report.studyInfo?.modality || report.dicomStudy?.modality || '[Modality]',
+        '--modality--': report.dicomStudy?.modality || report.dicomStudy?.modalitiesInStudy?.[0] || report.studyInfo?.modality || '[Modality]',
         '--clinicalhistory--': report.patientInfo?.clinicalHistory || '[Clinical History]',
         '--Content--': htmlContent
     };
@@ -130,8 +130,8 @@ const buildDocxPayload = async (report, outputFormat = 'pdf') => {
             `<div style="font-weight:700;font-size:9pt;line-height:1;margin:0;padding:0;mso-line-height-rule:exactly;">
     <span style="display:block;margin:0;padding:0;">${doctorData.fullName}</span><br/>
     <span style="display:block;margin:0;padding:0;">${doctorData.department}</span><br/>
-        <span style="display:block;margin:0 0 6px 0;padding:0;">${doctorData.licenseNumber}</span><br/>
-        <span style="display:block;margin:2px 0 0 0;padding:0;">${doctorData.disclaimer}</span><br/>
+        <span style="display:block;margin:0 0 14px 0;padding:0;">${doctorData.licenseNumber}</span><br/>
+        <span style="display:block;margin:8px 0 0 0;padding:0;">${doctorData.disclaimer}</span><br/>
   </div>`.replace(/\n\s*/g, '');
         placeholders['--Licence--'] = '';
         placeholders['--disc--'] = '';
