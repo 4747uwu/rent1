@@ -77,25 +77,48 @@ const buildDocxPayload = async (report, outputFormat = 'pdf') => {
         ''
     );
 
+    const reportTimestamp =
+        report.verificationInfo?.verifiedAt ||
+        report.workflowInfo?.verifiedAt ||
+        report.workflowInfo?.finalizedAt ||
+        report.dicomStudy?.reportInfo?.verificationInfo?.verifiedAt ||
+        report.dicomStudy?.reportInfo?.finalizedAt ||
+        report.updatedAt ||
+        report.createdAt;
+
     const placeholders = {
         '--name--': report.patientInfo?.fullName || report.patient?.fullName || '[Patient Name]',
         '--patientid--': patientIdValue || '[Patient ID]',
         '--accessionno--': report.accessionNumber || report.dicomStudy?.accessionNumber || '[Accession Number]',
         '--agegender--': `${report.patientInfo?.age || report.patient?.age || '[Age]'} / ${report.patientInfo?.gender || report.patient?.gender || '[Gender]'}`,
         '--referredby--': report.studyInfo?.referringPhysician?.name || report.dicomStudy?.referringPhysician || '[Referring Physician]',
-        '--reporteddate--': report.studyInfo?.studyDate
-            ? new Date(report.studyInfo.studyDate).toLocaleDateString('en-GB')
-            : new Date().toLocaleDateString('en-GB'),
-        '--studydate--': (() => {
-            const reportedAt =
-                report.workflowInfo?.finalizedAt ||
-                report.verificationInfo?.verifiedAt ||
-                report.updatedAt ||
-                report.createdAt;
-            return reportedAt
-                ? new Date(reportedAt).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
-                : '[Study Date]';
-        })(),
+        '--reporteddate--': reportTimestamp
+            ? new Date(reportTimestamp).toLocaleString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            })
+            : new Date().toLocaleString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            }),
+        '--studydate--': reportTimestamp
+            ? new Date(reportTimestamp).toLocaleString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            })
+            : '[Study Date]',
         '--modality--': report.studyInfo?.modality || report.dicomStudy?.modality || '[Modality]',
         '--clinicalhistory--': report.patientInfo?.clinicalHistory || '[Clinical History]',
         '--Content--': htmlContent
@@ -107,8 +130,8 @@ const buildDocxPayload = async (report, outputFormat = 'pdf') => {
             `<div style="font-weight:700;font-size:9pt;line-height:1;margin:0;padding:0;mso-line-height-rule:exactly;">
     <span style="display:block;margin:0;padding:0;">${doctorData.fullName}</span><br/>
     <span style="display:block;margin:0;padding:0;">${doctorData.department}</span><br/>
-    <span style="display:block;margin:0;padding:0;">${doctorData.licenseNumber}</span><br/>
-    <span style="display:block;margin:0;padding:0;">${doctorData.disclaimer}</span><br/>
+        <span style="display:block;margin:0 0 6px 0;padding:0;">${doctorData.licenseNumber}</span><br/>
+        <span style="display:block;margin:2px 0 0 0;padding:0;">${doctorData.disclaimer}</span><br/>
   </div>`.replace(/\n\s*/g, '');
         placeholders['--Licence--'] = '';
         placeholders['--disc--'] = '';
@@ -267,7 +290,7 @@ class ReportDownloadController {
                 .populate('patient', 'fullName patientId patientID age gender')
                 .populate({
                     path: 'dicomStudy',
-                    select: 'accessionNumber modality studyDate referringPhysician patientInfo patientId sourceLab _id bharatPacsId workflowStatus',
+                    select: 'accessionNumber modality studyDate referringPhysician patientInfo patientId sourceLab _id bharatPacsId workflowStatus reportInfo.finalizedAt reportInfo.verificationInfo.verifiedAt',
                     populate: { path: 'sourceLab', model: 'Lab' }
                 })
                 .populate('doctorId', 'fullName email');
@@ -371,7 +394,7 @@ class ReportDownloadController {
                 .populate('patient', 'fullName patientId patientID age gender')
                 .populate({
                     path: 'dicomStudy',
-                    select: 'accessionNumber modality studyDate referringPhysician patientInfo patientId sourceLab _id bharatPacsId workflowStatus',
+                    select: 'accessionNumber modality studyDate referringPhysician patientInfo patientId sourceLab _id bharatPacsId workflowStatus reportInfo.finalizedAt reportInfo.verificationInfo.verifiedAt',
                     populate: { path: 'sourceLab', model: 'Lab' }
                 })
                 .populate('doctorId', 'fullName email');
@@ -460,7 +483,7 @@ class ReportDownloadController {
                 .populate('patient', 'fullName patientId patientID age gender')
                 .populate({
                     path: 'dicomStudy',
-                    select: 'accessionNumber modality studyDate referringPhysician patientInfo patientId sourceLab _id workflowStatus bharatPacsId',
+                    select: 'accessionNumber modality studyDate referringPhysician patientInfo patientId sourceLab _id workflowStatus bharatPacsId reportInfo.finalizedAt reportInfo.verificationInfo.verifiedAt',
                     populate: { path: 'sourceLab', model: 'Lab' }
                 })
                 .populate('doctorId', 'fullName email');
