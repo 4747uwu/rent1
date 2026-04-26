@@ -78,7 +78,9 @@ const buildDocxPayload = async (report, outputFormat = 'pdf') => {
         '--reporteddate--': report.studyInfo?.studyDate
             ? new Date(report.studyInfo.studyDate).toLocaleDateString('en-GB')
             : new Date().toLocaleDateString('en-GB'),
-        '--studydate--': report.studyInfo?.studyDate ? new Date(report.studyInfo.studyDate).toLocaleDateString() : '[Study Date]',
+        '--studydate--': report.createdAt
+            ? new Date(report.createdAt).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
+            : '[Study Date]',
         '--modality--': report.studyInfo?.modality || report.dicomStudy?.modality || '[Modality]',
         '--clinicalhistory--': report.patientInfo?.clinicalHistory || '[Clinical History]',
         '--Content--': htmlContent
