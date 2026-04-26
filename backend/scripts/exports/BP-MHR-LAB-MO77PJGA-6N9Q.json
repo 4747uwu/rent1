@@ -1,0 +1,884 @@
+{
+  "exportedAt": "2026-04-20T19:33:13.295Z",
+  "bharatPacsId": "BP-MHR-LAB-MO77PJGA-6N9Q",
+  "study": {
+    "_id": "69e625a61d153c7862c012a6",
+    "studyInstanceUID": "1.3.46.670589.11.10116.5.0.6272.2026042016582781254",
+    "copiedFrom": {},
+    "isCopiedStudy": false,
+    "isDuplicateStudy": false,
+    "duplicatedFrom": {},
+    "organization": "69ba6a7b851dbfb30edc9463",
+    "organizationIdentifier": "MHRH",
+    "patient": "69e625a61d153c7862c012a3",
+    "patientId": "69e625a61d153c7862c012a3",
+    "patientInfo": {
+      "patientID": "20426MR012",
+      "patientName": "NEMAT PARVEEN 26Y/F",
+      "age": "N/A",
+      "gender": "F"
+    },
+    "studyDate": "2026-04-20T00:00:00.000Z",
+    "modality": "MR",
+    "accessionNumber": "ACC1776690598321",
+    "workflowStatus": "report_completed",
+    "ohif": "ohif1",
+    "notesCount": 0,
+    "currentCategory": "COMPLETED",
+    "reprintNeeded": false,
+    "generated": "no",
+    "studyLock": {
+      "isLocked": true,
+      "lockReason": "reporting",
+      "previousLocks": [],
+      "lockExpiry": "2026-04-20T17:48:17.032Z",
+      "lockedAt": "2026-04-20T15:48:17.032Z",
+      "lockedBy": "69ccdfb04ed203d2b59189fc",
+      "lockedByName": "Dr. Samarth Kulkarni",
+      "lockedByRole": "radiologist"
+    },
+    "categoryTracking": {
+      "created": {},
+      "historyCreated": {
+        "isComplete": true,
+        "lastUpdatedAt": "2026-04-20T13:23:27.281Z",
+        "lastUpdatedBy": "69d8e73a9f584e9a230b0373"
+      },
+      "unassigned": {
+        "escalationCount": 0,
+        "autoAssignmentAttempts": 0
+      },
+      "assigned": {
+        "assignedAt": "2026-04-20T14:59:16.720Z",
+        "assignedTo": "69ccdfb04ed203d2b59189fc",
+        "assignedBy": "69ba6a7b851dbfb30edc9465",
+        "acceptedAt": null,
+        "assignmentHistory": [
+          {
+            "assignedTo": "69ccdfb04ed203d2b59189fc",
+            "assignedAt": "2026-04-20T13:11:44.556Z",
+            "unassignedAt": null,
+            "reason": "Assignment updated via modal - 1 radiologist(s) selected",
+            "_id": "69e626101d153c7862c0156b"
+          },
+          {
+            "assignedTo": "69ccdfb04ed203d2b59189fc",
+            "assignedAt": "2026-04-20T13:31:38.274Z",
+            "unassignedAt": null,
+            "reason": "Assignment updated via modal - 1 radiologist(s) selected",
+            "_id": "69e62aba1d153c7862c02f7e"
+          },
+          {
+            "assignedTo": "69ccdfb04ed203d2b59189fc",
+            "assignedAt": "2026-04-20T14:59:16.720Z",
+            "unassignedAt": null,
+            "reason": "Assignment updated via modal - 1 radiologist(s) selected",
+            "_id": "69e63f441d153c7862c0bb2f"
+          }
+        ]
+      },
+      "pending": {
+        "remindersSent": 0
+      },
+      "draft": {
+        "draftVersion": 1,
+        "autosaveCount": 0
+      },
+      "verificationPending": {},
+      "final": {
+        "signedDigitally": false
+      },
+      "urgent": {
+        "escalationPath": []
+      },
+      "reprint": {
+        "reprintCount": 0,
+        "reprintHistory": []
+      }
+    },
+    "lastDownload": {
+      "downloadedAt": "2026-04-20T16:10:22.865Z",
+      "downloadedBy": "69ba6a7b851dbfb30edc9465",
+      "downloadedByName": "Admin Radivue Solutions",
+      "downloadType": "docx",
+      "reportId": "69e64ac51d153c7862c10a03"
+    },
+    "technologist": {
+      "name": "",
+      "mobile": "",
+      "comments": "",
+      "reasonToSend": ""
+    },
+    "preProcessedDownload": {
+      "zipMetadata": {
+        "orthancStudyId": "3887dc3f-226db792-ce493144-f6458dcc-06392097",
+        "instanceCount": 0,
+        "seriesCount": 12,
+        "processingTimeMs": 44476,
+        "createdBy": "batch-regen-script",
+        "storageProvider": "cloudflare-r2",
+        "r2Key": "studies/2026/Study_NEMAT_PARVEEN_26Y_F_20426MR012_20260420_3887dc3f-226db792-ce493144-f6458dcc-06392097_20260420.zip",
+        "r2Bucket": "redivue"
+      },
+      "zipBucket": "redivue",
+      "zipStatus": "completed",
+      "downloadCount": 1,
+      "zipCreatedAt": "2026-04-20T19:05:18.091Z",
+      "zipExpiresAt": "2026-04-27T19:05:18.091Z",
+      "zipFileName": "Study_NEMAT_PARVEEN_26Y_F_20426MR012_20260420_3887dc3f-226db792-ce493144-f6458dcc-06392097_20260420.zip",
+      "zipKey": "studies/2026/Study_NEMAT_PARVEEN_26Y_F_20426MR012_20260420_3887dc3f-226db792-ce493144-f6458dcc-06392097_20260420.zip",
+      "zipPublicUrl": "https://pub-6f09f78e289e4cbab0a82e99a603f535.r2.dev/studies/2026/Study_NEMAT_PARVEEN_26Y_F_20426MR012_20260420_3887dc3f-226db792-ce493144-f6458dcc-06392097_20260420.zip",
+      "zipSizeMB": 64.12,
+      "zipUrl": "https://b39c632fcc14248dfcf837983059a2cd.r2.cloudflarestorage.com/redivue/studies/2026/Study_NEMAT_PARVEEN_26Y_F_20426MR012_20260420_3887dc3f-226db792-ce493144-f6458dcc-06392097_20260420.zip?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=84a50df7100eea000b6ddd0c2ddce67a%2F20260420%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20260420T190518Z&X-Amz-Expires=604800&X-Amz-Signature=3c57be8b5430114e91f8414433c8b4ccb3cd9f48b4a3168cd65470adbad34e69&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
+      "lastDownloaded": "2026-04-20T19:06:25.087Z"
+    },
+    "priority": "NORMAL",
+    "statusHistory": [
+      {
+        "status": "new_study_received",
+        "changedAt": "2026-04-20T13:09:58.324Z",
+        "note": "Study created via ZIP upload: 12 series, 240 instances. Institution: DR SUNEJA MRI NEW DELHI, Location: New Delhi, DELHI, India",
+        "_id": "69e625a61d153c7862c012a7"
+      },
+      {
+        "status": "assignments_cleared",
+        "changedAt": "2026-04-20T13:11:44.556Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "All assignments cleared before reassignment",
+        "_id": "69e626101d153c7862c01566"
+      },
+      {
+        "status": "assigned_to_doctor",
+        "changedAt": "2026-04-20T13:11:44.556Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "Assigned to 1 radiologist(s): Dr. Samarth Kulkarni",
+        "_id": "69e626101d153c7862c0156d"
+      },
+      {
+        "status": "history_created",
+        "changedAt": "2026-04-20T13:23:27.281Z",
+        "changedBy": "69d8e73a9f584e9a230b0373",
+        "note": "Study details updated by DR SUNEJA MRI NEW DELHI (Priority: NORMAL → NORMAL) - Clinical history updated",
+        "_id": "69e628cf1d153c7862c0253f"
+      },
+      {
+        "status": "assignments_cleared",
+        "changedAt": "2026-04-20T13:31:21.943Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "All assignments cleared before reassignment",
+        "_id": "69e62aa91d153c7862c02eec"
+      },
+      {
+        "status": "assignments_cleared",
+        "changedAt": "2026-04-20T13:31:38.274Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "All assignments cleared before reassignment",
+        "_id": "69e62aba1d153c7862c02f6f"
+      },
+      {
+        "status": "assigned_to_doctor",
+        "changedAt": "2026-04-20T13:31:38.274Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "Assigned to 1 radiologist(s): Dr. Samarth Kulkarni",
+        "_id": "69e62aba1d153c7862c02f80"
+      },
+      {
+        "status": "assignments_cleared",
+        "changedAt": "2026-04-20T14:59:01.160Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "All assignments cleared before reassignment",
+        "_id": "69e63f351d153c7862c0b9b7"
+      },
+      {
+        "status": "assignments_cleared",
+        "changedAt": "2026-04-20T14:59:16.720Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "All assignments cleared before reassignment",
+        "_id": "69e63f441d153c7862c0bb18"
+      },
+      {
+        "status": "assigned_to_doctor",
+        "changedAt": "2026-04-20T14:59:16.720Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "Assigned to 1 radiologist(s): Dr. Samarth Kulkarni",
+        "_id": "69e63f441d153c7862c0bb31"
+      },
+      {
+        "status": "study_locked_for_reporting",
+        "changedAt": "2026-04-20T15:48:17.032Z",
+        "changedBy": "69ccdfb04ed203d2b59189fc",
+        "note": "Locked for reporting by Dr. Samarth Kulkarni",
+        "_id": "69e64ac11d153c7862c109c0"
+      },
+      {
+        "status": "report_drafted",
+        "changedAt": "2026-04-20T15:48:21.352Z",
+        "changedBy": "69ccdfb04ed203d2b59189fc",
+        "note": "Draft report created by Dr. Samarth Kulkarni for Dr. Samarth Kulkarni",
+        "_id": "69e64ac51d153c7862c10a09"
+      },
+      {
+        "status": "verification_pending",
+        "changedAt": "2026-04-20T15:48:21.742Z",
+        "changedBy": "69ccdfb04ed203d2b59189fc",
+        "note": "Report finalized by Dr. Samarth Kulkarni - sent for verification",
+        "_id": "69e64ac51d153c7862c10a39"
+      },
+      {
+        "status": "verification_pending",
+        "changedAt": "2026-04-20T15:48:23.486Z",
+        "changedBy": "69ccdfb04ed203d2b59189fc",
+        "note": "Report finalized by Dr. Samarth Kulkarni - sent for verification",
+        "_id": "69e64ac71d153c7862c10a73"
+      },
+      {
+        "status": "report_finalized",
+        "changedAt": "2026-04-20T16:09:52.160Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "Report updated during verification by Admin Radivue Solutions",
+        "_id": "69e64fd01d153c7862c1241f"
+      },
+      {
+        "status": "report_completed",
+        "changedAt": "2026-04-20T16:09:52.366Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "Report completed by Admin Radivue Solutions (admin)",
+        "_id": "69e64fd01d153c7862c12447"
+      }
+    ],
+    "reportInfo": {
+      "verificationInfo": {
+        "verificationStatus": "verified",
+        "corrections": [],
+        "verificationHistory": [
+          {
+            "action": "report_completed",
+            "performedBy": "69ba6a7b851dbfb30edc9465",
+            "performedAt": "2026-04-20T16:09:52.366Z",
+            "notes": "Verified via OHIF",
+            "_id": "69e64fd01d153c7862c12448"
+          }
+        ],
+        "verificationNotes": "Verified via OHIF",
+        "verificationTimeMinutes": 0,
+        "verifiedAt": "2026-04-20T16:09:52.366Z",
+        "verifiedBy": "69ba6a7b851dbfb30edc9465"
+      },
+      "modernReports": [
+        {
+          "reportId": "69e64ac51d153c7862c10a03",
+          "reportType": "draft",
+          "createdAt": "2026-04-20T15:48:21.364Z",
+          "_id": "69e64ac51d153c7862c10a06"
+        }
+      ],
+      "reporterName": "Dr. Samarth Kulkarni",
+      "finalizedAt": "2026-04-20T15:48:23.486Z"
+    },
+    "revertInfo": {
+      "currentRevert": {
+        "resolved": false
+      },
+      "isReverted": false,
+      "revertCount": 0,
+      "revertHistory": []
+    },
+    "timingInfo": {
+      "tatResetCount": 0,
+      "calculationMethod": "tatCalculator"
+    },
+    "sourceLab": "69d8e73a9f584e9a230b0371",
+    "labLocation": "New Delhi, DELHI, India",
+    "ReportAvailable": false,
+    "currentReportStatus": {
+      "hasReports": true,
+      "latestReportId": "69e64ac51d153c7862c10a03",
+      "latestReportStatus": "finalized",
+      "latestReportType": "finalized",
+      "reportCount": 3,
+      "lastReportedAt": "2026-04-20T15:48:23.492Z",
+      "lastReportedBy": "69ccdfb04ed203d2b59189fc"
+    },
+    "seriesCount": 12,
+    "instanceCount": 240,
+    "seriesImages": "12/240",
+    "studyTime": "165828",
+    "modalitiesInStudy": [
+      "MR"
+    ],
+    "examDescription": "RT ELBOW CONTRAST",
+    "institutionName": "DR SUNEJA MRI NEW DELHI",
+    "orthancStudyID": "3887dc3f-226db792-ce493144-f6458dcc-06392097",
+    "caseType": "routine",
+    "hasStudyNotes": false,
+    "hasAttachments": false,
+    "referringPhysician": {},
+    "referringPhysicianName": "DR AIIMS",
+    "physicians": {
+      "referring": {
+        "name": "DR AIIMS",
+        "email": "",
+        "mobile": "",
+        "institution": "DR SUNEJA MRI NEW DELHI"
+      },
+      "requesting": {
+        "name": "",
+        "email": "",
+        "mobile": "",
+        "institution": ""
+      }
+    },
+    "followUp": {
+      "isFollowUp": false,
+      "history": []
+    },
+    "calculatedTAT": {
+      "keyDates": {},
+      "studyToUploadTAT": null,
+      "uploadToAssignmentTAT": null,
+      "assignmentToReportTAT": null,
+      "studyToReportTAT": null,
+      "uploadToReportTAT": null,
+      "totalTATMinutes": null,
+      "totalTATDays": null,
+      "resetAwareTATDays": null,
+      "resetAwareTATMinutes": null,
+      "studyToUploadTATFormatted": "N/A",
+      "uploadToAssignmentTATFormatted": "N/A",
+      "assignmentToReportTATFormatted": "N/A",
+      "studyToReportTATFormatted": "N/A",
+      "uploadToReportTATFormatted": "N/A",
+      "totalTATFormatted": "N/A",
+      "isCompleted": false,
+      "isOverdue": false,
+      "phase": "not_started",
+      "calculatedBy": "system",
+      "resetCount": 0,
+      "calculatedAt": "2026-04-20T13:09:58.327Z",
+      "lastUpdated": "2026-04-20T13:09:58.327Z"
+    },
+    "clinicalHistory": {
+      "clinicalHistory": "rt elbow mild swelling  pain stiffness\n5 years ago\natt 8 month backno h/o trouma \nesr 55\ncrp 11",
+      "previousInjury": "",
+      "previousSurgery": "",
+      "lastModifiedFrom": "admin_panel",
+      "dataSource": "dicom_study_primary",
+      "lastModifiedAt": "2026-04-20T13:23:27.281Z",
+      "lastModifiedBy": "69d8e73a9f584e9a230b0373"
+    },
+    "legacyClinicalHistoryRef": {
+      "fromPatientModel": false,
+      "syncedBy": "system"
+    },
+    "billing": {
+      "billingModule": null,
+      "moduleName": null,
+      "moduleCode": null,
+      "modality": null,
+      "amount": null,
+      "currency": "INR",
+      "billedAt": null,
+      "billedBy": null,
+      "billedByName": null,
+      "paymentStatus": "pending",
+      "isBilled": false
+    },
+    "createdAt": "2026-04-20T13:09:58.324Z",
+    "updatedAt": "2026-04-20T19:06:25.088Z",
+    "copiedTo": [],
+    "duplicatedTo": [],
+    "actionLog": [
+      {
+        "actionType": "study_received",
+        "actionCategory": "upload",
+        "performedBy": "000000000000000000000000",
+        "performedByName": "System",
+        "performedByRole": "system",
+        "actionDetails": {
+          "metadata": {
+            "bharatPacsId": "BP-MHR-LAB-MO77PJGA-6N9Q",
+            "generatedAt": "2026-04-20T13:09:58.330Z"
+          }
+        },
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {},
+        "notes": "BharatPacs ID generated: BP-MHR-LAB-MO77PJGA-6N9Q",
+        "_id": "69e625a61d153c7862c012a8",
+        "performedAt": "2026-04-20T13:09:58.330Z"
+      },
+      {
+        "actionType": "study_reassigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T13:11:44.556Z",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "clear_all",
+          "previousAssignee": null,
+          "priority": "NORMAL",
+          "dueDate": null
+        },
+        "notes": "Cleared all assignments before reassignment",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e626101d153c7862c01565"
+      },
+      {
+        "actionType": "study_assigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T13:11:44.556Z",
+        "targetUser": "69ccdfb04ed203d2b59189fc",
+        "targetUserName": "Dr. Samarth Kulkarni",
+        "targetUserRole": "radiologist",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "bulk_assignment",
+          "previousAssignee": null,
+          "priority": "NORMAL",
+          "dueDate": "2026-04-21T13:11:43.454Z"
+        },
+        "notes": "Assignment updated via modal - 1 radiologist(s) selected",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e626101d153c7862c0156c"
+      },
+      {
+        "actionType": "history_created",
+        "actionCategory": "administrative",
+        "performedBy": "69d8e73a9f584e9a230b0373",
+        "performedByName": "DR SUNEJA MRI NEW DELHI",
+        "performedByRole": "lab_staff",
+        "performedAt": "2026-04-20T13:23:27.281Z",
+        "actionDetails": {
+          "changes": {
+            "patientName": "NEMAT PARVEEN 26Y/F",
+            "patientAge": "N/A",
+            "patientGender": "F",
+            "studyName": "RT ELBOW CONTRAST",
+            "referringPhysician": "DR AIIMS",
+            "accessionNumber": "ACC1776690598321",
+            "priority": {
+              "from": "NORMAL",
+              "to": "NORMAL"
+            },
+            "clinicalHistoryUpdated": true
+          }
+        },
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {},
+        "notes": "Study details updated via patient edit modal. Priority changes: Priority: NORMAL → NORMAL",
+        "_id": "69e628cf1d153c7862c0253e"
+      },
+      {
+        "actionType": "study_reassigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T13:31:21.943Z",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "clear_all",
+          "previousAssignee": null,
+          "priority": "NORMAL",
+          "dueDate": null
+        },
+        "notes": "Cleared all assignments before reassignment",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e62aa91d153c7862c02eeb"
+      },
+      {
+        "actionType": "study_reassigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T13:31:21.943Z",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "unassignment",
+          "previousAssignee": null,
+          "priority": null,
+          "dueDate": null
+        },
+        "notes": "Study unassigned - all assignments removed",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e62aa91d153c7862c02ef9"
+      },
+      {
+        "actionType": "study_reassigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T13:31:38.274Z",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "clear_all",
+          "previousAssignee": null,
+          "priority": "NORMAL",
+          "dueDate": null
+        },
+        "notes": "Cleared all assignments before reassignment",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e62aba1d153c7862c02f6e"
+      },
+      {
+        "actionType": "study_assigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T13:31:38.274Z",
+        "targetUser": "69ccdfb04ed203d2b59189fc",
+        "targetUserName": "Dr. Samarth Kulkarni",
+        "targetUserRole": "radiologist",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "bulk_assignment",
+          "previousAssignee": null,
+          "priority": "NORMAL",
+          "dueDate": "2026-04-21T13:31:37.170Z"
+        },
+        "notes": "Assignment updated via modal - 1 radiologist(s) selected",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e62aba1d153c7862c02f7f"
+      },
+      {
+        "actionType": "study_reassigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T14:59:01.160Z",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "clear_all",
+          "previousAssignee": null,
+          "priority": "NORMAL",
+          "dueDate": null
+        },
+        "notes": "Cleared all assignments before reassignment",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e63f351d153c7862c0b9b6"
+      },
+      {
+        "actionType": "study_reassigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T14:59:01.160Z",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "unassignment",
+          "previousAssignee": null,
+          "priority": null,
+          "dueDate": null
+        },
+        "notes": "Study unassigned - all assignments removed",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e63f351d153c7862c0b9cc"
+      },
+      {
+        "actionType": "study_reassigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T14:59:16.720Z",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "clear_all",
+          "previousAssignee": null,
+          "priority": "NORMAL",
+          "dueDate": null
+        },
+        "notes": "Cleared all assignments before reassignment",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e63f441d153c7862c0bb17"
+      },
+      {
+        "actionType": "study_assigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T14:59:16.720Z",
+        "targetUser": "69ccdfb04ed203d2b59189fc",
+        "targetUserName": "Dr. Samarth Kulkarni",
+        "targetUserRole": "radiologist",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "bulk_assignment",
+          "previousAssignee": null,
+          "priority": "NORMAL",
+          "dueDate": "2026-04-21T14:59:15.610Z"
+        },
+        "notes": "Assignment updated via modal - 1 radiologist(s) selected",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e63f441d153c7862c0bb30"
+      },
+      {
+        "actionType": "study_locked",
+        "actionCategory": "lock",
+        "performedBy": "69ccdfb04ed203d2b59189fc",
+        "performedByName": "Dr. Samarth Kulkarni",
+        "performedByRole": "radiologist",
+        "performedAt": "2026-04-20T15:48:17.032Z",
+        "actionDetails": {
+          "metadata": {
+            "lockReason": "reporting",
+            "lockExpiry": "2026-04-20T17:48:17.032Z",
+            "sessionStart": "2026-04-20T15:48:17.032Z"
+          }
+        },
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {},
+        "notes": "Study locked for reporting by Dr. Samarth Kulkarni",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e64ac11d153c7862c109c1"
+      }
+    ],
+    "printHistory": [
+      {
+        "printedAt": "2026-04-20T16:10:22.865Z",
+        "printedBy": "69ba6a7b851dbfb30edc9465",
+        "printedByName": "Admin Radivue Solutions",
+        "printType": "docx_download",
+        "printMethod": "docx_download",
+        "reportStatus": "verified",
+        "copies": 1,
+        "bharatPacsId": "BP-MHR-LAB-MO77PJGA-6N9Q",
+        "ipAddress": "::ffff:172.19.0.8",
+        "_id": "69e64fee1d153c7862c12570"
+      }
+    ],
+    "assignment": [
+      {
+        "assignedTo": "69ccdfb04ed203d2b59189fc",
+        "assignedAt": "2026-04-20T14:59:16.720Z",
+        "assignedBy": "69ba6a7b851dbfb30edc9465",
+        "dueDate": "2026-04-21T14:59:15.610Z",
+        "priority": "NORMAL",
+        "_id": "69e63f441d153c7862c0bb36"
+      }
+    ],
+    "lastAssignedDoctor": [
+      {
+        "doctorId": "69ccdfb04ed203d2b59189fc",
+        "assignedAt": "2026-04-20T14:59:16.720Z",
+        "_id": "69e63f441d153c7862c0bb35"
+      }
+    ],
+    "uploadedReports": [],
+    "doctorReports": [],
+    "reports": [
+      {
+        "reportId": "69e64ac51d153c7862c10a03",
+        "reportType": "draft",
+        "reportStatus": "draft",
+        "createdBy": "69ccdfb04ed203d2b59189fc",
+        "fileName": "nemat_parveen_26yf_draft_1776700101353.docx",
+        "_id": "69e64ac51d153c7862c10a07",
+        "createdAt": "2026-04-20T15:48:21.364Z"
+      }
+    ],
+    "dicomFiles": [],
+    "discussions": [],
+    "attachments": [],
+    "bharatPacsId": "BP-MHR-LAB-MO77PJGA-6N9Q",
+    "searchText": "bp-mhr-lab-mo77pjga-6n9q nemat parveen 26y/f 20426mr012 acc1776690598321 mr dr aiims rt elbow contrast 1.3.46.670589.11.10116.5.0.6272.2026042016582781254",
+    "age": "N/A",
+    "gender": "F"
+  },
+  "organization": {
+    "_id": "69ba6a7b851dbfb30edc9463",
+    "name": "Radivue Solutions",
+    "identifier": "MHRH",
+    "displayName": "Radivue Solutions",
+    "companyType": "teleradiology",
+    "contactInfo": {
+      "primaryContact": {
+        "name": "Aman Singh Chauhan",
+        "email": "admin@radivuesolutions.com",
+        "phone": "+91 7983497594",
+        "designation": "CEO"
+      }
+    },
+    "address": {
+      "street": "Nehru Market, Dakpathar Jeevangarh Road, Vikasnagar",
+      "city": "Dehradun",
+      "state": "Uttrakhand",
+      "zipCode": "248125",
+      "country": "India"
+    },
+    "settings": {
+      "timezone": "UTC",
+      "dateFormat": "MM/DD/YYYY",
+      "currency": "USD",
+      "language": "en"
+    },
+    "subscription": {
+      "plan": "basic",
+      "maxUsers": 10,
+      "maxStudiesPerMonth": 1000,
+      "maxStorageGB": 100,
+      "billingCycle": "monthly",
+      "autoRenewal": true
+    },
+    "features": {
+      "aiAnalysis": false,
+      "advancedReporting": false,
+      "multiModalitySupport": true,
+      "cloudStorage": true,
+      "mobileAccess": true,
+      "apiAccess": false,
+      "whiteLabeling": false
+    },
+    "status": "active",
+    "compliance": {
+      "hipaaCompliant": false,
+      "dicomCompliant": true,
+      "hl7Integration": false,
+      "fda510k": false
+    },
+    "createdBy": "69b994845f0c13ae829eb2b6",
+    "queryCallNumber": "",
+    "createdAt": "2026-03-18T09:03:55.044Z",
+    "updatedAt": "2026-03-18T12:31:20.614Z",
+    "__v": 0,
+    "lastModifiedBy": "69b994845f0c13ae829eb2b6",
+    "notes": ""
+  },
+  "sourceLab": {
+    "_id": "69d8e73a9f584e9a230b0371",
+    "organization": "69ba6a7b851dbfb30edc9463",
+    "organizationIdentifier": "MHRH",
+    "name": "DR SUNEJA MRI NEW DELHI",
+    "identifier": "UJEJG",
+    "contactPerson": "DR SUNEJA MRI NEW DELHI",
+    "contactEmail": "",
+    "contactPhone": "",
+    "address": {
+      "street": "",
+      "city": "New Delhi",
+      "state": "DELHI",
+      "zipCode": "",
+      "country": "India"
+    },
+    "isActive": true,
+    "settings": {
+      "autoAssignStudies": false,
+      "defaultPriority": "NORMAL",
+      "maxConcurrentStudies": 100,
+      "requireReportVerification": false,
+      "verificationEnabledAt": "2026-04-10T12:04:10.573Z",
+      "verificationEnabledBy": "69ba6a7b851dbfb30edc9465",
+      "enableCompression": false
+    },
+    "reportBranding": {
+      "headerImage": {
+        "url": "",
+        "width": 0,
+        "height": 0,
+        "size": 0
+      },
+      "footerImage": {
+        "url": "",
+        "width": 0,
+        "height": 0,
+        "size": 0
+      },
+      "paperSettings": {
+        "paperWidth": 210,
+        "paperHeight": 297,
+        "marginTop": 25.4,
+        "marginBottom": 25.4,
+        "marginLeft": 25.4,
+        "marginRight": 25.4,
+        "headerHeight": 30,
+        "footerHeight": 20,
+        "dpi": 96
+      },
+      "showHeader": true,
+      "showFooter": true
+    },
+    "staffUsers": [],
+    "createdAt": "2026-04-10T12:04:10.576Z",
+    "updatedAt": "2026-04-16T05:35:45.425Z",
+    "fullIdentifier": "MHRH_UJEJG",
+    "__v": 0
+  },
+  "patient": {
+    "_id": "69e625a61d153c7862c012a3",
+    "organization": "69ba6a7b851dbfb30edc9463",
+    "organizationIdentifier": "MHRH",
+    "patientID": "20426MR012",
+    "mrn": "20426MR012",
+    "firstName": "",
+    "lastName": "NEMAT PARVEEN 26Y/F",
+    "patientNameRaw": "NEMAT PARVEEN 26Y/F",
+    "dateOfBirth": "Sat Jan 25 2025 00:00:00 GMT+0000 (Coordinated Universal Time)",
+    "gender": "F",
+    "currentWorkflowStatus": "no_active_study",
+    "studyCount": 0,
+    "contactInformation": {
+      "phone": "",
+      "email": ""
+    },
+    "computed": {
+      "fullName": "NEMAT PARVEEN 26Y/F",
+      "lastActivity": "2026-04-20T13:09:58.319Z"
+    },
+    "createdAt": "2026-04-20T13:09:58.318Z",
+    "updatedAt": "2026-04-20T13:09:58.318Z",
+    "globalPatientID": "MHRH_20426MR012",
+    "__v": 0
+  },
+  "reports": [],
+  "studyNotes": [],
+  "attachments": [],
+  "counts": {
+    "reports": 0,
+    "studyNotes": 0,
+    "attachments": 0
+  }
+}

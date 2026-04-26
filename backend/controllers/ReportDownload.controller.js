@@ -63,7 +63,7 @@ const buildDocxPayload = async (report, outputFormat = 'pdf') => {
                     department: doctorProfile.department || 'Radiology',
                     licenseNumber: doctorProfile.licenseNumber || 'N/A',
                     signature: doctorProfile.signature || '',
-                    disclaimer: ''
+                    disclaimer: 'Disclaimer:  The science of radiology is based upon interpretation of shadows of normal and abnormal tissue. This is neither complete nor accurate; hence, findings should always be interpreted in to the light of clinico-pathological correlation. This is a professional opinion, not a diagnosis. Not meant for medico legal purposes.'
                 };
             }
         } catch (e) { console.warn('⚠️ Failed to fetch doctor data'); }

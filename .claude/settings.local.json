@@ -14,7 +14,15 @@
       "Bash(node scripts/buildUniqueIndex.js)",
       "Bash(DRY_RUN=true node scripts/regenerateAllZips.js)",
       "Bash(node scripts/regenerateAllZips.js)",
-      "Bash(node scripts/verifyZipSizes.js)"
+      "Bash(node scripts/verifyZipSizes.js)",
+      "Bash(node scripts/extractStudy.js)",
+      "Bash(node scripts/seedStudyFromExport.js)",
+      "Bash(DRY_RUN=false node scripts/seedStudyFromExport.js)",
+      "Bash(node scripts/backdateSeededStudy.js)",
+      "Bash(node scripts/extractStudy.js BP-MHR-LAB-MO72GVBU-G4WC)",
+      "Bash(node scripts/seedStudyFromExport.js BP-MHR-LAB-MO72GVBU-G4WC BP-MHR-LAB-MO7MRPUW-VUBW)",
+      "Bash(DRY_RUN=false node scripts/seedStudyFromExport.js BP-MHR-LAB-MO72GVBU-G4WC BP-MHR-LAB-MO7MRPUW-VUBW)",
+      "Bash(node scripts/backdateSeededStudy.js BP-MHR-LAB-MO72GVBU-G4WC BP-MHR-LAB-MO7MRPUW-VUBW)"
     ]
   }
 }

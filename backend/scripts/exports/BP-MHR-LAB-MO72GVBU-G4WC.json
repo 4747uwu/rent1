@@ -1,0 +1,776 @@
+{
+  "exportedAt": "2026-04-20T20:01:06.078Z",
+  "bharatPacsId": "BP-MHR-LAB-MO72GVBU-G4WC",
+  "study": {
+    "_id": "69e603431d153c7862bf776f",
+    "studyInstanceUID": "1.3.46.670589.11.10116.5.0.6272.2026042013330985098",
+    "copiedFrom": {},
+    "isCopiedStudy": false,
+    "isDuplicateStudy": false,
+    "duplicatedFrom": {},
+    "organization": "69ba6a7b851dbfb30edc9463",
+    "organizationIdentifier": "MHRH",
+    "patient": "69e5ef561d153c7862befa6a",
+    "patientId": "69e5ef561d153c7862befa6a",
+    "patientInfo": {
+      "patientID": "20426MR10",
+      "patientName": "SANGEETA TRIPATHI 25Y/F",
+      "age": "N/A",
+      "gender": "F"
+    },
+    "studyDate": "2026-04-20T00:00:00.000Z",
+    "modality": "MR",
+    "accessionNumber": "ACC1776681795728",
+    "workflowStatus": "report_completed",
+    "ohif": "ohif1",
+    "notesCount": 0,
+    "currentCategory": "COMPLETED",
+    "reprintNeeded": false,
+    "generated": "no",
+    "studyLock": {
+      "isLocked": true,
+      "lockReason": "reporting",
+      "previousLocks": [],
+      "lockExpiry": "2026-04-20T13:32:00.560Z",
+      "lockedAt": "2026-04-20T11:32:00.560Z",
+      "lockedBy": "69ccf166b961e15ecfacd198",
+      "lockedByName": "DR UDAI SINGH",
+      "lockedByRole": "radiologist"
+    },
+    "categoryTracking": {
+      "created": {},
+      "historyCreated": {
+        "isComplete": true,
+        "lastUpdatedAt": "2026-04-20T10:44:35.994Z",
+        "lastUpdatedBy": "69ba6a7b851dbfb30edc9465"
+      },
+      "unassigned": {
+        "escalationCount": 0,
+        "autoAssignmentAttempts": 0
+      },
+      "assigned": {
+        "assignedAt": "2026-04-20T10:44:50.746Z",
+        "assignedTo": "69ccf166b961e15ecfacd198",
+        "assignedBy": "69ba6a7b851dbfb30edc9465",
+        "acceptedAt": null,
+        "assignmentHistory": [
+          {
+            "assignedTo": "69ccf166b961e15ecfacd198",
+            "assignedAt": "2026-04-20T10:44:05.648Z",
+            "unassignedAt": null,
+            "reason": "Assignment updated via modal - 1 radiologist(s) selected",
+            "_id": "69e603751d153c7862bf78c7"
+          },
+          {
+            "assignedTo": "69ccf166b961e15ecfacd198",
+            "assignedAt": "2026-04-20T10:44:50.746Z",
+            "unassignedAt": null,
+            "reason": "Assignment updated via modal - 1 radiologist(s) selected",
+            "_id": "69e603a21d153c7862bf7a30"
+          }
+        ]
+      },
+      "pending": {
+        "remindersSent": 0
+      },
+      "draft": {
+        "draftVersion": 1,
+        "autosaveCount": 0
+      },
+      "verificationPending": {},
+      "final": {
+        "signedDigitally": false
+      },
+      "urgent": {
+        "escalationPath": []
+      },
+      "reprint": {
+        "reprintCount": 0,
+        "reprintHistory": []
+      }
+    },
+    "lastDownload": {
+      "downloadedAt": "2026-04-20T11:40:38.235Z",
+      "downloadedBy": "69ba6a7b851dbfb30edc9465",
+      "downloadedByName": "Admin Radivue Solutions",
+      "downloadType": "docx",
+      "reportId": "69e60ecc1d153c7862bfb301"
+    },
+    "technologist": {
+      "name": "",
+      "mobile": "",
+      "comments": "",
+      "reasonToSend": ""
+    },
+    "preProcessedDownload": {
+      "zipMetadata": {
+        "orthancStudyId": "d88a9c7c-7016f07b-95c4fd85-0ba709ab-4eacfedf",
+        "instanceCount": 0,
+        "seriesCount": 6,
+        "processingTimeMs": 7629,
+        "createdBy": "manual-recreate-script",
+        "storageProvider": "cloudflare-r2",
+        "r2Key": "studies/2026/Study_SANGEETA_TRIPATHI_25Y_F_20426MR10_20260420_d88a9c7c-7016f07b-95c4fd85-0ba709ab-4eacfedf_20260420.zip",
+        "r2Bucket": "redivue"
+      },
+      "zipBucket": "redivue",
+      "zipStatus": "completed",
+      "downloadCount": 5,
+      "zipCreatedAt": "2026-04-20T10:55:06.365Z",
+      "zipExpiresAt": "2026-04-27T10:55:06.365Z",
+      "zipFileName": "Study_SANGEETA_TRIPATHI_25Y_F_20426MR10_20260420_d88a9c7c-7016f07b-95c4fd85-0ba709ab-4eacfedf_20260420.zip",
+      "zipKey": "studies/2026/Study_SANGEETA_TRIPATHI_25Y_F_20426MR10_20260420_d88a9c7c-7016f07b-95c4fd85-0ba709ab-4eacfedf_20260420.zip",
+      "zipPublicUrl": "https://pub-6f09f78e289e4cbab0a82e99a603f535.r2.dev/studies/2026/Study_SANGEETA_TRIPATHI_25Y_F_20426MR10_20260420_d88a9c7c-7016f07b-95c4fd85-0ba709ab-4eacfedf_20260420.zip",
+      "zipSizeMB": 29.34,
+      "zipUrl": "https://b39c632fcc14248dfcf837983059a2cd.r2.cloudflarestorage.com/redivue/studies/2026/Study_SANGEETA_TRIPATHI_25Y_F_20426MR10_20260420_d88a9c7c-7016f07b-95c4fd85-0ba709ab-4eacfedf_20260420.zip?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=84a50df7100eea000b6ddd0c2ddce67a%2F20260420%2Fauto%2Fs3%2Faws4_request&X-Amz-Date=20260420T105506Z&X-Amz-Expires=604800&X-Amz-Signature=36a1f3d9e3711463ecb8c0eb2905b46105484983b156888a1d222258817e531e&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
+      "lastDownloaded": "2026-04-20T19:03:24.201Z"
+    },
+    "priority": "NORMAL",
+    "statusHistory": [
+      {
+        "status": "new_study_received",
+        "changedAt": "2026-04-20T10:43:15.733Z",
+        "note": "Study created via ZIP upload: 6 series, 108 instances. Institution: DR SUNEJA MRI NEW DELHI, Location: New Delhi, DELHI, India",
+        "_id": "69e603431d153c7862bf7770"
+      },
+      {
+        "status": "assignments_cleared",
+        "changedAt": "2026-04-20T10:44:05.648Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "All assignments cleared before reassignment",
+        "_id": "69e603751d153c7862bf78c2"
+      },
+      {
+        "status": "assigned_to_doctor",
+        "changedAt": "2026-04-20T10:44:05.648Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "Assigned to 1 radiologist(s): DR UDAI SINGH",
+        "_id": "69e603751d153c7862bf78c9"
+      },
+      {
+        "status": "history_created",
+        "changedAt": "2026-04-20T10:44:35.994Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "Study details updated by Admin Radivue Solutions (Priority: NORMAL → NORMAL) - Clinical history updated",
+        "_id": "69e603931d153c7862bf797e"
+      },
+      {
+        "status": "assignments_cleared",
+        "changedAt": "2026-04-20T10:44:44.747Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "All assignments cleared before reassignment",
+        "_id": "69e6039c1d153c7862bf79db"
+      },
+      {
+        "status": "assignments_cleared",
+        "changedAt": "2026-04-20T10:44:50.746Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "All assignments cleared before reassignment",
+        "_id": "69e603a21d153c7862bf7a21"
+      },
+      {
+        "status": "assigned_to_doctor",
+        "changedAt": "2026-04-20T10:44:50.746Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "Assigned to 1 radiologist(s): DR UDAI SINGH",
+        "_id": "69e603a21d153c7862bf7a32"
+      },
+      {
+        "status": "study_locked_for_reporting",
+        "changedAt": "2026-04-20T11:32:00.561Z",
+        "changedBy": "69ccf166b961e15ecfacd198",
+        "note": "Locked for reporting by DR UDAI SINGH",
+        "_id": "69e60eb01d153c7862bfb28c"
+      },
+      {
+        "status": "report_drafted",
+        "changedAt": "2026-04-20T11:32:28.119Z",
+        "changedBy": "69ccf166b961e15ecfacd198",
+        "note": "Draft report created by DR UDAI SINGH for DR UDAI SINGH",
+        "_id": "69e60ecc1d153c7862bfb307"
+      },
+      {
+        "status": "report_drafted",
+        "changedAt": "2026-04-20T11:32:31.648Z",
+        "changedBy": "69ccf166b961e15ecfacd198",
+        "note": "Draft report updated by DR UDAI SINGH for DR UDAI SINGH",
+        "_id": "69e60ecf1d153c7862bfb33a"
+      },
+      {
+        "status": "verification_pending",
+        "changedAt": "2026-04-20T11:32:32.176Z",
+        "changedBy": "69ccf166b961e15ecfacd198",
+        "note": "Report finalized by DR UDAI SINGH - sent for verification",
+        "_id": "69e60ed01d153c7862bfb365"
+      },
+      {
+        "status": "report_finalized",
+        "changedAt": "2026-04-20T11:36:24.070Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "Report updated during verification by Admin Radivue Solutions",
+        "_id": "69e60fb81d153c7862bfb72f"
+      },
+      {
+        "status": "report_finalized",
+        "changedAt": "2026-04-20T11:36:29.094Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "Report updated during verification by Admin Radivue Solutions",
+        "_id": "69e60fbd1d153c7862bfb76a"
+      },
+      {
+        "status": "report_completed",
+        "changedAt": "2026-04-20T11:36:29.618Z",
+        "changedBy": "69ba6a7b851dbfb30edc9465",
+        "note": "Report completed by Admin Radivue Solutions (admin)",
+        "_id": "69e60fbd1d153c7862bfb78b"
+      }
+    ],
+    "reportInfo": {
+      "verificationInfo": {
+        "verificationStatus": "verified",
+        "corrections": [],
+        "verificationHistory": [
+          {
+            "action": "report_completed",
+            "performedBy": "69ba6a7b851dbfb30edc9465",
+            "performedAt": "2026-04-20T11:36:29.618Z",
+            "notes": "Verified via OHIF",
+            "_id": "69e60fbd1d153c7862bfb78c"
+          }
+        ],
+        "verificationNotes": "Verified via OHIF",
+        "verificationTimeMinutes": 0,
+        "verifiedAt": "2026-04-20T11:36:29.618Z",
+        "verifiedBy": "69ba6a7b851dbfb30edc9465"
+      },
+      "modernReports": [
+        {
+          "reportId": "69e60ecc1d153c7862bfb301",
+          "reportType": "draft",
+          "createdAt": "2026-04-20T11:32:28.130Z",
+          "_id": "69e60ecc1d153c7862bfb304"
+        }
+      ],
+      "reporterName": "DR UDAI SINGH",
+      "finalizedAt": "2026-04-20T11:32:32.176Z"
+    },
+    "revertInfo": {
+      "currentRevert": {
+        "resolved": false
+      },
+      "isReverted": false,
+      "revertCount": 0,
+      "revertHistory": []
+    },
+    "timingInfo": {
+      "tatResetCount": 0,
+      "calculationMethod": "tatCalculator"
+    },
+    "sourceLab": "69d8e73a9f584e9a230b0371",
+    "labLocation": "New Delhi, DELHI, India",
+    "ReportAvailable": false,
+    "currentReportStatus": {
+      "hasReports": true,
+      "latestReportId": "69e60ecc1d153c7862bfb301",
+      "latestReportStatus": "finalized",
+      "latestReportType": "finalized",
+      "reportCount": 3,
+      "lastReportedAt": "2026-04-20T11:32:32.185Z",
+      "lastReportedBy": "69ccf166b961e15ecfacd198"
+    },
+    "seriesCount": 6,
+    "instanceCount": 108,
+    "seriesImages": "6/108",
+    "studyTime": "134103",
+    "modalitiesInStudy": [
+      "MR"
+    ],
+    "examDescription": "LEFT SHOULDER",
+    "institutionName": "DR SUNEJA MRI NEW DELHI",
+    "orthancStudyID": "d88a9c7c-7016f07b-95c4fd85-0ba709ab-4eacfedf",
+    "caseType": "routine",
+    "hasStudyNotes": false,
+    "hasAttachments": false,
+    "referringPhysician": {},
+    "referringPhysicianName": "DR ANIL TOMAR",
+    "physicians": {
+      "referring": {
+        "name": "DR ANIL TOMAR",
+        "email": "",
+        "mobile": "",
+        "institution": "DR SUNEJA MRI NEW DELHI"
+      },
+      "requesting": {
+        "name": "",
+        "email": "",
+        "mobile": "",
+        "institution": ""
+      }
+    },
+    "followUp": {
+      "isFollowUp": false,
+      "history": []
+    },
+    "calculatedTAT": {
+      "keyDates": {},
+      "studyToUploadTAT": null,
+      "uploadToAssignmentTAT": null,
+      "assignmentToReportTAT": null,
+      "studyToReportTAT": null,
+      "uploadToReportTAT": null,
+      "totalTATMinutes": null,
+      "totalTATDays": null,
+      "resetAwareTATDays": null,
+      "resetAwareTATMinutes": null,
+      "studyToUploadTATFormatted": "N/A",
+      "uploadToAssignmentTATFormatted": "N/A",
+      "assignmentToReportTATFormatted": "N/A",
+      "studyToReportTATFormatted": "N/A",
+      "uploadToReportTATFormatted": "N/A",
+      "totalTATFormatted": "N/A",
+      "isCompleted": false,
+      "isOverdue": false,
+      "phase": "not_started",
+      "calculatedBy": "system",
+      "resetCount": 0,
+      "calculatedAt": "2026-04-20T10:43:15.736Z",
+      "lastUpdated": "2026-04-20T10:43:15.736Z"
+    },
+    "clinicalHistory": {
+      "clinicalHistory": "H/O FALL DOWN RTA 1 DAY BACK\nPAIN AND SWELLING LT SHOULDER\n\n#???",
+      "previousInjury": "",
+      "previousSurgery": "",
+      "lastModifiedFrom": "admin_panel",
+      "dataSource": "dicom_study_primary",
+      "lastModifiedAt": "2026-04-20T10:44:35.994Z",
+      "lastModifiedBy": "69ba6a7b851dbfb30edc9465"
+    },
+    "legacyClinicalHistoryRef": {
+      "fromPatientModel": false,
+      "syncedBy": "system"
+    },
+    "billing": {
+      "billingModule": null,
+      "moduleName": null,
+      "moduleCode": null,
+      "modality": null,
+      "amount": null,
+      "currency": "INR",
+      "billedAt": null,
+      "billedBy": null,
+      "billedByName": null,
+      "paymentStatus": "pending",
+      "isBilled": false
+    },
+    "createdAt": "2026-04-20T10:43:15.733Z",
+    "updatedAt": "2026-04-20T19:03:24.202Z",
+    "copiedTo": [],
+    "duplicatedTo": [],
+    "actionLog": [
+      {
+        "actionType": "study_received",
+        "actionCategory": "upload",
+        "performedBy": "000000000000000000000000",
+        "performedByName": "System",
+        "performedByRole": "system",
+        "actionDetails": {
+          "metadata": {
+            "bharatPacsId": "BP-MHR-LAB-MO72GVBU-G4WC",
+            "generatedAt": "2026-04-20T10:43:15.738Z"
+          }
+        },
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {},
+        "notes": "BharatPacs ID generated: BP-MHR-LAB-MO72GVBU-G4WC",
+        "_id": "69e603431d153c7862bf7771",
+        "performedAt": "2026-04-20T10:43:15.738Z"
+      },
+      {
+        "actionType": "study_reassigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T10:44:05.648Z",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "clear_all",
+          "previousAssignee": null,
+          "priority": "NORMAL",
+          "dueDate": null
+        },
+        "notes": "Cleared all assignments before reassignment",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e603751d153c7862bf78c1"
+      },
+      {
+        "actionType": "study_assigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T10:44:05.648Z",
+        "targetUser": "69ccf166b961e15ecfacd198",
+        "targetUserName": "DR UDAI SINGH",
+        "targetUserRole": "radiologist",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "bulk_assignment",
+          "previousAssignee": null,
+          "priority": "NORMAL",
+          "dueDate": "2026-04-21T10:44:03.379Z"
+        },
+        "notes": "Assignment updated via modal - 1 radiologist(s) selected",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e603751d153c7862bf78c8"
+      },
+      {
+        "actionType": "history_created",
+        "actionCategory": "administrative",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T10:44:35.994Z",
+        "actionDetails": {
+          "changes": {
+            "patientName": "SANGEETA TRIPATHI 25Y/F",
+            "patientAge": "N/A",
+            "patientGender": "F",
+            "studyName": "LEFT SHOULDER",
+            "referringPhysician": "DR ANIL TOMAR",
+            "accessionNumber": "ACC1776681795728",
+            "priority": {
+              "from": "NORMAL",
+              "to": "NORMAL"
+            },
+            "clinicalHistoryUpdated": true
+          }
+        },
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {},
+        "notes": "Study details updated via patient edit modal. Priority changes: Priority: NORMAL → NORMAL",
+        "_id": "69e603931d153c7862bf797d"
+      },
+      {
+        "actionType": "study_reassigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T10:44:44.747Z",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "clear_all",
+          "previousAssignee": null,
+          "priority": "NORMAL",
+          "dueDate": null
+        },
+        "notes": "Cleared all assignments before reassignment",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e6039c1d153c7862bf79da"
+      },
+      {
+        "actionType": "study_reassigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T10:44:44.747Z",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "unassignment",
+          "previousAssignee": null,
+          "priority": null,
+          "dueDate": null
+        },
+        "notes": "Study unassigned - all assignments removed",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e6039c1d153c7862bf79e8"
+      },
+      {
+        "actionType": "study_reassigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T10:44:50.746Z",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "clear_all",
+          "previousAssignee": null,
+          "priority": "NORMAL",
+          "dueDate": null
+        },
+        "notes": "Cleared all assignments before reassignment",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e603a21d153c7862bf7a20"
+      },
+      {
+        "actionType": "study_assigned",
+        "actionCategory": "assignment",
+        "performedBy": "69ba6a7b851dbfb30edc9465",
+        "performedByName": "Admin Radivue Solutions",
+        "performedByRole": "admin",
+        "performedAt": "2026-04-20T10:44:50.746Z",
+        "targetUser": "69ccf166b961e15ecfacd198",
+        "targetUserName": "DR UDAI SINGH",
+        "targetUserRole": "radiologist",
+        "actionDetails": {},
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {
+          "assignmentType": "bulk_assignment",
+          "previousAssignee": null,
+          "priority": "NORMAL",
+          "dueDate": "2026-04-21T10:44:48.484Z"
+        },
+        "notes": "Assignment updated via modal - 1 radiologist(s) selected",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e603a21d153c7862bf7a31"
+      },
+      {
+        "actionType": "study_locked",
+        "actionCategory": "lock",
+        "performedBy": "69ccf166b961e15ecfacd198",
+        "performedByName": "DR UDAI SINGH",
+        "performedByRole": "radiologist",
+        "performedAt": "2026-04-20T11:32:00.560Z",
+        "actionDetails": {
+          "metadata": {
+            "lockReason": "reporting",
+            "lockExpiry": "2026-04-20T13:32:00.560Z",
+            "sessionStart": "2026-04-20T11:32:00.560Z"
+          }
+        },
+        "printInfo": {},
+        "historyInfo": {},
+        "assignmentInfo": {},
+        "notes": "Study locked for reporting by DR UDAI SINGH",
+        "ipAddress": "::ffff:172.19.0.8",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
+        "_id": "69e60eb01d153c7862bfb28d"
+      }
+    ],
+    "printHistory": [
+      {
+        "printedAt": "2026-04-20T11:40:38.235Z",
+        "printedBy": "69ba6a7b851dbfb30edc9465",
+        "printedByName": "Admin Radivue Solutions",
+        "printType": "docx_download",
+        "printMethod": "docx_download",
+        "reportStatus": "verified",
+        "copies": 1,
+        "bharatPacsId": "BP-MHR-LAB-MO72GVBU-G4WC",
+        "ipAddress": "::ffff:172.19.0.8",
+        "_id": "69e610b61d153c7862bfbc2c"
+      }
+    ],
+    "assignment": [
+      {
+        "assignedTo": "69ccf166b961e15ecfacd198",
+        "assignedAt": "2026-04-20T10:44:50.746Z",
+        "assignedBy": "69ba6a7b851dbfb30edc9465",
+        "dueDate": "2026-04-21T10:44:48.484Z",
+        "priority": "NORMAL",
+        "_id": "69e603a21d153c7862bf7a36"
+      }
+    ],
+    "lastAssignedDoctor": [
+      {
+        "doctorId": "69ccf166b961e15ecfacd198",
+        "assignedAt": "2026-04-20T10:44:50.746Z",
+        "_id": "69e603a21d153c7862bf7a35"
+      }
+    ],
+    "uploadedReports": [],
+    "doctorReports": [],
+    "reports": [
+      {
+        "reportId": "69e60ecc1d153c7862bfb301",
+        "reportType": "draft",
+        "reportStatus": "draft",
+        "createdBy": "69ccf166b961e15ecfacd198",
+        "fileName": "sangeeta_tripathi_25yf_draft_1776684748119.docx",
+        "_id": "69e60ecc1d153c7862bfb305",
+        "createdAt": "2026-04-20T11:32:28.131Z"
+      }
+    ],
+    "dicomFiles": [],
+    "discussions": [],
+    "attachments": [],
+    "bharatPacsId": "BP-MHR-LAB-MO72GVBU-G4WC",
+    "searchText": "bp-mhr-lab-mo72gvbu-g4wc sangeeta tripathi 25y/f 20426mr10 acc1776681795728 mr dr anil tomar left shoulder 1.3.46.670589.11.10116.5.0.6272.2026042013330985098",
+    "age": "N/A",
+    "gender": "F"
+  },
+  "organization": {
+    "_id": "69ba6a7b851dbfb30edc9463",
+    "name": "Radivue Solutions",
+    "identifier": "MHRH",
+    "displayName": "Radivue Solutions",
+    "companyType": "teleradiology",
+    "contactInfo": {
+      "primaryContact": {
+        "name": "Aman Singh Chauhan",
+        "email": "admin@radivuesolutions.com",
+        "phone": "+91 7983497594",
+        "designation": "CEO"
+      }
+    },
+    "address": {
+      "street": "Nehru Market, Dakpathar Jeevangarh Road, Vikasnagar",
+      "city": "Dehradun",
+      "state": "Uttrakhand",
+      "zipCode": "248125",
+      "country": "India"
+    },
+    "settings": {
+      "timezone": "UTC",
+      "dateFormat": "MM/DD/YYYY",
+      "currency": "USD",
+      "language": "en"
+    },
+    "subscription": {
+      "plan": "basic",
+      "maxUsers": 10,
+      "maxStudiesPerMonth": 1000,
+      "maxStorageGB": 100,
+      "billingCycle": "monthly",
+      "autoRenewal": true
+    },
+    "features": {
+      "aiAnalysis": false,
+      "advancedReporting": false,
+      "multiModalitySupport": true,
+      "cloudStorage": true,
+      "mobileAccess": true,
+      "apiAccess": false,
+      "whiteLabeling": false
+    },
+    "status": "active",
+    "compliance": {
+      "hipaaCompliant": false,
+      "dicomCompliant": true,
+      "hl7Integration": false,
+      "fda510k": false
+    },
+    "createdBy": "69b994845f0c13ae829eb2b6",
+    "queryCallNumber": "",
+    "createdAt": "2026-03-18T09:03:55.044Z",
+    "updatedAt": "2026-03-18T12:31:20.614Z",
+    "__v": 0,
+    "lastModifiedBy": "69b994845f0c13ae829eb2b6",
+    "notes": ""
+  },
+  "sourceLab": {
+    "_id": "69d8e73a9f584e9a230b0371",
+    "organization": "69ba6a7b851dbfb30edc9463",
+    "organizationIdentifier": "MHRH",
+    "name": "DR SUNEJA MRI NEW DELHI",
+    "identifier": "UJEJG",
+    "contactPerson": "DR SUNEJA MRI NEW DELHI",
+    "contactEmail": "",
+    "contactPhone": "",
+    "address": {
+      "street": "",
+      "city": "New Delhi",
+      "state": "DELHI",
+      "zipCode": "",
+      "country": "India"
+    },
+    "isActive": true,
+    "settings": {
+      "autoAssignStudies": false,
+      "defaultPriority": "NORMAL",
+      "maxConcurrentStudies": 100,
+      "requireReportVerification": false,
+      "verificationEnabledAt": "2026-04-10T12:04:10.573Z",
+      "verificationEnabledBy": "69ba6a7b851dbfb30edc9465",
+      "enableCompression": false
+    },
+    "reportBranding": {
+      "headerImage": {
+        "url": "",
+        "width": 0,
+        "height": 0,
+        "size": 0
+      },
+      "footerImage": {
+        "url": "",
+        "width": 0,
+        "height": 0,
+        "size": 0
+      },
+      "paperSettings": {
+        "paperWidth": 210,
+        "paperHeight": 297,
+        "marginTop": 25.4,
+        "marginBottom": 25.4,
+        "marginLeft": 25.4,
+        "marginRight": 25.4,
+        "headerHeight": 30,
+        "footerHeight": 20,
+        "dpi": 96
+      },
+      "showHeader": true,
+      "showFooter": true
+    },
+    "staffUsers": [],
+    "createdAt": "2026-04-10T12:04:10.576Z",
+    "updatedAt": "2026-04-16T05:35:45.425Z",
+    "fullIdentifier": "MHRH_UJEJG",
+    "__v": 0
+  },
+  "patient": {
+    "_id": "69e5ef561d153c7862befa6a",
+    "organization": "69ba6a7b851dbfb30edc9463",
+    "organizationIdentifier": "MHRH",
+    "patientID": "20426MR10",
+    "mrn": "20426MR10",
+    "firstName": "",
+    "lastName": "SANGEETA TRIPATHI 25Y/F",
+    "patientNameRaw": "SANGEETA TRIPATHI 25Y/F",
+    "dateOfBirth": "Sat Jan 25 2025 00:00:00 GMT+0000 (Coordinated Universal Time)",
+    "gender": "F",
+    "currentWorkflowStatus": "no_active_study",
+    "studyCount": 0,
+    "contactInformation": {
+      "phone": "",
+      "email": ""
+    },
+    "computed": {
+      "fullName": "SANGEETA TRIPATHI 25Y/F",
+      "lastActivity": "2026-04-20T09:18:14.104Z"
+    },
+    "createdAt": "2026-04-20T09:18:14.103Z",
+    "updatedAt": "2026-04-20T09:18:14.103Z",
+    "globalPatientID": "MHRH_20426MR10",
+    "__v": 0
+  },
+  "reports": [],
+  "studyNotes": [],
+  "attachments": [],
+  "counts": {
+    "reports": 0,
+    "studyNotes": 0,
+    "attachments": 0
+  }
+}
